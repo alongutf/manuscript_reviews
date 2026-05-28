@@ -1,0 +1,13 @@
+# GMP-Cor calibration sweep (rep=2 / count_seed=33 excluded)
+# n_cells=1000  n_genes=2000  dropout_rate=1  shape=1.5  hub_probability=0.2  sigma_seed=31
+     median    std
+rho               
+0.1   0.000  0.218
+0.2   0.000  0.117
+0.3   0.086  0.187
+0.4   0.004  0.667
+0.5   0.611  0.629
+0.6   3.455  1.207
+0.7   5.595  1.382
+0.8  14.262  4.184
+0.9  36.359  5.403

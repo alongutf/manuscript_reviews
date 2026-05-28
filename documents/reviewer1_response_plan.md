@@ -1,8 +1,18 @@
-# Response Plan: Reviewer #1 Comments
+com# Response Plan: Reviewer #1 Comments
 
 ## Overview
 
 Reviewer #1 has two broad concerns: (1) the biological interpretation and experimental design, and (2) the GMP-Cor metric validation. The metric-validation concerns (Comment 2) are the most tractable computationally and map directly onto the existing simulations. Comments 1, 3, 4, and 5 require either re-analysis of existing data or targeted experimental work.
+
+**Updated GMP-Cor definition (replaces GMP model fit):** The GMP model fit to the Generalized Marchenko-Pastur distribution was found to be numerically unreliable — fits are not robust or reproducible across datasets. GMP-Cor is now defined as:
+
+> **GMP-Cor = Σ max(λᵢ − λ\*\_scrambled, 0)** for all eigenvalues λᵢ
+>
+> where λ\*\_scrambled is the maximum eigenvalue of the scrambled (gene-permuted) correlation matrix. Only positive differences are summed — this counts the total excess of observed eigenvalues above the noise threshold set by scrambling.
+
+Implementation: `get_eig_dist()` in `src/analysis_functions.py` already returns `pcs` (observed eigenvalues) and `pcs1` (scrambled eigenvalues). The new scalar is `sum(pcs[pcs > pcs1.max()] - pcs1.max())`. Figure 2 and its caption will need updating to reflect this change.
+
+**Simulation approach:** All response simulations use the synthetic scRNA-seq pipeline from `simulations/simulated_data.ipynb` (`simulate_scRNA_data()` function). The dynamical ODE/SDE simulations (`main.py`, `competitive_binding.py`, `subpopulations.py`) are unreliable for this purpose — the correlation signal in their output is dominated by high data dispersion rather than true gene-gene couplings. The synthetic approach generates correlated Gaussian latent variables and maps them through Negative Binomial inverse-transform sampling to produce realistic count data with a known, controlled correlation structure. The `rho` parameter of `generate_gram_hub_matrix()` is the clean control knob: high rho → regulated, low rho → dysregulated.
 
 ---
 
@@ -12,14 +22,12 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 **Proposed response steps:**
 
-1. **Simulation argument (computational):** Use the existing `subpopulations.py` framework to generate two contrasting scenarios:
-   - **Scenario A (dysregulation):** Single population, low coupling strength J → genuinely low GMP-Cor
-   - **Scenario B (subpopulations):** Two subpopulations each with high J but different interaction networks (as in `subpopulations.py`) → mixed population
-   - Compute GMP-Cor on the full mixed population in Scenario B and show it is *higher* than Scenario A, not lower. This directly addresses the reviewer's concern: subpopulations increase apparent correlation under GMP, while genuine dysregulation decreases it.
+1. **Simulation argument (computational):** Use `simulate_scRNA_data()` to generate two contrasting scenarios:
+   - **Scenario A (dysregulation):** Single population, low rho (e.g., rho=0.1) → genuinely low GMP-Cor
+   - **Scenario B (subpopulations):** Two sub-populations, each with high rho (e.g., rho=0.8) but different sigma matrices (different hub network structures from `generate_gram_hub_matrix()` with different seeds), combined into one matrix — a mixed population of internally regulated but transcriptomically distinct cells
+   - Compute GMP-Cor on the full mixed population in Scenario B and show it is *higher* than Scenario A, not lower. This directly addresses the reviewer's concern: a mixture of regulated subpopulations produces an elevated GMP-Cor, while genuine dysregulation produces a low one.
 
-2. **Comparison to bulk entropy:** For the same two scenarios, compute bulk-level transcriptional entropy (from `utils.calculate_entropy()`) on "pseudo-bulk" samples aggregated from the simulated cells. Show that bulk entropy cannot distinguish Scenario A from Scenario B, but GMP-Cor can. This also addresses Comment 2.5 about entropy comparisons.
-
-3. **Manuscript text:** Add a paragraph in the Results/Methods clarifying that scRNA-seq is essential because GMP-Cor requires per-cell gene expression vectors — bulk data gives one average expression vector per condition and cannot compute the correlation spectrum across cells.
+2. **Manuscript text:** Add a paragraph in the Results/Methods clarifying that scRNA-seq is essential because GMP-Cor requires per-cell gene expression vectors — bulk data gives one average expression vector per condition and cannot compute the correlation spectrum across cells.
 
 ---
 
@@ -29,16 +37,16 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 **Proposed response steps:**
 
-1. **Sweep J in `main.py`:** Run the main simulation across a range of coupling strengths (e.g., J = 0, 0.5, 1, 2, 3, 5). For each J, take the last N_STEPS snapshot (the steady-state distribution across trajectories) and run `utils.get_eig_dist()` on it as if it were scRNA-seq data. Compute GMP-Cor from the eigenvalue distribution.
+1. **Sweep rho using `simulate_scRNA_data()`:** Run the synthetic data generator across a range of correlation strengths (e.g., rho = 0.1, 0.3, 0.5, 0.7, 0.9). For each rho, generate a cell × gene count matrix and compute GMP-Cor using the new definition (sum of eigenvalue excesses above max scrambled eigenvalue).
 
-2. **Plot GMP-Cor vs. J:** A single figure showing how GMP-Cor monotonically maps to coupling strength. This defines the "ruler" for interpreting experimental values: what J corresponds to each biological condition?
+2. **Plot GMP-Cor vs. rho:** A single figure showing how GMP-Cor monotonically increases with rho. This defines a calibration curve: what correlation strength corresponds to each biological condition?
 
-3. **Overlay experimental values:** Superimpose the experimentally observed GMP-Cor values (Exp, Reg-Arrest, Dis-Arrest) on this calibration curve to show they fall in sensible positions.
+3. **Overlay experimental values:** Superimpose the experimentally observed GMP-Cor values (Exp, Reg-Arrest, Dis-Arrest) on this calibration curve to show they fall in interpretable positions.
 
 4. **Noise vs. coupling disambiguation:** Run two additional series:
-   - Fixed J, varying noise amplitude (from `main.py`: `noise_amp` parameter) — show GMP-Cor changes little
-   - Fixed noise, varying J — show GMP-Cor tracks coupling
-   - This directly addresses whether the metric reflects dysregulation vs. enhanced variability.
+   - Fixed rho, varying dropout rate — show GMP-Cor changes little with dropout noise
+   - Fixed dropout, varying rho — show GMP-Cor tracks correlation strength
+   - This directly addresses whether the metric reflects dysregulation vs. enhanced technical variability.
 
 ---
 
@@ -48,11 +56,11 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 **Proposed response steps:**
 
-1. **Use exponential growth datasets as positive control:** Apply GMP-Cor to publicly available E. coli scRNA-seq data from exponentially growing cells (already mentioned in the draft rebuttal). Present as the "maximally correlated" reference.
+1. **Use simulated extremes as anchors:** Generate synthetic data with rho → 1 (nearly fully correlated, "maximally regulated") and rho → 0 (uncorrelated, "maximally dysregulated") as theoretical upper and lower bounds for GMP-Cor. These simulated extremes bracket the calibration curve and give a concrete scale.
 
-2. **Link to simulation calibration:** After establishing the J-vs-GMP-Cor curve (step above), show that exponential growth cells have a GMP-Cor consistent with a high-J (well-coupled) regime. Dis-Arrest cells fall at the low-J end.
+2. **Link to experimental conditions:** Show that exponential growth cells have GMP-Cor consistent with the high-rho regime, while Dis-Arrest cells fall near the low-rho end.
 
-3. **Quantitative statement:** Provide a table of GMP-Cor values per condition (mean ± SD across replicates) alongside the simulated J-equivalent. This gives readers a concrete interpretation of the metric magnitude.
+3. **Quantitative statement:** Provide a table of GMP-Cor values per condition (mean ± SD across replicates) alongside the equivalent rho from the calibration curve. This gives readers a concrete interpretation of the metric magnitude. Publicly available E. coli scRNA-seq datasets from GEO (exponential growth) may serve as an independent supplementary validation.
 
 ---
 
@@ -64,9 +72,9 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 1. **Re-run GMP-Cor per cluster:** For the two Dis-Arrest clusters identified in Fig. 1H, compute GMP-Cor separately. If both clusters show similarly low GMP-Cor, this demonstrates the metric is not an artifact of mixing. Report this result explicitly.
 
-2. **Subsampling robustness (computational):** Using any of the existing simulations (e.g., `main.py`), subsample cells at varying fractions (10%, 25%, 50%, 75%, 100% of trajectories) and compute GMP-Cor at each level. Show that above some minimum threshold (likely ~50–100 cells), GMP-Cor stabilizes. This directly answers the reviewer's question about robustness to population composition.
+2. **Subsampling robustness (computational):** Using `simulate_scRNA_data()` with a fixed rho, subsample cells at varying fractions (e.g., 10%, 25%, 50%, 75%, 100% of n_cells) and compute GMP-Cor at each level. Because the ground truth correlation structure is exactly known from the simulation, this is a clean test. Show that above some minimum threshold (likely ~50–100 cells) GMP-Cor stabilizes.
 
-3. **Simulated mixed population:** Using `subpopulations.py`, vary the mixing ratio of two sub-populations (10/90, 25/75, 50/50, etc.) and show that GMP-Cor remains elevated regardless of mixing ratio (since both sub-populations are individually regulated). Compare to a single dysregulated population at the same total cell count.
+3. **Simulated mixed population:** Generate two synthetic sub-populations (high rho, different sigma matrices) and vary their mixing ratio (10/90, 25/75, 50/50, etc.). Show that GMP-Cor remains elevated regardless of mixing ratio. Compare to a single low-rho population at the same total cell count to demonstrate the subpopulation/dysregulation contrast.
 
 4. **Marker gene analysis for clusters:** Run Scanpy marker gene analysis on the two Dis-Arrest clusters (already in `scanpy_analysis.ipynb`) and show they are not growing/non-growing but represent biologically similar states. Cite the GMP-Cor per cluster as evidence.
 
@@ -80,7 +88,7 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 1. **Apply GMP-Cor to publicly available E. coli scRNA-seq datasets:** Several E. coli scRNA-seq datasets exist in GEO. Pick 1–2 from well-defined growth states and compute GMP-Cor. Show that exponential growth → high GMP-Cor, stationary/stress → lower GMP-Cor, even in independent datasets with different protocols.
 
-2. **Address the bulk RNA-seq question conceptually:** Explain in the manuscript that GMP-Cor is inherently a single-cell metric — it computes correlations *across cells*, which is not possible with bulk data (one sample = one point). What bulk data provides is a different (and as shown, less informative) view via entropy or enrichment scores.
+2. **Address the bulk RNA-seq question conceptually:** Explain in the manuscript that GMP-Cor is inherently a single-cell metric — it computes correlations *across cells*, which is not possible with bulk data (one sample = one point). Bulk data provides a different view via enrichment scores or differential expression.
 
 3. **Cell count scaling analysis:** Show empirically (from the subsampling analysis in step 2.3 above) that the method works for both large and small cell counts, defining the practical lower bound.
 
@@ -92,17 +100,11 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 **Proposed response steps:**
 
-1. **Fix the Introduction:** Correct the description of the entropy paper's conclusions. Acknowledge that the entropy approach also captures global dysregulation, and explicitly position GMP-Cor as complementary or superior in the single-cell context.
+1. **Fix the Introduction:** Correct the description of the entropy paper's conclusions. Acknowledge that the entropy approach captures global dysregulation, and explicitly position GMP-Cor as complementary in the single-cell context.
 
-2. **Head-to-head simulation comparison:** This is the key new analysis. Using the simulation framework:
-   - Generate 3 datasets from simulations: (A) regulated, (B) dysregulated, (C) mixed regulated subpopulations
-   - Compute both GMP-Cor and bulk transcriptional entropy on each
-   - Show the key result: entropy conflates (B) and (C) as both "disordered," while GMP-Cor correctly distinguishes them
-   - `utils.calculate_entropy()` already exists for this purpose (though it currently imports sklearn which may need enabling)
+2. **Explain why entropy is not applicable here (manuscript text):** Transcriptional entropy quantifies how broadly cells sample gene expression state space over time or across perturbations — it is a measure of dynamic disorder. In antibiotic-arrested conditions, cells are in a steady state: they are not traversing state space. Entropy of a steady-state snapshot is therefore not a meaningful readout of dysregulation. GMP-Cor, by contrast, directly quantifies whether the steady-state correlation structure is preserved. The two metrics address fundamentally different questions and operate on different data types (time-series/bulk trajectories vs. single-cell snapshots). No simulation comparison is needed — this is a conceptual distinction that should be stated clearly in the manuscript.
 
-3. **Apply both metrics to real data:** Run both GMP-Cor and entropy on the existing experimental scRNA-seq datasets (Exp, Reg-Arrest, Dis-Arrest) and compare their values side by side. Entropy from bulk will need the bulk RNA-seq data from `bulk_analysis.ipynb`.
-
-4. **Address the Jensen et al. 2017 paper** (flagged also by Reviewer #4): Add a brief discussion paragraph comparing the approach to Tn-seq entropy comparisons.
+3. **Address the Jensen et al. 2017 paper** (flagged also by Reviewer #4): Add a brief discussion paragraph comparing the approach to Tn-seq entropy comparisons.
 
 ---
 
@@ -159,31 +161,17 @@ Reviewer #1 has two broad concerns: (1) the biological interpretation and experi
 
 ## Simulation Improvement Ideas
 
-The current simulations (`simulations/`) produce raw time-series arrays but do not auto-compute GMP-Cor or produce comparison figures. Here are targeted improvements aligned with the rebuttal:
+All simulations should use `simulate_scRNA_data()` from `simulations/simulated_data.ipynb`. The dynamical simulations (`main.py`, `competitive_binding.py`, `subpopulations.py`) are not reliable for this purpose — the correlation signal is dominated by high data dispersion rather than true gene-gene couplings.
 
-### 1. Add a GMP-Cor computation pipeline to each simulation
-Currently, simulations save `.npy` files but don't analyze them. Add a post-processing step that:
-- Takes the last `T` time steps of each trajectory as a "snapshot" (analogous to scRNA-seq)
-- Passes the cell×gene matrix to `utils.get_eig_dist()`
-- Computes a scalar GMP-Cor value (e.g., ratio of max eigenvalue to MP prediction, or the entropy measure)
-- Returns that value for downstream comparison
+### 1. Add a rho sweep runner
+Add a `rho_sweep()` function to `simulated_data.ipynb` (or a new `simulations/sweep.py`) that:
+- Loops rho over e.g. [0.1, 0.3, 0.5, 0.7, 0.9]
+- At each rho, calls `simulate_scRNA_data()` and computes GMP-Cor = `sum(pcs[pcs > pcs1.max()] - pcs1.max())`
+- Returns a DataFrame of rho → GMP-Cor
+- Produces the calibration curve for Comments 2.1 and 2.2
 
-### 2. Add a parameter sweep runner
-Create a new script (e.g., `simulations/sweep.py`) that loops over J values and records GMP-Cor at each J. This directly produces the calibration curve for Comment 2.1. The `main.py` and `competitive_binding.py` simulations are the best candidates as they have a clean J parameter controlling coupling strength.
+### 2. Add a subpopulation mixing scenario
+Extend `simulated_data.ipynb` to simulate two sub-populations with different sigma matrices (different seeds for `generate_gram_hub_matrix()`), each with high rho, combined into one matrix. Vary the mixing ratio (10/90 → 50/50). Compare GMP-Cor of the mixture to a single-population low-rho case. Produces the core figure for Comments 1 and 2.3.
 
-### 3. Unify the subpopulations vs. dysregulation comparison
-`subpopulations.py` currently simulates subpopulations but doesn't compare GMP-Cor to a dysregulated single-population control. A new script (or notebook) should:
-- Run `subpopulations.py` with RATIO=1.0 (fully different networks → regulated heterogeneity)
-- Run `main.py` with low J (same number of cells, but uniformly dysregulated)
-- Run both through the GMP-Cor pipeline
-- Plot side-by-side eigenvalue spectra and GMP-Cor values
-This produces the core figure addressing Comment 1 and Comment 2.3.
-
-### 4. Enable the entropy comparison in `utils.py`
-`utils.calculate_entropy()` imports sklearn but that import is commented out at the top. Once enabled, use it on pseudo-bulk aggregates from both the regulated and dysregulated simulation outputs to produce the entropy vs. GMP-Cor comparison figure (Comment 2.5).
-
-### 5. Fix the global variable pattern in simulation scripts
-`main.py`, `subpopulations.py`, etc. reference `degradation_rate`, `noise_amp`, and `J` as module-level globals inside `@njit` functions. This works but makes parameter sweeps awkward. Consider passing them as arguments or defining them as constants before the JIT-compiled function, so that a sweep over J doesn't require re-compiling the Numba kernel.
-
-### 6. Add a subsampling robustness script
-Add a loop in any simulation script that varies `n_trajectories` from small (50) to large (1000), computes GMP-Cor at each size, and plots the result. This directly addresses Comment 2.3 robustness question.
+### 3. Add a cell-count subsampling loop
+Fixed rho, vary n_cells from 50 → 1000. Compute GMP-Cor at each level. Plot to define the minimum cell count for reliable metric estimation. Directly addresses Comment 2.3 robustness question.

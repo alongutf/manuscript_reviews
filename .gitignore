@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Large binary data files (AnnData objects — can be hundreds of MB)
+*.h5ad
+data/
+
+# Reference genome FASTA (typically hundreds of MB to several GB)
+scripts/RNA-seq mapping/*.FASTA
+scripts/RNA-seq mapping/*.fasta
+scripts/RNA-seq mapping/*.fa
+
+# IDE
+.idea/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

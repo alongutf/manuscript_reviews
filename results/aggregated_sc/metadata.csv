@@ -1,0 +1,16 @@
+sample,condition
+EXP_A,exp
+EXP_B,exp
+EXP_C,exp
+VAPC_T2_A,vapc-early
+VAPC_T2_B,vapc-early
+VAPC_T2_C,vapc-early
+VAPC_T5_A,vapc-early2
+VAPC_T5_B,vapc-early2
+VAPC_T5_C,vapc-early2
+VAPC_T5B_A,vapc-early2b
+VAPC_T5B_B,vapc-early2b
+VAPC_T5B_C,vapc-early2b
+VAPC_TON_A,vapc-late
+VAPC_TON_B,vapc-late
+VAPC_TON_C,vapc-late

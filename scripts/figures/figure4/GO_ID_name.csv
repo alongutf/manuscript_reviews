@@ -1,0 +1,41 @@
+GO_ID,Term
+GO:0006935,chemotaxis
+GO:0002181,cytoplasmic translation
+GO:0071973,flagellum-dependent motility
+GO:0006412,translation
+GO:0044781,flagellum organization
+GO:0006164,purine nucleotide biosynthetic process
+GO:0000027,ribosomal assembly
+GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility
+GO:0000028,ribosomal small subunit assembly
+GO:0071555,cell wall organization
+GO:0006189,'de novo' IMP biosynthetic process
+GO:0044780,flagellum assembly
+GO:0006754,ATP biosynthetic process
+GO:0015986,proton motive force-driven ATP synthesis
+GO:0030254,protein secretion by the type III secretion system
+GO:0008360,regulation of cell shape
+GO:0009252,peptidoglycan biosynthetic process
+GO:0022904,respiratory electron transport chain
+GO:0042777,proton motive force-driven plasma membrane ATP synthesis
+GO:0006260,DNA replication
+GO:0015031,protein transport
+GO:0022900,electron transport chain
+GO:0089718,amino acid import across plasma membrane
+GO:0044205,'de novo' UMP biosynthetic process
+GO:0015990,electron transport coupled proton transport
+GO:0006221,pyrimidine nucleotide biosynthetic process
+GO:0009060,aerobic respiration
+GO:1903711,spermidine transmembrane transport
+GO:0035351,heme transmembrane transport
+GO:0006207,'de novo' pyrimidine nucleobase biosynthetic process
+GO:0007165,signal transduction
+GO:0042938,dipeptide transport
+GO:0009165,nucleotide biosynthetic process
+GO:0034775,glutathione transmembrane transport
+GO:0140205,oligopeptide import across plasma membrane
+GO:0015709,thiosulfate transport
+GO:0042956,maltodextrin transmembrane transport
+GO:0019645,anaerobic electron transport chain
+GO:0006355,regulation of DNA-templated transcription
+GO:0009061,anaerobic respiration

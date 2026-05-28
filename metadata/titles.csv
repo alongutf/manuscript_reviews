@@ -1,0 +1,10 @@
+file,title,CSI
+sample_13b_filtered,Exp. 2: Reg-Arrest,0.583656
+sample_13a_filtered,Exp. 2: Dis-Arrest,0.349326
+SHX_biorep2A,Exp. 1a: Dis-Arrest,0.607729
+SHX_biorep2B,Exp. 1a: Dis-Arrest,0.353491
+SHX_biorep4A,Exp. 1a: Dis-Arrest,0.341879
+SHX_biorep6A,Exp. 1a: Dis-Arrest,0.577381
+Expira_biorep_t0A_filtered,Exp. 1b: Exponential,0.773218
+VapC_biorep_t5A_filtered,Exp. 1b: VapC 5h,0.62696
+VapC_biorep_t5B_filtered,Exp. 1b: VapC 5h,0.625737

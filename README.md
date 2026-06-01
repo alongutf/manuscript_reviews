@@ -5,11 +5,11 @@ This repository contains the code and data used in our paper:
 # 
 ## 📌 Overview
 
-We present a computational framework to quantify the global correlation strength and level of dysregulation in bacterial cells under acute stress. We assess gene correlations by calculating the correlation spectrum of the experimental data and comparing it to our theoretical model - the Generalized Marchenko-Pastur (GMP) distribution.<br>
+We present a computational framework to quantify the global correlation strength and level of dysregulation in bacterial cells under acute stress. We assess gene correlations by calculating the correlation spectrum of the experimental data and comparing it to our theoretical model, generating a global correlation index (GMP-Cor).<br>
 This repository includes:
 - Code for reproducing all main figures
 - Scripts for RNA-seq preprocessing and gene correlation analysis
-- Derivation of the GMP distribution
+- Simulations for validation of the GMP-Cor metric
 - processed sequencing data and additional data that appears in the paper 
 ---
 
@@ -20,7 +20,7 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/alongutf/dysregulated-persistence.git
 git pull
-conda env create -f environment.yml --name rnaseq_env
+conda env create -f environment.yml --name rnaseq_correlations
 ```
 Installing source packages:
 ```python

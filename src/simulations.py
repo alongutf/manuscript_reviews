@@ -131,6 +131,27 @@ def plot_ccdf(data, label=None, ax=None):
     return ax
 
 
+def validate_cell_expression_distribution(counts, ax=None):
+    """
+    Compare per-cell total expression CCDF against data.
+
+    Plots the empirical CCDF of gene totals and overlays a reference power-law
+    slope, then returns the KS statistic against an exponential null (a rough
+    check that the tail is heavy).
+    """
+    cell_totals = counts.sum(axis=1)
+    cell_totals = cell_totals[cell_totals > 0]
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(6, 4))
+    ax = plot_ccdf(cell_totals, label='cell totals', ax=ax)
+    ax.set_title('Cell expression CCDF')
+    ax.set_xlim(10,2000)
+    # KS test: heavy tail means it deviates significantly from exponential
+    ks_stat, ks_p = kstest(cell_totals, 'expon',
+                           args=(cell_totals.min(), cell_totals.mean()))
+    return {'ks_stat': ks_stat, 'ks_p': ks_p, 'n_cells': len(cell_totals)}
+
+
 def validate_gene_expression_distribution(counts, n_sample=200, ax=None):
     """
     Compare per-gene total expression CCDF against an inverse-Gamma expectation.
@@ -141,7 +162,8 @@ def validate_gene_expression_distribution(counts, n_sample=200, ax=None):
     """
     gene_totals = counts.sum(axis=0)
     gene_totals = gene_totals[gene_totals > 0]
-
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(6, 4))
     ax = plot_ccdf(gene_totals, label='gene totals', ax=ax)
     ax.set_title('Gene expression CCDF')
 
@@ -258,6 +280,11 @@ def run_validation(true_counts, observed_counts, sigma):
     print(f'  genes with non-zero expression : {res_exp["n_genes"]}')
     print(f'  KS stat vs exponential         : {res_exp["ks_stat"]:.3f}  (p={res_exp["ks_p"]:.2e})\n')
 
+    res_umi = validate_cell_expression_distribution(true_counts)
+    print(f'[Expression distribution]')
+    print(f'  genes with non-zero expression : {res_umi["n_cells"]}')
+    print(f'  KS stat vs exponential         : {res_umi["ks_stat"]:.3f}  (p={res_umi["ks_p"]:.2e})\n')
+
     res_do = validate_dropout_rate(true_counts, observed_counts)
     print(f'[Dropout]')
     print(f'  observed zero fraction         : {res_do["observed_zero_fraction"]:.3f}')
@@ -348,6 +375,144 @@ def rho_sweep(rho_values=None, n_cells=500, n_genes=500, dropout_rate=1,
             print(f'  rho={rho:.2f}  rep={rep}  GMP-Cor={gmp_cor:.3f}')
 
     return pd.DataFrame(records)
+
+
+# ── Subpopulation mixing scenario ───────────────────────────────────────────
+
+def subpopulation_mixing(
+    n_cells=1000,
+    n_genes=2000,
+    mixing_ratio=0.5,
+    rho_low=0.1,
+    rho_high=0.8,
+    seed_a=20,
+    seed_b=21,
+    count_seed_a=0,
+    count_seed_b=1,
+    dropout_rate=1.0,
+    shape=1.5,
+    hub_probability=0.2,
+    log_file=None,
+):
+    """
+    Simulate two contrasting subpopulation-mixing conditions and compute GMP-Cor.
+
+    Two conditions are run:
+      - **Dysregulated**: sub-pop A (rho_low, seed_a) + sub-pop B (rho_low, seed_b)
+      - **Regulated**:    sub-pop A (rho_high, seed_a) + sub-pop B (rho_high, seed_b)
+
+    Using different sigma seeds (seed_a vs seed_b) gives each sub-population a
+    distinct hub-network topology even when rho is identical, matching the
+    reviewer scenario of two internally-regulated but transcriptomically distinct
+    cell populations.
+
+    GMP-Cor = Σ max(λᵢ − λ*_scrambled, 0) for all eigenvalues λᵢ.
+
+    Parameters
+    ----------
+    n_cells         : total cells (split mixing_ratio / (1-mixing_ratio) between subs)
+    n_genes         : number of genes
+    mixing_ratio    : fraction of cells assigned to sub-pop A (0.5 = 50/50)
+    rho_low         : shared-variance fraction for the dysregulated condition
+    rho_high        : shared-variance fraction for the regulated condition
+    seed_a          : sigma-matrix RNG seed for sub-population A
+    seed_b          : sigma-matrix RNG seed for sub-population B (distinct network)
+    count_seed_a    : count-generation RNG seed for sub-population A
+    count_seed_b    : count-generation RNG seed for sub-population B
+    dropout_rate    : dropout-rate parameter passed to simulate_scRNA_data
+    shape           : Pareto shape for cluster-size distribution
+    hub_probability : probability of cluster hub connecting to global hub
+    log_file        : path for JSON results log; prints to stdout if None
+
+    Returns
+    -------
+    dict with keys 'params', 'dysregulated', 'regulated'.
+    Each condition dict contains:
+      rho, n_cells_a, n_cells_b, n_cells_total,
+      gmp_cor_subpop_a, gmp_cor_subpop_b, gmp_cor_combined
+    """
+    import json
+    import datetime
+    from .analysis_functions import get_eig_dist
+
+    n_cells_a = int(round(n_cells * mixing_ratio))
+    n_cells_b = n_cells - n_cells_a
+
+    params = dict(
+        n_cells=n_cells,
+        n_cells_a=n_cells_a,
+        n_cells_b=n_cells_b,
+        n_genes=n_genes,
+        mixing_ratio=mixing_ratio,
+        rho_low=rho_low,
+        rho_high=rho_high,
+        seed_a=seed_a,
+        seed_b=seed_b,
+        count_seed_a=count_seed_a,
+        count_seed_b=count_seed_b,
+        dropout_rate=dropout_rate,
+        shape=shape,
+        hub_probability=hub_probability,
+        gmp_cor_definition='sum(max(lambda_i - max_scrambled_lambda, 0))',
+        note=(
+            'seed_a / seed_b determine hub-network topology (sigma matrix); '
+            'count_seed_a / count_seed_b determine count-sampling noise. '
+            'Two distinct networks per rho level — different seeds → different hub structures.'
+        ),
+        timestamp=datetime.datetime.now().isoformat(),
+    )
+
+    def _gmp_cor(observed):
+        pcs, pcs1, _ = get_eig_dist(observed, norm=True, log=False, norm_sum=100)
+        return float(np.sum(np.maximum(pcs - pcs1.max(), 0)))
+
+    results = {'params': params}
+
+    for condition, rho in [('dysregulated', rho_low), ('regulated', rho_high)]:
+        # Different hub-network topologies via seed_a vs seed_b; same rho within condition
+        sigma_a = generate_gram_hub_matrix(n_genes, rho, shape, hub_probability, seed=seed_a)
+        sigma_b = generate_gram_hub_matrix(n_genes, rho, shape, hub_probability, seed=seed_b)
+
+        _, obs_a = simulate_scRNA_data(
+            n_cells=n_cells_a, n_genes=n_genes, sigma=sigma_a,
+            dropout_rate=dropout_rate, seed=count_seed_a,
+        )
+        _, obs_b = simulate_scRNA_data(
+            n_cells=n_cells_b, n_genes=n_genes, sigma=sigma_b,
+            dropout_rate=dropout_rate, seed=count_seed_b,
+        )
+
+        obs_combined = np.vstack([obs_a, obs_b])
+
+        print(f'\n[{condition.upper()}]  rho={rho}')
+        print(f'  Computing GMP-Cor for sub-pop A  ({n_cells_a} cells) ...')
+        gmp_a = _gmp_cor(obs_a)
+        print(f'  Computing GMP-Cor for sub-pop B  ({n_cells_b} cells) ...')
+        gmp_b = _gmp_cor(obs_b)
+        print(f'  Computing GMP-Cor for combined   ({n_cells} cells) ...')
+        gmp_combined = _gmp_cor(obs_combined)
+
+        results[condition] = {
+            'rho': rho,
+            'n_cells_a': n_cells_a,
+            'n_cells_b': n_cells_b,
+            'n_cells_total': n_cells,
+            'gmp_cor_subpop_a': gmp_a,
+            'gmp_cor_subpop_b': gmp_b,
+            'gmp_cor_combined': gmp_combined,
+        }
+
+        print(f'  => sub-pop A: {gmp_a:.4f} | sub-pop B: {gmp_b:.4f} | combined: {gmp_combined:.4f}')
+
+    log_str = json.dumps(results, indent=2)
+    if log_file:
+        with open(log_file, 'w') as fh:
+            fh.write(log_str + '\n')
+        print(f'\nJSON log written to: {log_file}')
+    else:
+        print('\nsubpopulation_mixing results:\n' + log_str)
+
+    return results
 
 
 # ── Graphical-lasso covariance entropy ───────────────────────────────────────

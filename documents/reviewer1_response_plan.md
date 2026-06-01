@@ -1,4 +1,4 @@
-com# Response Plan: Reviewer #1 Comments
+# Response Plan: Reviewer #1 Comments
 
 ## Overview
 

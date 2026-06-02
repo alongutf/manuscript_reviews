@@ -1,9 +1,8 @@
 import src.analysis_functions as af
 import src.data_functions as df
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch, Patch
 import seaborn as sns
-from scipy.cluster.hierarchy import linkage, leaves_list
-from sklearn.datasets import make_spd_matrix
 from figure_functions import PanelFigure
 import numpy as np
 import os
@@ -14,106 +13,55 @@ importlib.reload(df)
 # ------------------------------------------------------------------
 # BUILD FIGURE
 # ------------------------------------------------------------------
-def get_data_for_plot(path, norm=True, log=False, norm_method='sum', norm_sum=1):
-    # get annotated matrix from file
-    amat = df.read_from_csv(path)
-    # calculate the eigenvalues and plot:
-    # remove tracker genes from the matrix
-    t_genes = ['16s_mature', '16s_unprocessed']
-    # amat.reset_filters()
-    index = [np.where(amat.var_names == val)[0][0] for val in t_genes if val in amat.var_names]
-    # filter the genes
-    amat.filtered_var[np.array(index).astype(int)] = False
-    m = amat.get_filtered_matrix().m
-    pcs, pcs1 = af.get_eig_dist(m, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    return pcs, pcs1, m.shape[0]
-
-
-def plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, n_bins, x_label=True, y_label=True):
-    # plot the eigenvalue distribution of the normalized filtered matrix
-    # define limits and bin number
-    P = len(pcs)
-    scale = 1  # scale factor for the Marchenko-Pastur distribution
-    edges = np.linspace(-0.1, x_max, num=n_bins)
-
-    # remove zeros in pcs and pcs1
-    # if alpha>1 adjust the scale factor to match theoretical results
-    if P / N > 1:
-        scale = N / P
-        pcs = pcs[pcs != 0]
-        pcs1 = pcs1[pcs1 != 0]
-
-    # first plot
-    counts, bins = np.histogram(pcs, bins=edges, density=True)
-    ax.plot(bins[1:], scale * counts, color='#3182bd', linewidth=1, label='original data')
-    ax.fill_between(bins[1:], scale * counts, 0, color='#9ecae1', alpha=.4)
-    # second plot
-    counts, bins = np.histogram(pcs1, bins=edges, density=True)
-    ax.plot(bins[1:], scale * counts, color='#de2d26', linewidth=1, label='scrambled data')
-    ax.fill_between(bins[1:], scale * counts, 0, color='#fc9272', alpha=.4)
-    # plot analytical Marchenko-Pastur distribution
-    x = np.linspace(-0.1, x_max, 100)
-    y = [af.mp_distribution(val, P / N) for val in x]
-    ax.plot(x, y, color='#756bb1', linestyle='dashed', label='MP')
-    # labels and limits
-    if x_label:
-        ax.set_xlabel("$\lambda$", fontsize=fsize)
-    if y_label:
-        ax.set_ylabel(r"$\rho(\lambda)$", fontsize=fsize)
-    ax.set_ylim(0, y_max)
-    ax.set_xlim(0, x_max)
-    # set x_ticks with difference of 2
-    ax.set_xticks(np.arange(0, (x_max // 2) * 2 + 2, 2))
-    # set y_ticks with difference of 0.1
-    ax.set_yticks(np.arange(0, (y_max // 0.1) * 0.1 + 0.1, 0.1))
-    ax.legend(facecolor='white', framealpha=1, fontsize=fsize-2, loc='upper right')
-    # set the font size of the ticks
-    ax.tick_params(axis='both', which='major', labelsize=fsize)
+fsize = 10
+plt.close("all")
+root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+ev_data_dir = os.path.join(root_dir, 'ev_data')
 
 
 def panel_A(axes):
-    # Create a random NXP matrix
-    N = 500  # number of rows
-    P = 1000  # number of columns
+    # Random N×P Gaussian matrix and its correlation spectrum vs. MP distribution
+    N = 500
+    P = 1000
     matrix = np.random.randn(N, P)
-    # get correlation matrix
     corr_matrix = matrix.T @ matrix / N
-    sns.heatmap(corr_matrix[:20, :20], ax=axes[0,0], cmap='bwr', center=0, cbar=True, vmin=-.5, vmax=.5)
-    colorbar = axes[0,0].collections[0].colorbar
-    colorbar.set_ticks([-0.5, 0, 0.5])  # Set desired ticks here
-    colorbar.set_label('correlation', fontsize=fsize-2, labelpad=0)  # Set desired label here
-    colorbar.ax.tick_params(labelsize=fsize-2)  # Set desired fontsize here
+    sns.heatmap(corr_matrix[:20, :20], ax=axes[0, 0], cmap='bwr', center=0,
+                cbar=True, vmin=-.5, vmax=.5)
+    colorbar = axes[0, 0].collections[0].colorbar
+    colorbar.set_ticks([-0.5, 0, 0.5])
+    colorbar.set_label('correlation', fontsize=fsize - 2, labelpad=0)
+    colorbar.ax.tick_params(labelsize=fsize - 2)
 
-    # plot the MP distribution
     eigvals, _ = np.linalg.eig(corr_matrix)
-    eigvals = np.real(eigvals[eigvals > 1e-6])  # keep only positive eigenvalues
+    eigvals = np.real(eigvals[eigvals > 1e-6])
     bins = np.linspace(0, 6, 40)
-    axes[1,0].hist(eigvals, weights=np.ones_like(eigvals)/(P*(bins[1]-bins[0])), bins=bins, color='red', alpha=0.5, density=False, label='simulated\neigenvalues')
+    axes[1, 0].hist(eigvals,
+                    weights=np.ones_like(eigvals) / (P * (bins[1] - bins[0])),
+                    bins=bins, color='red', alpha=0.5, density=False,
+                    label='simulated\neigenvalues')
     x = np.linspace(0, 6, 100)
     y = np.array([af.mp_distribution(val, P / N) for val in x])
-    axes[1,0].plot(x, y, color='red', linewidth=1, label='MP')
-    axes[0,0].set_title('Random matrix', fontsize=fsize)
-    axes[0,0].set_yticks([])
-    axes[0,0].set_xticks([])
-    axes[1,0].set_title('Eigenvalue density', fontsize=fsize)
-    axes[1,0].set_ylabel(r'Probability density-$\rho(\lambda)$', fontsize=fsize-2,labelpad=0)
-    axes[1,0].set_xlabel(r'Eigenvalue-$\lambda$', fontsize=fsize-2, labelpad=0)
-    # set the font size of the ticks
-    axes[1,0].tick_params(axis='both', which='major', labelsize=fsize-2)
-    axes[1,0].grid(False)
-    axes[1,0].legend(fontsize=fsize - 3)
+    axes[1, 0].plot(x, y, color='red', linewidth=1, label='MP')
+    axes[0, 0].set_title('Random matrix', fontsize=fsize)
+    axes[0, 0].set_yticks([])
+    axes[0, 0].set_xticks([])
+    axes[1, 0].set_title('Eigenvalue density', fontsize=fsize)
+    axes[1, 0].set_ylabel(r'$\rho(\lambda)$', fontsize=fsize - 2, labelpad=0)
+    axes[1, 0].set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
+    axes[1, 0].tick_params(axis='both', which='major', labelsize=fsize - 2)
+    axes[1, 0].grid(False)
+    axes[1, 0].legend(fontsize=fsize - 3)
+
 
 def panel_B(ax):
-    files = ['model_alpha2_sigma0.txt','model_alpha2_sigma07.txt', 'model_alpha2_sigma08.txt',
-             'model_alpha2_sigma09.txt']
-    labels = ['$\chi=0$ (MP)','$\chi=0.7$', '$\chi=0.8$', '$\chi=0.9$']
-    # Get the colormap
-    cmap = plt.cm.RdBu  # Choose your colormap
-
-    # Get 4 evenly spaced colors from the colormap
-    colors = [cmap(i) for i in [0.1,0.7, 0.85, 0.95]]
+    # GMP distribution: random Gaussian matrix with underlying correlations
+    files = ['model_alpha2_sigma0.txt', 'model_alpha2_sigma07.txt',
+             'model_alpha2_sigma08.txt', 'model_alpha2_sigma09.txt']
+    labels = [r'$\chi=0$ (MP)', r'$\chi=0.7$', r'$\chi=0.8$', r'$\chi=0.9$']
+    cmap = plt.cm.RdBu
+    colors = [cmap(i) for i in [0.1, 0.7, 0.85, 0.95]]
     for i, file in enumerate(files):
-        data = np.loadtxt(os.path.join(root_dir,'model fit', file))
+        data = np.loadtxt(os.path.join(root_dir, 'model fit', file))
         ax.plot(data[:, 0], data[:, 1], label=labels[i], color=colors[i], linewidth=1.5)
     ax.set_xlabel(r'$\lambda$', fontsize=fsize, labelpad=0)
     ax.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize, labelpad=0)
@@ -121,161 +69,261 @@ def panel_B(ax):
     ax.set_ylim(0, 0.35)
     ax.set_xticks([0, 2, 4, 6, 8])
     ax.set_yticks([0, 0.1, 0.2, 0.3])
-    # set the font size of the ticks
     ax.tick_params(axis='both', which='major', labelsize=fsize)
-    ax.set_title('Generalized MP', fontsize=fsize)
-    ax.legend(fontsize=fsize)
+    ax.set_title('Generalized MP\n(with correlations)', fontsize=fsize)
+    ax.legend(fontsize=fsize - 2)
 
 
 def panel_C(axes):
-    # Step 1: Generate a correlated matrix
+    # Illustrative sparse simulation matrix + scrambled version with arrows
     np.random.seed(42)
-    n_samples = 15
-    n_features = 10
+    n_cells, n_genes = 22, 14
 
-    # Create a random positive semi-definite covariance matrix
-    cov_matrix = make_spd_matrix(n_features, random_state=42)
+    matrix = np.zeros((n_cells, n_genes))
+    for j in range(n_genes):
+        n_nz = max(1, int(n_cells * np.random.uniform(0.15, 0.38)))
+        rows = np.random.choice(n_cells, size=n_nz, replace=False)
+        matrix[rows, j] = np.random.exponential(2.5, size=n_nz)
 
-    # Generate multivariate Gaussian data with this covariance
-    data = np.random.multivariate_normal(mean=np.zeros(n_features), cov=cov_matrix, size=n_samples)
-    # cluster the data
-    linkage_matrix = linkage(data.T, method='average')
-    ordered_cols = leaves_list(linkage_matrix)
-    # reorder the data
-    data = data[:, ordered_cols]
-    # Step 2: Compute correlation matrix of the features (columns)
-    corr_matrix = np.corrcoef(data, rowvar=False)
-    # Step 3: Cluster the columns based on correlation
-    linkage_matrix = linkage(corr_matrix, method='average')
-    ordered_cols = leaves_list(linkage_matrix)
-    reordered_corr = corr_matrix[ordered_cols][:, ordered_cols]
-    background = np.full((data.shape), -np.inf)
-    background[:n_features, :] = reordered_corr
-    # Step 4: Plot
-    sns.heatmap(data, linewidths=.5, linecolor='black', ax=axes[0, 0], cmap='Blues', center=0, cbar=False)
-    sns.heatmap(background, ax=axes[0, 1], cmap='Blues', center=0, cbar=False, vmin=-1, vmax=1)
-    # generate scrambled data
-    scrambled_data = data.copy()
-    # scramble the data
-    for i in range(n_features):
-        np.random.shuffle(scrambled_data[:, i])
-    scrambled_corr = np.corrcoef(scrambled_data, rowvar=False)
-    # Step 3: Cluster the columns based on correlation
-    linkage_matrix = linkage(scrambled_corr, method='average')
-    ordered_cols = leaves_list(linkage_matrix)
-    scrambled_data = scrambled_data[:, ordered_cols]
-    sns.heatmap(scrambled_data, linewidths=.5, linecolor='black', ax=axes[1, 0], cmap='Reds', center=0, cbar=False)
-    reordered_corr = scrambled_corr[ordered_cols][:, ordered_cols]
-    scrambled_background = np.full((data.shape), -np.inf)
-    scrambled_background[:n_features, :] = reordered_corr
-    # plot
-    sns.heatmap(scrambled_background, ax=axes[1, 1], cmap='Reds', center=0, cbar=False, vmin=-1, vmax=1)
-    for i in range(axes.shape[0]):
-        for j in range(axes.shape[1]):
-            axes[i, j].set_xticks([])
-            axes[i, j].set_yticks([])
-            if j == 0:
-                axes[i, j].set_ylabel('cells', fontsize=fsize-2)
-                axes[i, j].set_xlabel('genes', fontsize=fsize-2)
-                axes[i, j].xaxis.set_label_position('top')
-            else:
-                axes[i, j].set_xlabel('correlation matrix', fontsize=fsize-2)
-                axes[i, j].xaxis.set_label_position('top')
+    scrambled = matrix.copy()
+    col_perm = {}
+    for j in range(n_genes):
+        perm = np.random.permutation(n_cells)
+        scrambled[:, j] = matrix[perm, j]
+        col_perm[j] = perm
+
+    vmax = matrix.max()
+
+    axes[0, 0].imshow(matrix, aspect='auto', cmap='YlOrRd', vmin=0, vmax=vmax,
+                      interpolation='nearest')
+    axes[0, 0].set_xticks([])
+    axes[0, 0].set_yticks([])
+    axes[0, 0].set_xlabel('genes', fontsize=fsize - 2, labelpad=2)
+    axes[0, 0].set_ylabel('cells', fontsize=fsize - 2, labelpad=2)
+    axes[0, 0].set_title('Simulation data', fontsize=fsize)
+
+    axes[0, 1].imshow(scrambled, aspect='auto', cmap='YlOrRd', vmin=0, vmax=vmax,
+                      interpolation='nearest')
+    axes[0, 1].set_xticks([])
+    axes[0, 1].set_yticks([])
+    axes[0, 1].set_xlabel('genes', fontsize=fsize - 2, labelpad=2)
+    axes[0, 1].set_title('Scrambled', fontsize=fsize)
+
+    # Arc arrows in the scrambled panel showing cells that moved within columns
+    for j in [2, 6, 11]:
+        orig_rows = np.where(matrix[:, j] > 0.5)[0]
+        if len(orig_rows) == 0:
+            continue
+        orig_row = orig_rows[0]
+        new_row_arr = np.where(col_perm[j] == orig_row)[0]
+        if len(new_row_arr) == 0 or abs(new_row_arr[0] - orig_row) < 4:
+            continue
+        axes[0, 1].annotate('', xy=(j, new_row_arr[0]), xytext=(j, orig_row),
+                            arrowprops=dict(arrowstyle='->', color='#2171b5',
+                                           lw=1.3, connectionstyle='arc3,rad=0.4'))
+
+    # Schematic arrow between the two panels in figure coordinates
+    fig = axes[0, 0].figure
+    p0 = axes[0, 0].get_position()
+    p1 = axes[0, 1].get_position()
+    xmid_start = p0.x1 + 0.002
+    xmid_end = p1.x0 - 0.002
+    ymid = (p0.y0 + p0.y1) / 2
+    fig.add_artist(FancyArrowPatch(
+        (xmid_start, ymid), (xmid_end, ymid),
+        transform=fig.transFigure,
+        arrowstyle='->', mutation_scale=10, color='#636363', lw=1.5))
+    fig.text((xmid_start + xmid_end) / 2, ymid + 0.007, 'shuffle',
+             transform=fig.transFigure,
+             fontsize=fsize - 3, ha='center', va='bottom', color='#636363')
 
 
-def panel_D(ax):
-    nbins = 81
-    x_max = 8
-    y_max = 0.3
+def panel_D(axes):
+    # Simulation eigenvalue distributions: original (color-coded) and scrambled
+    pcs_data = np.load(os.path.join(ev_data_dir, 'simulated_pcs.npy'))
+    pcs, pcs1 = pcs_data[0], pcs_data[1]
 
-    # plot individual distributions
-    norm = True
-    log = False
-    norm_method = 'sum'
-    norm_sum = 1
-    # set style to default
-    plt.style.use('default')
-    plt.rcParams.update({'font.size': fsize})
-    # create grid of experimental results
-    # subplot 1
-    # get annotated matrix from file
-    file_name = ('sample_2b_filtered.csv')
-    path = os.path.join(root_dir,'filtered_data', file_name)
-    pcs, pcs1, N = get_data_for_plot(path, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    ax.set_title('Exponential', fontsize=fsize-2)
-    plot_eigvals(ax,pcs, pcs1, N, x_max, y_max, nbins)
+    data1 = pcs[pcs > 0]
+    data2 = pcs1[pcs1 > 0]
+    bin_width = 0.2
+    x1 = (1 + np.sqrt(2)) ** 2   # MP upper edge (γ = P/N = 2)
+    x2 = float(np.max(pcs1))     # scrambled maximum = GMP-Cor threshold
+
+    all_data = np.concatenate([data1, data2])
+    bin_edges = np.arange(min(all_data), max(all_data) + bin_width, bin_width)
+    xlim = (bin_edges[0], bin_edges[-1] + bin_width)
+
+    ax_top = axes[0, 0]
+    ax_bot = axes[1, 0]
+
+    # Top: original pcs with three-color coding
+    _, _, patches1 = ax_top.hist(
+        data1, bins=bin_edges, width=bin_width * 0.8, align='right',
+        edgecolor='black', color='#d9d9d9', alpha=0.7, density=True)
+    for patch in patches1:
+        bx = patch.get_x()
+        if bx < x1:
+            patch.set_facecolor('darkgray')
+        elif bx < x2:
+            patch.set_facecolor('salmon')
+        else:
+            patch.set_facecolor('skyblue')
+
+    ax_top.axvline(x1, color='k', linestyle='--', alpha=0.6,
+                   label=r'$\lambda^{max}_{MP}$')
+    ax_top.axvline(x2, color='dimgray', linestyle=':', alpha=0.8,
+                   label=r'$\lambda^{max}_{scr}$')
+    legend_handles = [
+        Patch(facecolor='darkgray', edgecolor='black', label='MP noise'),
+        Patch(facecolor='salmon', edgecolor='black', label='above MP'),
+        Patch(facecolor='skyblue', edgecolor='black', label='GMP-Cor'),
+    ]
+    ax_top.legend(handles=legend_handles, fontsize=fsize - 3,
+                  loc='upper right', framealpha=1)
+    ax_top.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize)
+    ax_top.set_title('Simulation', fontsize=fsize)
+    ax_top.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+    ax_top.set_xlim(xlim)
+    ax_top.set_xticks([])
+    ax_top.grid(False)
+
+    # Bottom: scrambled pcs1 (same x-axis)
+    ax_bot.hist(
+        data2, bins=bin_edges, width=bin_width * 0.8, align='right',
+        edgecolor='black', color='darkgray', alpha=0.7, density=True,
+        label='scrambled')
+    ax_bot.axvline(x2, color='dimgray', linestyle=':', alpha=0.8,
+                   label=r'$\lambda^{max}_{scr}$')
+    ax_bot.legend(fontsize=fsize - 3, loc='upper right', framealpha=1)
+    ax_bot.set_xlabel(r'$\lambda$', fontsize=fsize, labelpad=0)
+    ax_bot.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize)
+    ax_bot.set_title('Scrambled', fontsize=fsize - 1)
+    ax_bot.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+    ax_bot.set_xlim(xlim)
+    ax_bot.grid(False)
 
 
 def panel_E(ax):
-    nbins = 81
-    x_max = 8
-    y_max = 0.3
-    norm = True
-    log = False
-    norm_method = 'sum'
-    norm_sum = 1
-    # set style to default
-    plt.style.use('default')
-    plt.rcParams.update({'font.size': fsize})
-    # get annotated matrix from file
-    file_name = ('adam_matrix_filtered.csv')
-    path = os.path.join(root_dir,'filtered_data', file_name)
-    ax.set_title(r'Exponential $\mathit{E. coli}$,'
-                 "\n"
-                 r'McNulty $\mathit{et. al.}$', fontsize=fsize-2)
-    pcs, pcs1, N = get_data_for_plot(path, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, nbins)
+    # Regulated dataset: side-by-side PDF histogram + inset CCDF
+    arr = np.load(os.path.join(ev_data_dir, 'sample_13b_filtered.npy'))
+    data1 = arr[0, :];  data1 = data1[data1 > 0]
+    data2 = arr[1, :];  data2 = data2[data2 > 0]
+    x2 = float(np.max(data2))
+    bin_width = 0.2
+    bin_edges = np.arange(min(np.concatenate([data1, data2])), 10 + bin_width, bin_width)
+
+    _, _, patches1 = ax.hist(
+        data1, bins=bin_edges, width=bin_width * 0.5, align='left',
+        edgecolor='black', color='#d9d9d9', alpha=0.7, density=True)
+    ax.hist(data2, bins=bin_edges + bin_width * 0.5, width=bin_width * 0.5,
+            edgecolor='black', color='black', alpha=0.7, density=True,
+            align='right', label='scrambled')
+    for patch in patches1:
+        patch.set_facecolor('skyblue' if patch.get_x() >= x2 else 'darkgray')
+
+    ax.set_xlabel(r'Eigenvalue - $\lambda$', fontsize=fsize - 2, labelpad=0)
+    ax.set_ylabel(r'Density - $\rho(\lambda)$', fontsize=fsize - 2, labelpad=0)
+    ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
+    ax.set_xlim([bin_edges[0], bin_edges[-1] + bin_width])
+    ax.grid(False)
+    ax.set_title('Reg-Arrest (rep. 1)', fontsize=fsize)
+    ax.tick_params(axis='both', labelsize=fsize - 2)
+
+    # Inset CCDF
+    inset = ax.inset_axes([0.40, 0.38, 0.56, 0.56])
+    d1s = np.sort(data1)
+    d2s = np.sort(data2)
+    p1 = len(d1s)
+    ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
+    p2 = len(d2s)
+    ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
+    noise = d1s < x2
+    inset.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
+                 color='darkgray', alpha=0.7, label='noise')
+    inset.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
+                 color='skyblue', label='signal')
+    inset.loglog(d2s, ccdf2, '.', linestyle='-',
+                 color='black', alpha=0.5, label='scrambled')
+    inset.axvline(x2, color='k', linestyle='--', alpha=0.6)
+    inset.set_xlim([0.1, np.max(d1s)])
+    inset.set_xlabel(r'$\lambda$', fontsize=fsize - 3)
+    inset.set_ylabel('CCDF', fontsize=fsize - 3)
+    inset.legend(fontsize=fsize - 4)
+    inset.tick_params(labelsize=fsize - 4)
+
+
+def _plot_ccdf(ax, npy_file, title):
+    arr = np.load(os.path.join(ev_data_dir, npy_file))
+    data1 = arr[0, :];  data1 = data1[data1 > 0]
+    data2 = arr[1, :];  data2 = data2[data2 > 0]
+    x2 = float(np.max(data2))
+    d1s = np.sort(data1)
+    d2s = np.sort(data2)
+    p1 = len(d1s)
+    ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
+    p2 = len(d2s)
+    ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
+    noise = d1s < x2
+    ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
+              color='darkgray', alpha=0.7, label='noise')
+    ax.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
+              color='skyblue', label='signal')
+    ax.loglog(d2s, ccdf2, '.', linestyle='-',
+              color='black', alpha=0.5, label='scrambled')
+    ax.axvline(x2, color='k', linestyle='--', alpha=0.6)
+    ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
+    ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
+    ax.set_title(title, fontsize=fsize)
+    ax.legend(fontsize=fsize - 3)
+    ax.tick_params(labelsize=fsize - 2)
 
 
 def panel_F(ax):
-    nbins = 81
-    x_max = 8
-    y_max = 0.3
-    norm = True
-    log = False
-    norm_method = 'sum'
-    norm_sum = 1
-    # set style to default
-    plt.style.use('default')
-    plt.rcParams.update({'font.size': fsize})
-    # get annotated matrix from file
-    file_name = ('deb_KP_CDS_untreated.csv')
-    path = os.path.join(root_dir, 'filtered_data', file_name)
-    ax.set_title(r'Exponential $\mathit{K. pneumoniae}$,'
-                 '\n'
-                 r'Ma $\mathit{et. al.}$', fontsize=fsize-2)
-    pcs, pcs1, N = get_data_for_plot(path, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, nbins)
+    _plot_ccdf(ax, 'sample_2b_filtered.npy', 'Exponential')
 
-###
-# Build figure 1:
-fsize = 10
-plt.close("all")
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-pf = PanelFigure(figsize=(7, 5.5), label_offset=(-0.04, 0.04))
+
+def panel_G(ax):
+    _plot_ccdf(ax, 'sample_15b_filtered.npy', 'Reg-Arrest (rep. 2)')
+
+
+# ------------------------------------------------------------------
+# ASSEMBLE FIGURE
+# ------------------------------------------------------------------
+pf = PanelFigure(figsize=(7, 9.5), label_offset=(-0.04, 0.04))
+
 panel_pos = [
-    [0.06,0.52, 0.21, 0.43],  # A
-    [0.4, 0.65, 0.26, 0.3],  # B
-    [0.72, 0.55, 0.25, 0.4],  # C
-    [0.08, 0.1, 0.23, 0.3],  # D
-    [0.4, 0.1, 0.23, 0.3],  # E
-    [0.72, 0.1, 0.23, 0.3],  # F
+    [0.04, 0.61, 0.18, 0.35],   # A – random matrix (2×1 grid)
+    [0.27, 0.71, 0.21, 0.23],   # B – GMP curves (single)
+    [0.52, 0.61, 0.44, 0.35],   # C – sparse simulation (1×2 grid)
+    [0.04, 0.05, 0.26, 0.50],   # D – simulation eigenvalues (2×1 grid, tall)
+    [0.36, 0.30, 0.59, 0.24],   # E – regulated dataset PDF + CCDF inset (wide)
+    [0.36, 0.05, 0.28, 0.21],   # F – CCDF (Exponential)
+    [0.69, 0.05, 0.27, 0.21],   # G – CCDF (Reg-Arrest rep. 2)
 ]
-# panel A:
+
+# Panel A
 axes_panel_A = pf.add_grid_panel(panel_pos[0], 2, 1, hspace=0.4)
 panel_A(axes_panel_A)
-# panel B:
+
+# Panel B
 pf.add_panel(panel_pos[1], draw_func=panel_B)
-# panel C:
-axes_panel_C = pf.add_grid_panel(panel_pos[2], 2, 2,
-                  sharex=True, sharey=True,
-                  wspace=0.3, hspace=0.2)
+
+# Panel C
+axes_panel_C = pf.add_grid_panel(panel_pos[2], 1, 2, wspace=0.12)
 panel_C(axes_panel_C)
-# panel D:
-pf.add_panel(panel_pos[3], draw_func=panel_D)
-# panel E:
+
+# Panel D
+axes_panel_D = pf.add_grid_panel(panel_pos[3], 2, 1, hspace=0.3)
+panel_D(axes_panel_D)
+
+# Panel E
 pf.add_panel(panel_pos[4], draw_func=panel_E)
-# panel F:
+
+# Panel F
 pf.add_panel(panel_pos[5], draw_func=panel_F)
-#pf.save("figure2.svg", dpi=300)
+
+# Panel G
+pf.add_panel(panel_pos[6], draw_func=panel_G)
+
+# pf.save("figure2.svg", dpi=300)
 plt.show()

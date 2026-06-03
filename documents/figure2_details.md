@@ -17,11 +17,11 @@ python figure2.py          # interactive window
 
 | Variable | Value | Where to change |
 |---|---|---|
-| `fsize` | `10` | Line 16 — base font size (all labels/ticks are `fsize`, `fsize-2`, `fsize-3`, etc.) |
-| `figsize` | `(7, 9.5)` inches | `PanelFigure(figsize=...)` at line 292 |
+| `fsize` | `10` | Line 16 — base font size |
+| `figsize` | `(7, 7.5)` inches | `PanelFigure(figsize=...)` in assembly block |
 | `label_offset` | `(-0.04, 0.04)` | `PanelFigure(label_offset=...)` — shifts A/B/C… labels relative to panel top-left corner |
 | `root_dir` | 2 dirs above `os.getcwd()` | Automatically resolves to repo root when running from `scripts/figures/` |
-| `ev_data_dir` | `root_dir/ev_data/` | Line 19 — all `.npy` eigenvalue files live here |
+| `ev_data_dir` | `root_dir/ev_data/` | All `.npy` eigenvalue files live here |
 
 ---
 
@@ -37,28 +37,28 @@ python figure2.py          # interactive window
 ## Layout map
 
 Panel positions are `[left, bottom, width, height]` in **figure-normalized coordinates** (0–1).  
-The figure is 7 × 9.5 inches; 1 unit ≈ 7 in wide, 9.5 in tall.
+The figure is 7 × 7.5 inches; 1 unit ≈ 7 in wide, 7.5 in tall.
 
 ```
  0.0                                                        1.0
  ┌────────────────────────────────────────────────────────────┐ 0.97
- │  A (0.04,0.78)     C (0.28,0.54)   D (0.51,0.54)          │
- │  [0.19 × 0.15]     [0.18 × 0.40]   [0.43 × 0.40]          │
+ │  A (0.08,0.80)     C (0.32,0.54)   D (0.56,0.54)          │
+ │  [0.19 × 0.15]     [0.15 × 0.40]   [0.40 × 0.40]          │
  │  single histogram  2×1 grid        2-row grid              │
- │                    ─ orig sparse   ─ sim pcs               │
- │  B (0.04,0.54)     ─ scrambled     ─ sim scrambled         │
+ │                    ─ orig sparse   ─ sim eigenvalues       │
+ │  B (0.08,0.50)     ─ scrambled     ─ sim scrambled         │
  │  [0.19 × 0.20]                                             │
  │  single GMP curves                                         │
- ├──────────────────────────────────────────────────────────── 0.50
+ ├──────────────────────────────────────────────────────────── ~0.47
  │                                                            │
- │  E (0.04,0.07)                     F (0.63,0.22)           │
- │  [0.54 × 0.30]                     [0.32 × 0.15]           │
+ │  E (0.08,0.07)                     F (0.66,0.30)           │
+ │  [0.47 × 0.35]                     [0.30 × 0.15]           │
  │  single (wide)                     CCDF only               │
  │  PDF + inset CCDF                                          │
- │                                    G (0.63,0.04)           │
- │                                    [0.32 × 0.15]           │
+ │                                    G (0.66,0.06)           │
+ │                                    [0.30 × 0.15]           │
  │                                    CCDF only               │
- └────────────────────────────────────────────────────────────┘ 0.04
+ └────────────────────────────────────────────────────────────┘ 0.06
 ```
 
 To shift a panel: edit `panel_pos[i]` in the assembly block.  
@@ -76,9 +76,9 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 |---|---|---|
 | Matrix size | N=500 rows, P=1000 cols | γ = P/N = 2 |
 | Histogram bins | `np.linspace(0, 6, 40)` | Adjust range/count to change resolution |
-| MP curve | `af.mp_distribution(val, P/N)` | x from 0 to 6 in 100 steps |
-| Colors | histogram `'red'` α=0.5, MP line `'red'` | |
-| Title | `'Eigenvalue density\n(random matrix)'` | |
+| MP curve | `af.mp_distribution(val, P/N)` | x from 0 to 6 in 100 steps; plotted with `linestyle='--'` |
+| Colors | histogram `'r'` α=0.5, MP line `'r'` | |
+| Title | `'Random matrix (RM)\nMP distribution'` | |
 
 **To change:** increase N and P together (keep γ=P/N=2) for a smoother histogram.
 
@@ -98,7 +98,7 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 | y limits | 0 – 0.35 | `ax.set_ylim` |
 | x ticks | [0, 2, 4, 6, 8] | |
 | y ticks | [0, 0.1, 0.2, 0.3] | |
-| Title | `'Generalized MP\n(with correlations)'` | |
+| Title | `'RM with correlations\nGeneralized MP'` | |
 
 ---
 
@@ -116,6 +116,8 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 | Sparsity | 15–38% non-zero per column (`np.random.uniform(0.15, 0.38)`) | Increase range for more/less sparsity |
 | Non-zero values | `np.random.exponential(2.5)` | Adjust scale for brighter/dimmer non-zero entries |
 | Colormap | `'Greys'`, vmin=0, vmax=matrix.max() | Both panels share the same vmax |
+| Top title | `'Synthetic data\nwith correlations'` | |
+| Scrambled title | none (commented out) | Bottom panel has ylabel `'cells'` but no title |
 
 No arrows are drawn. Change `hspace` in the grid call to widen the gap between the two heatmaps.
 
@@ -134,24 +136,26 @@ No arrows are drawn. Change `hspace` in the grid call to widen the gap between t
 | `x2` | `max(pcs1)` | Maximum scrambled eigenvalue = GMP-Cor threshold |
 
 ### Color coding (top subplot bars)
-| Color | Condition |
-|---|---|
-| `'darkgray'` | bin_x < x1 (within MP noise) |
-| `'salmon'` | x1 ≤ bin_x < x2 (above MP but below scrambled max) |
-| `'skyblue'` | bin_x ≥ x2 (signal: above scrambled threshold) |
+| Color | Condition | Legend label |
+|---|---|---|
+| `'darkgray'` | bin_x < x1 | `'MP noise'` |
+| `'salmon'` | x1 ≤ bin_x < x2 | `'sparsity induced correlations'` |
+| `'skyblue'` | bin_x ≥ x2 | `'true correlations'` |
 
 ### Other settings
 | Parameter | Value | Notes |
 |---|---|---|
-| bin_width | 0.2 | Shared by both subplots |
+| bin_width | 0.15 | Shared by both subplots |
 | bar width | `bin_width * 0.8` | Slightly narrower than bin for visual separation |
 | align | `'right'` | Bars anchor to right edge of each bin |
-| x-axis shared | Manually via `set_xlim(xlim)` on both subplots | xlim derived from combined data range |
-| Threshold lines | `x1`: black `'--'`; `x2`: dimgray `':'` | |
-| yticks | [0, 0.1, 0.2, 0.3, 0.4] | Both subplots |
-| Top xticks | hidden (`set_xticks([])`) | Only bottom subplot shows λ axis |
+| x-axis | fixed `[2, 12]` on both subplots | |
+| y-axis | fixed `[0, 0.2]` on both subplots | |
+| Threshold lines | top: `x1` black `'--'`; both: `x2` dimgray `':'` | Bottom vline at `x2 + bin_width` |
+| yticks | [0, 0.1, 0.2, 0.3, 0.4] | Both subplots (clipped by ylim) |
+| Top title | `'Correlation eigenvalue density'` | |
+| Bottom title | none (empty string) | |
 
-**To change:** swap `simulated_pcs.npy` for `simulated_pcs_0.9.npy` etc. to show a specific correlation strength. Change `x1` formula if γ ≠ 2. Adjust `bin_width` for finer/coarser histogram.
+**To change:** swap `simulated_pcs.npy` for `simulated_pcs_0.9.npy` etc. to show a specific correlation strength. Adjust `bin_width` for finer/coarser histogram.
 
 ---
 
@@ -159,13 +163,14 @@ No arrows are drawn. Change `hspace` in the grid call to widen the gap between t
 
 **Function:** `panel_E(ax)` — single wide panel  
 **Panel call:** `pf.add_panel(panel_pos[4], draw_func=panel_E)`  
-**Data file:** `ev_data/sample_13b_filtered.npy` — shape (2, N): row 0 = data, row 1 = scrambled
+**Data file:** `ev_data/Expira_biorep_t0A_filtered.npy` — shape (2, N): row 0 = data, row 1 = scrambled  
+**Title:** `r'Exponential $\it{E. coli}$'`
 
 ### Main histogram
 | Parameter | Value | Notes |
 |---|---|---|
-| bin_width | 0.2 | |
-| bin_edges upper cap | 10 | `np.arange(..., 10 + bin_width, ...)` — change to extend x-axis |
+| bin_width | 0.4 | |
+| bin_edges upper cap | 12 | `np.arange(..., 12 + bin_width, ...)` — change to extend x-axis |
 | Data bars | width=`bin_width*0.5`, `align='left'` | Left half of each bin |
 | Scrambled bars | shifted by `+bin_width*0.5`, `align='right'` | Right half of each bin, solid black |
 | Color threshold | `x2 = max(scrambled)` | Bars < x2: darkgray; bars ≥ x2: skyblue |
@@ -176,14 +181,14 @@ No arrows are drawn. Change `hspace` in the grid call to widen the gap between t
 |---|---|---|
 | Inset position | `[0.40, 0.38, 0.56, 0.56]` | `[left, bottom, width, height]` in axes-fraction coords |
 | Scale | loglog | |
-| Noise line | darkgray, α=0.7 | eigenvalues < x2 |
-| Signal line | skyblue | eigenvalues ≥ x2 |
-| Scrambled line | black, α=0.5 | |
+| Noise line | darkgray, α=0.7, markersize=3 | eigenvalues < x2 |
+| Signal line | skyblue, markersize=3 | eigenvalues ≥ x2 |
+| Scrambled line | black, α=0.5, markersize=3 | |
 | CCDF formula | `1 - rank/p + 1/p` | Avoids zero (log-safe). Computed independently for data and scrambled |
-| x limits | `[0.1, max(data)]` | Change 0.1 to extend left tail |
+| x limits | `[0.1, max(data) * 1.5]` | |
 | Threshold vline | x2, black dashed | |
 
-**To change dataset:** replace `'sample_13b_filtered.npy'` with any `.npy` in `ev_data/`. Available regulated files: `sample_13b`, `sample_13a`, `sample_15a`, `sample_15b`. Update the title string accordingly.
+**To change dataset:** replace `'Expira_biorep_t0A_filtered.npy'` with any `.npy` in `ev_data/`. Update the title string accordingly.
 
 ---
 
@@ -193,29 +198,27 @@ Both call the shared helper `_plot_ccdf(ax, npy_file, title)`.
 
 | Panel | Data file | Title |
 |---|---|---|
-| F | `sample_2b_filtered.npy` | `'Exponential'` |
-| G | `sample_15b_filtered.npy` | `'Reg-Arrest (rep. 2)'` |
+| F | `deb_Ec_CDS_untreated.npy` | `"Exponential $\it{E. coli}$, Ma et. al"` |
+| G | `deb_KP_CDS_untreated.npy` | `"Exponential $\it{K. pneumoniae}$, Ma et. al"` |
 
-`_plot_ccdf` is identical to panel E's inset CCDF, but full-panel. Same color scheme (darkgray noise / skyblue signal / black scrambled), same CCDF formula.
+`_plot_ccdf` uses loglog scale, same color scheme as panel E's inset (darkgray noise / skyblue signal / black scrambled), same CCDF formula (`1 - rank/p + 1/p`), markersize=3, x limits `[0.1, max(data)*1.5]`. Note: title fontsize in `_plot_ccdf` is `fsize-2` (8pt) rather than `fsize`.
 
 **To swap dataset:** change the filename string in `panel_F` or `panel_G`.  
-**To add a legend title or x-limits:** edit `_plot_ccdf` directly — it applies to both F and G.
+**To change x-limits or markersize:** edit `_plot_ccdf` directly — it applies to both F and G.
 
 ---
 
-## Available eigenvalue data files (`ev_data/`)
-
-| File | Condition | GMP-Cor (approx.) |
-|---|---|---|
-| `simulated_pcs.npy` | Synthetic simulation | — |
-| `simulated_pcs_0.npy` – `simulated_pcs_1.npy` | Simulation at χ = 0 … 1 | — |
-| `sample_2b_filtered.npy` | Exponential *E. coli* (our data) | ~0 |
-| `sample_13a_filtered.npy` | Dis-Arrest rep. A | ~1.8 |
-| `sample_13b_filtered.npy` | Reg-Arrest rep. B | ~7.9 |
-| `sample_15a_filtered.npy` | Dis-Arrest rep. A | ~0 |
-| `sample_15b_filtered.npy` | Reg-Arrest rep. B | ~11.2 |
+## Data files used in figure (`ev_data/`)
 
 All files: shape `(2, N)` — row 0 = original eigenvalues, row 1 = scrambled eigenvalues.
+
+| File | Used in | Condition |
+|---|---|---|
+| `simulated_pcs.npy` | Panel D | Synthetic simulation |
+| `simulated_pcs_0.npy` – `simulated_pcs_1.npy` | (swap for D) | Simulation at χ = 0 … 1 |
+| `Expira_biorep_t0A_filtered.npy` | Panel E | Exponential *E. coli* (our data) |
+| `deb_Ec_CDS_untreated.npy` | Panel F | Exponential *E. coli* (Ma et al.) |
+| `deb_KP_CDS_untreated.npy` | Panel G | Exponential *K. pneumoniae* (Ma et al.) |
 
 ---
 
@@ -223,12 +226,13 @@ All files: shape `(2, N)` — row 0 = original eigenvalues, row 1 = scrambled ei
 
 | Goal | What to change |
 |---|---|
-| Resize the whole figure | `figsize=(W, H)` in `PanelFigure(...)` |
+| Resize the whole figure | `figsize=(W, H)` in `PanelFigure(...)` in assembly block |
 | Change all font sizes at once | `fsize = 10` at line 16 |
 | Move a panel | edit `panel_pos[i]` — `[left, bottom, width, height]` |
-| Change panel E to a different sample | replace `'sample_13b_filtered.npy'` and update the title string |
+| Change panel E dataset | replace `'Expira_biorep_t0A_filtered.npy'` and update the title string |
+| Change panel F or G dataset | replace filename in `panel_F` / `panel_G` and update title |
 | Show more/fewer GMP curves in B | edit the `files` and `labels` lists in `panel_B` |
 | Change simulation correlation strength in D | replace `'simulated_pcs.npy'` with `'simulated_pcs_0.9.npy'` etc. |
 | Adjust inset position in E | `ax.inset_axes([left, bottom, width, height])` in `panel_E` |
-| Make C arrows more visible | lower threshold `> 0.5`, increase `lw`, or change `#2171b5` to a brighter color |
+| Adjust CCDF x-range | change `np.max(d1s)*1.5` multiplier in `_plot_ccdf` or `panel_E` inset |
 | Save as SVG | uncomment `pf.save("figure2.svg", dpi=300)` and comment out `plt.show()` |

@@ -25,6 +25,15 @@ python figure2.py          # interactive window
 
 ---
 
+## Global font standard
+
+| Element | Size |
+|---|---|
+| Panel titles | `fsize` = 10 |
+| Axis labels, tick labels, legends | `fsize - 2` = 8 |
+
+---
+
 ## Layout map
 
 Panel positions are `[left, bottom, width, height]` in **figure-normalized coordinates** (0–1).  
@@ -33,25 +42,26 @@ The figure is 7 × 9.5 inches; 1 unit ≈ 7 in wide, 9.5 in tall.
 ```
  0.0                                                        1.0
  ┌────────────────────────────────────────────────────────────┐ 0.97
- │  A (0.04,0.61)     B (0.27,0.71)   C (0.52,0.61)          │
- │  [0.18 × 0.35]     [0.21 × 0.23]   [0.44 × 0.35]          │
- │  2-row grid        single          1×2 grid                │
- │  ─ heatmap         GMP curves      ─ orig sparse           │
- │  ─ MP hist                         ─ scrambled             │
- ├──────────────────────────────────────────────────────────── 0.61
+ │  A (0.04,0.78)     C (0.28,0.54)   D (0.51,0.54)          │
+ │  [0.19 × 0.15]     [0.18 × 0.40]   [0.43 × 0.40]          │
+ │  single histogram  2×1 grid        2-row grid              │
+ │                    ─ orig sparse   ─ sim pcs               │
+ │  B (0.04,0.54)     ─ scrambled     ─ sim scrambled         │
+ │  [0.19 × 0.20]                                             │
+ │  single GMP curves                                         │
+ ├──────────────────────────────────────────────────────────── 0.50
  │                                                            │
- │  D (0.04,0.05)     E (0.36,0.30)                           │
- │  [0.26 × 0.50]     [0.59 × 0.24]                           │
- │  2-row grid        single (wide)                           │
- │  ─ sim pcs         PDF + inset CCDF                        │
- │  ─ sim scrambled                                           │
- │                    F (0.36,0.05)   G (0.69,0.05)           │
- │                    [0.28 × 0.21]   [0.27 × 0.21]           │
- │                    CCDF only       CCDF only               │
- └────────────────────────────────────────────────────────────┘ 0.05
+ │  E (0.04,0.07)                     F (0.63,0.22)           │
+ │  [0.54 × 0.30]                     [0.32 × 0.15]           │
+ │  single (wide)                     CCDF only               │
+ │  PDF + inset CCDF                                          │
+ │                                    G (0.63,0.04)           │
+ │                                    [0.32 × 0.15]           │
+ │                                    CCDF only               │
+ └────────────────────────────────────────────────────────────┘ 0.04
 ```
 
-To shift a panel: edit `panel_pos[i]` in the assembly block (lines 294–302).  
+To shift a panel: edit `panel_pos[i]` in the assembly block.  
 To resize: change `width` or `height` (4th value).  
 Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 
@@ -59,21 +69,18 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 
 ## Panel A — Random matrix intro
 
-**Function:** `panel_A(axes)` — called with a 2×1 grid  
-**Grid call:** `pf.add_grid_panel(panel_pos[0], 2, 1, hspace=0.4)`
+**Function:** `panel_A(ax)` — single panel  
+**Panel call:** `pf.add_panel(panel_pos[0], draw_func=panel_A)`
 
 | Parameter | Value | Notes |
 |---|---|---|
 | Matrix size | N=500 rows, P=1000 cols | γ = P/N = 2 |
-| Heatmap subset | first 20×20 of correlation matrix | Change `:20, :20` for more/fewer entries |
-| Heatmap colormap | `'bwr'`, center=0, vmin/vmax ±0.5 | |
-| Colorbar ticks | `[-0.5, 0, 0.5]` | |
 | Histogram bins | `np.linspace(0, 6, 40)` | Adjust range/count to change resolution |
 | MP curve | `af.mp_distribution(val, P/N)` | x from 0 to 6 in 100 steps |
 | Colors | histogram `'red'` α=0.5, MP line `'red'` | |
-| hspace | 0.4 | vertical gap between the two sub-rows |
+| Title | `'Eigenvalue density\n(random matrix)'` | |
 
-**To change:** increase N and P together (keep γ=P/N=2) for a smoother histogram. Change `hspace` to push the two sub-panels apart.
+**To change:** increase N and P together (keep γ=P/N=2) for a smoother histogram.
 
 ---
 
@@ -97,8 +104,9 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 
 ## Panel C — Simulation data structure
 
-**Function:** `panel_C(axes)` — called with a 1×2 grid  
-**Grid call:** `pf.add_grid_panel(panel_pos[2], 1, 2, wspace=0.12)`
+**Function:** `panel_C(axes)` — called with a 2×1 grid  
+**Grid call:** `pf.add_grid_panel(panel_pos[2], 2, 1, hspace=0.30)`  
+`axes[0, 0]` = original matrix (top); `axes[1, 0]` = scrambled matrix (bottom)
 
 ### Synthetic matrix
 | Parameter | Value | Notes |
@@ -107,16 +115,9 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 | Matrix size | 22 cells × 14 genes | Adjust `n_cells`, `n_genes` |
 | Sparsity | 15–38% non-zero per column (`np.random.uniform(0.15, 0.38)`) | Increase range for more/less sparsity |
 | Non-zero values | `np.random.exponential(2.5)` | Adjust scale for brighter/dimmer non-zero entries |
-| Colormap | `'YlOrRd'`, vmin=0, vmax=matrix.max() | Both panels share the same vmax |
+| Colormap | `'Greys'`, vmin=0, vmax=matrix.max() | Both panels share the same vmax |
 
-### Arrows
-| Feature | Where | Key parameters |
-|---|---|---|
-| **Within-panel arc arrows** (in scrambled subplot) | `axes[0,1].annotate(...)` | Columns targeted: `[2, 6, 11]`; threshold: value > 0.5; min movement: 4 rows; arc radius: `rad=0.4`; color: `#2171b5` |
-| **Cross-panel schematic arrow** | `fig.add_artist(FancyArrowPatch(...))` | Uses `axes.get_position()` to compute x-coordinates; `mutation_scale=10`; color `#636363` |
-| "shuffle" label | `fig.text(...)` | y offset +0.007 above arrow midpoint; `fsize-3` |
-
-**To change arrows:** edit columns list `[2, 6, 11]` or lower the `> 0.5` threshold to show more arrows. Increase `rad` in `arc3,rad=X` for wider arcs. Change `lw` for thicker arrows.
+No arrows are drawn. Change `hspace` in the grid call to widen the gap between the two heatmaps.
 
 ---
 

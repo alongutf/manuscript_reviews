@@ -4,6 +4,9 @@ from figure_functions import PanelFigure
 import numpy as np
 import pandas as pd
 import os
+import base64
+import io
+from PIL import Image
 from scipy.stats import t
 import src.analysis_functions as af
 import src.data_functions as df
@@ -11,6 +14,50 @@ import src.data_functions as df
 # ------------------------------------------------------------------
 # BUILD FIGURE
 # ------------------------------------------------------------------
+def _load_svg_image(svg_path):
+    """Extract the embedded PNG from a BioRender SVG (base64 data URI)."""
+    import xml.etree.ElementTree as ET
+    tree = ET.parse(svg_path)
+    root = tree.getroot()
+    for elem in root.iter():
+        href = (elem.get('{http://www.w3.org/1999/xlink}href') or
+                elem.get('href', ''))
+        if href.startswith('data:image/png;base64,'):
+            img_bytes = base64.b64decode(href[len('data:image/png;base64,'):])
+            return Image.open(io.BytesIO(img_bytes))
+    return None
+
+
+def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
+    arr = np.load(os.path.join(ev_data_dir, npy_file))
+    data1 = arr[0, :];  data1 = data1[data1 > 0]
+    data2 = arr[1, :];  data2 = data2[data2 > 0]
+    x2 = float(np.max(data2))
+    d1s = np.sort(data1)
+    d2s = np.sort(data2)
+    p1 = len(d1s)
+    ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
+    p2 = len(d2s)
+    ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
+    noise = d1s < x2
+    ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
+              color='darkgray', alpha=0.7, label='noise', markersize=3)
+    ax.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
+              color=signal_color, label='signal', markersize=3)
+    ax.loglog(d2s, ccdf2, '.', linestyle='-',
+              color='black', alpha=0.5, label='scrambled', markersize=3)
+    ax.set_xlim([0.1, 30])
+    ax.axvline(x2, color='k', linestyle='--', alpha=0.6)
+    ax.text(x2 * 1.1, 0.8, r'$\lambda_\mathrm{max}^\mathrm{scr}$',
+            fontsize=fsize - 2, va='center', ha='left', color='k', alpha=0.7,
+            transform=ax.get_xaxis_transform())
+    ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
+    ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
+    ax.set_title(title, fontsize=fsize)
+    ax.legend(fontsize=fsize - 2)
+    ax.tick_params(labelsize=fsize - 2)
+
+
 def get_data_for_plot(path, norm=True, log=False, norm_method='sum', norm_sum=1):
     # get annotated matrix from file
     amat = df.read_from_csv(path)
@@ -62,6 +109,13 @@ def plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, n_bins, x_label=True, y_label=T
     ax.tick_params(axis='both', which='major', labelsize=fsize)
 
 
+def panel_A(ax):
+    svg_path = os.path.join(root_dir, 'scripts', 'figures', 'figure5', 'biorender2.svg')
+    img = _load_svg_image(svg_path)
+    ax.imshow(img)
+    ax.axis('off')
+
+
 def panel_B(ax):
     data = pd.read_csv(os.path.join(root_dir, 'scanpy', 'umap_coordinates_vapc.csv'), index_col=0,
                        header=0)
@@ -106,73 +160,37 @@ def panel_C(ax):
     ax.set_yticks([])
 
 def panel_D(ax):
-    file_name = 'VapC_biorep_t2A_filtered.csv'
-    nbins = 81
-    x_max = 8
-    y_max = 0.27
-    norm = True
-    log = False
-    norm_method = 'sum'
-    norm_sum = 1
-    path = os.path.join(root_dir, 'data_for_paper', file_name)
-    pcs, pcs1, N = get_data_for_plot(path, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    ax.set_title('Early VapC (2h)', fontsize=fsize)
-    plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, nbins)
-    ax.set_ylabel(r"Probability Density - $\rho(\lambda)$", fontsize=fsize, labelpad=0)
-    ax.set_xlabel(r"Eigenvalue - $\lambda$", fontsize=fsize, labelpad=0)
+    _plot_ccdf(ax, 'VapC_biorep_t2A_filtered.npy', 'Early VapC (2h)', signal_color=REG_COLOR)
+
 
 def panel_E(ax):
-    file_name = 'VapC_biorep_tONA_filtered.csv'
-    nbins = 81
-    x_max = 8
-    y_max = 0.25
-    norm = True
-    log = False
-    norm_method = 'sum'
-    norm_sum = 1
-    path = os.path.join(root_dir, 'data_for_paper', file_name)
-    pcs, pcs1, N = get_data_for_plot(path, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
-    ax.set_title('Late VapC (24h)', fontsize=fsize)
-    plot_eigvals(ax, pcs, pcs1, N, x_max, y_max, nbins)
+    _plot_ccdf(ax, 'VapC_biorep_tONA_filtered.npy', 'Late VapC (24h)', signal_color=DIS_COLOR)
 
 def panel_F(ax):
-    # Create bar plot graph from model fit:
-    # load data
-    dataset_values = os.path.join(root_dir,'scripts','figures','figure5','dataset_summary_no_plasmid_genes.csv')
-    scrambled_values = os.path.join(root_dir, 'scripts', 'figures', 'figure3', 'scrambled_GMPcor.csv')
-    # read data
-    data = pd.read_csv(dataset_values)
-    scrambled = pd.read_csv(scrambled_values)
-    samples = {'EXP_biorep_t0A','VapC_biorep_t2A','VapC_biorep_t5A', 'VapC_biorep_tONA'}
-    labels = ['Exponential','VapC\n2h','VapC\n5h','VapC\n24h']
-    # get data for the samples
-    data = data[data['sample'].isin(samples)]
-    data['time'] = [20, 2, 5, 0]
-    # sort data
-    colors = ['#4393c3', '#f4a582', '#d6604d', '#b2182b', "#bdbdbd"]
-    data = data.sort_values('time', ascending=True)
+    data = pd.read_csv(os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv'), index_col=0)
+    sample_map = [
+        ('Expira_biorep_t0A_filtered.csv', 'Exponential', '#4393c3'),
+        ('VapC_biorep_t2A_filtered.csv',   'VapC\n2h',   '#f4a582'),
+        ('VapC_biorep_t5A_filtered.csv',   'VapC\n5h',   '#d6604d'),
+        ('VapC_biorep_tONA_filtered.csv',  'VapC\n24h',  '#b2182b'),
+    ]
+    labels, values, colors = [], [], []
+    for fname, lbl, col in sample_map:
+        row = data[data['file_name'] == fname]
+        if len(row) > 0:
+            labels.append(lbl)
+            values.append(row['sum_denoised_ev'].iloc[0])
+            colors.append(col)
+
     bar_width = 0.25
     gap_between_bars = 0.4
-    # add the scrambled values
-    labels.append('Scrambled')
-    means = data['sigma fit'].to_list()
-    errors = data['standard error'].to_list()
-    means.append(scrambled['GMP-Cor'].mean())
-    errors.append(scrambled['GMP-Cor'].std() / np.sqrt(len(scrambled)))  # standard error
-    positions = [i * (bar_width + gap_between_bars) for i in range(len(means))]
-    # create bar plot of sigma fit values
-    positions[0] -= gap_between_bars / 2  # adjust first bar position
-    positions[-1] += gap_between_bars / 2 # adjust last bar position
-    ax.bar(positions, means, yerr=errors, capsize=2.5, color=colors, edgecolor='black',
-           alpha=0.7, width=bar_width)
-
-    # set positions of bars
+    positions = [i * (bar_width + gap_between_bars) for i in range(len(values))]
+    ax.bar(positions, values, color=colors, edgecolor='black', alpha=0.7, width=bar_width)
     ax.set_xticks(positions)
     ax.set_xticklabels(labels, rotation=0, fontsize=fsize-2, ha='center')
     ax.set_ylabel('GMP-Cor', fontsize=fsize, labelpad=0)
-    ax.set_yticks([0.2, 0.4, 0.6, 0.8])
     ax.tick_params(axis='both', which='major', labelsize=fsize-2)
-    ax.set_ylim([0, 1])
+    ax.set_ylim([0, 45])
     ax.set_xlim([positions[0] - gap_between_bars/2, positions[-1] + gap_between_bars/2])
 
 
@@ -271,7 +289,7 @@ def panel_H(ax):
     edges = np.linspace(300, 1100, 51)
     for i, condition in enumerate(conditions):
         x = data[condition].flatten() + 400
-        ax.hist(x, bins=edges, color=colors[i], histtype='stepfilled', edgecolor='k', alpha=0.5, label=labels[i],
+        ax.hist(x, bins=edges, color=colors[i], histtype='stepfilled', edgecolor='k', alpha=1, label=labels[i],
                  density=True)
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
     ax.set_ylabel(r'Frequency', labelpad=0, fontsize=fsize)
@@ -289,9 +307,12 @@ def panel_H(ax):
 fsize = 10
 plt.close("all")
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+ev_data_dir = os.path.join(root_dir, 'ev_data')
+REG_COLOR = 'steelblue'
+DIS_COLOR = '#E07B54'
 pf = PanelFigure(figsize=(7, 6), label_offset=(0, 0.03))
 panel_pos = [
-    [0.075, 0.6, 0.5, 0.34],  # A
+    [0.075, 0.7, 0.5, 0.24],  # A
     [0.075, 0.45, 0.24, 0.2],  # B
     [0.4, 0.45, 0.24, 0.2],  # C
     [0.075, 0.08, 0.24, 0.28],  # D
@@ -301,7 +322,7 @@ panel_pos = [
     [0.7, 0.08, 0.275, 0.22],  # H
 ]
 # panel A:
-pf.add_panel(panel_pos[0], hide_axis=True)
+pf.add_panel(panel_pos[0], draw_func=panel_A)
 # panel B:
 pf.add_panel(panel_pos[1], draw_func=panel_B)
 # panel C:
@@ -316,5 +337,5 @@ pf.add_panel(panel_pos[5], draw_func=panel_F)
 pf.add_panel(panel_pos[6], draw_func=panel_G)
 # panel G:
 pf.add_panel(panel_pos[7], draw_func=panel_H)
-#pf.save("figure5.svg", dpi=300)
+pf.save("figure5.pdf", dpi=300)
 plt.show()

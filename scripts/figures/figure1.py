@@ -214,7 +214,7 @@ def panel_G(ax):
     # Load data
     # project directory
     project_dir = os.path.dirname(os.path.dirname(root_dir))
-    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates_shx_scaled.csv'), index_col=0,
+    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates.csv'), index_col=0,
                        header=0)
     # scatter plot
     exp_data = data[data['batch'] == 'exp']
@@ -229,7 +229,7 @@ def panel_G(ax):
     ax.grid(False)
     ax.set_xlabel('UMAP1', fontsize=fsize-2)
     ax.set_ylabel('UMAP2', fontsize=fsize-2)
-    ax.set_xlim([-9,7])
+    #ax.set_xlim([-9,7])
     # remove spines
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -242,7 +242,7 @@ def panel_H(ax):
     # Load data
     # project directory
     project_dir = os.path.dirname(os.path.dirname(root_dir))
-    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates_shx_scaled.csv'), index_col=0,
+    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates.csv'), index_col=0,
                        header=0)
     # scatter plot
     colors = ['#8073ac', '#b2182b', '#d6604d', '#4393c3', '#92c5de']
@@ -256,7 +256,7 @@ def panel_H(ax):
     ax.grid(False)
     ax.set_xlabel('UMAP1', fontsize=fsize-2)
     ax.set_ylabel('UMAP2', fontsize=fsize-2)
-    ax.set_xlim([-9,7])
+    #ax.set_xlim([-9,7])
     # remove spines
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)

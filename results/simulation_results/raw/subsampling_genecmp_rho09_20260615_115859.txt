@@ -1,0 +1,91 @@
+========================================================================
+SUBSAMPLING ROBUSTNESS — GENE-SELECTION COMPARISON  (REGULATED rho=0.9)
+Run timestamp : 2026-06-15T12:00:23.595680
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\subsampling_genecmp_rho09_run.py
+========================================================================
+
+PARAMETERS
+------------------------------------------------------------------------
+  rho                   : 0.9
+  cell sizes            : [200, 400, 600, 800, 1000]
+  gene sizes            : [400, 800, 1200, 1600, 2000]
+  cell:gene ratio       : 0.5  (held fixed across sizes)
+  pool                  : 1200 cells x 2400 genes
+  repeats per size      : 5
+  dropout_rate          : 1.0
+  shape (Pareto)        : 1.5
+  hub_probability       : 0.2
+  sigma seed (pool)     : 31
+  count seed (pool)     : 0
+  cell selection        : uniform random, no replacement (paired)
+  gene selection        : top = highest expression; random = uniform
+
+GMP-COR DEFINITION
+------------------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+
+RESULTS
+------------------------------------------------------------------------
+
+  GENE SELECTION: TOP  (highest expression first)
+    n_cells  n_genes    mean     SD      min      max      CV     per-gene
+    ------------------------------------------------------------------
+       200     400   10.175   5.045    3.190   15.341   0.496  0.02544
+       400     800   18.941   7.615   13.785   32.291   0.402  0.02368
+       600    1200   30.576   6.380   20.154   37.419   0.209  0.02548
+       800    1600   40.753   3.049   37.378   44.913   0.075  0.02547
+      1000    2000   50.380   3.018   46.300   52.901   0.060  0.02519
+    raw  mean spread over 5x size range :  133.3%
+    per-gene mean spread (scale-free)   :    7.2%  (mean 0.02505)
+
+  GENE SELECTION: RANDOM  (uniform random genes)
+    n_cells  n_genes    mean     SD      min      max      CV     per-gene
+    ------------------------------------------------------------------
+       200     400    0.886   1.350    0.000    3.241   1.524  0.00221
+       400     800    6.711   4.477    2.433   12.953   0.667  0.00839
+       600    1200   14.654   2.622   11.565   18.366   0.179  0.01221
+       800    1600   24.542   2.380   20.937   27.007   0.097  0.01534
+      1000    2000   38.576   1.552   36.957   41.137   0.040  0.01929
+    raw  mean spread over 5x size range :  220.8%
+    per-gene mean spread (scale-free)   :  148.6%  (mean 0.01149)
+
+PER-GENE INDEX — top vs random at each size
+------------------------------------------------------------------------
+    n_cells   top      random    random/top
+       200   0.02544  0.00221    0.09x
+       400   0.02368  0.00839    0.35x
+       600   0.02548  0.01221    0.48x
+       800   0.02547  0.01534    0.60x
+      1000   0.02519  0.01929    0.77x
+
+INTERPRETATION
+------------------------------------------------------------------------
+  Gene selection changes the conclusion. With TOP-expressed genes the
+  per-gene index is size-INVARIANT (7.2% spread, mean 0.02505) — stable
+  all the way down to 200 cells. With RANDOM genes it is NOT: the per-
+  gene index rises monotonically from 0.00221 at 200 cells to 0.01929 at
+  1000 cells (149% spread, a 8.7x increase across the 5x size range).
+
+  The apparent per-gene scale-invariance therefore DOES depend on
+  retaining informative, highly-expressed genes. A random panel is
+  dominated at small sizes by lowly-expressed, dropout-heavy genes whose
+  pairwise correlations fall below the Marchenko-Pastur noise edge, so
+  their excess eigenvalue mass — and hence GMP-Cor — is suppressed until
+  the dataset is large enough to resolve the structure. The random curve
+  is still climbing toward the top-expressed level at 1000 cells
+  (random/top per-gene ratio rises 0.09x -> 0.77x).
+
+  Practical implication: GMP-Cor is robust to cell subsampling provided
+  the analysis is restricted to detected / informative genes (as is
+  standard in scRNA-seq, and as done for the experimental data). It is
+  NOT robust if genes are chosen blindly at small sample sizes. The raw
+  metric remains extensive (scales with size) under both rules and
+  should only be compared at matched dimension.
+
+LOG FILES
+------------------------------------------------------------------------
+  JSON : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\subsampling_genecmp_rho09_20260615_115859.json
+  Text : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\subsampling_genecmp_rho09_20260615_115859.txt
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_genecmp_rho09_20260615_115859.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_genecmp_rho09_20260615_115859.png
+========================================================================

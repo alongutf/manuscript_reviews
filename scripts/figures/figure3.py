@@ -226,5 +226,5 @@ ax_H.sharey(ax_G)
 #ax_H.tick_params(left=False, labelleft=False)
 #ax_H.spines['left'].set_visible(False)
 
-pf.save("figure3.svg", dpi=300, transparent=True)
+pf.save("figure3.pdf", dpi=300, transparent=True)
 plt.show()

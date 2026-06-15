@@ -1,0 +1,64 @@
+=================================================================
+SUBSAMPLING ROBUSTNESS TEST  (REGULATED rho=0.9)
+Run timestamp : 2026-06-15T11:48:57.592035
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\subsampling_robustness_rho09_run.py
+=================================================================
+
+PARAMETERS
+-----------------------------------------------------------------
+  rho                   : 0.9
+  cell sizes            : [200, 400, 600, 800, 1000]
+  gene sizes            : [400, 800, 1200, 1600, 2000]
+  cell:gene ratio       : 0.5  (held fixed across sizes)
+  pool                  : 1200 cells x 2400 genes
+  repeats per size      : 5
+  dropout_rate          : 1.0
+  shape (Pareto)        : 1.5
+  hub_probability       : 0.2
+  sigma seed (pool)     : 31
+  count seed (pool)     : 0
+  gene selection        : highest total expression first
+  cell selection        : uniform random, no replacement
+
+GMP-COR DEFINITION
+-----------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+
+RESULTS
+-----------------------------------------------------------------
+  Full-pool GMP-Cor (1200 cells x 2400 genes) : 54.2304
+
+  n_cells  n_genes    mean     SD      min      max      CV     per-gene
+  --------------------------------------------------------------------
+     200     400   10.538   4.752    3.802   14.944   0.451  0.02635
+     400     800   19.626   7.656   13.467   32.975   0.390  0.02453
+     600    1200   31.741   6.033   21.605   37.465   0.190  0.02645
+     800    1600   41.466   4.623   34.743   46.607   0.112  0.02592
+    1000    2000   50.982   4.821   45.478   55.914   0.095  0.02549
+
+INTERPRETATION
+-----------------------------------------------------------------
+  Raw GMP-Cor is an EXTENSIVE quantity: it is a sum of eigenvalue
+  excesses, and after standardization the total spectral mass
+  equals the number of genes. It therefore scales almost linearly
+  with dataset size (per-size means span 131% over the 5x range;
+  linear fit GMP-Cor ~ 0.0257 * n_genes + 0.05). Raw GMP-Cor
+  values are thus only comparable between datasets of equal
+  dimension.
+
+  Normalising to a per-gene (INTENSIVE) index, GMP-Cor / n_genes,
+  removes this size dependence: across the same 5x range the per-
+  gene index is essentially constant (per-size means span only
+  7.4% about their mean of 0.02575). The correlation structure of
+  a regulated (rho=0.9) population is recovered at every
+  subsample size and is not an artefact of the number of cells
+  profiled. GMP-Cor is robust to subsampling once the metric is
+  made scale-free.
+
+LOG FILES
+-----------------------------------------------------------------
+  JSON : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\subsampling_robustness_rho09_20260615_114715.json
+  Text : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\subsampling_robustness_rho09_20260615_114715.txt
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_robustness_rho09_20260615_114715.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_robustness_rho09_20260615_114715.png
+=================================================================

@@ -1,0 +1,299 @@
+{
+  "params": {
+    "rho": 0.9,
+    "cell_sizes": [
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "gene_sizes": [
+      400,
+      800,
+      1200,
+      1600,
+      2000
+    ],
+    "cell_gene_ratio": 0.5,
+    "n_cells_pool": 1200,
+    "n_genes_pool": 2400,
+    "n_repeats": 5,
+    "dropout_rate": 1.0,
+    "shape": 1.5,
+    "hub_probability": 0.2,
+    "sigma_seed": 31,
+    "count_seed": 0,
+    "subsample_seed_base": 1000,
+    "gene_selection": "highest total expression first (top-N within subsampled cells)",
+    "cell_selection": "uniform random without replacement",
+    "gmp_cor_definition": "sum(max(lambda_i - max_scrambled_lambda, 0))",
+    "note": "Single rho=0.9 pool subsampled to decreasing cell counts; gene count scaled with cell count to hold the cell:gene aspect ratio (and thus the Marchenko-Pastur noise edge) fixed across sizes.",
+    "timestamp": "2026-06-15T11:48:57.592035"
+  },
+  "pool_gmp_cor": 54.230359650069516,
+  "per_repeat": [
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "repeat": 0,
+      "gmp_cor": 3.802240487099697,
+      "gmp_cor_per_gene": 0.009505601217749243,
+      "subsample_seed": 201000
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "repeat": 1,
+      "gmp_cor": 14.94390166388002,
+      "gmp_cor_per_gene": 0.03735975415970005,
+      "subsample_seed": 201001
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "repeat": 2,
+      "gmp_cor": 13.841523294486372,
+      "gmp_cor_per_gene": 0.03460380823621593,
+      "subsample_seed": 201002
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "repeat": 3,
+      "gmp_cor": 12.710591636431019,
+      "gmp_cor_per_gene": 0.031776479091077545,
+      "subsample_seed": 201003
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "repeat": 4,
+      "gmp_cor": 7.392779963181258,
+      "gmp_cor_per_gene": 0.018481949907953144,
+      "subsample_seed": 201004
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "repeat": 0,
+      "gmp_cor": 17.267311473637598,
+      "gmp_cor_per_gene": 0.021584139342046997,
+      "subsample_seed": 401000
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "repeat": 1,
+      "gmp_cor": 17.942366582440652,
+      "gmp_cor_per_gene": 0.022427958228050816,
+      "subsample_seed": 401001
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "repeat": 2,
+      "gmp_cor": 13.466784938713754,
+      "gmp_cor_per_gene": 0.016833481173392194,
+      "subsample_seed": 401002
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "repeat": 3,
+      "gmp_cor": 32.97522916914189,
+      "gmp_cor_per_gene": 0.04121903646142736,
+      "subsample_seed": 401003
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "repeat": 4,
+      "gmp_cor": 16.480406626297057,
+      "gmp_cor_per_gene": 0.02060050828287132,
+      "subsample_seed": 401004
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "repeat": 0,
+      "gmp_cor": 31.797513909159157,
+      "gmp_cor_per_gene": 0.02649792825763263,
+      "subsample_seed": 601000
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "repeat": 1,
+      "gmp_cor": 37.464720719303195,
+      "gmp_cor_per_gene": 0.031220600599419328,
+      "subsample_seed": 601001
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "repeat": 2,
+      "gmp_cor": 21.60459726070435,
+      "gmp_cor_per_gene": 0.018003831050586956,
+      "subsample_seed": 601002
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "repeat": 3,
+      "gmp_cor": 34.460469120285445,
+      "gmp_cor_per_gene": 0.02871705760023787,
+      "subsample_seed": 601003
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "repeat": 4,
+      "gmp_cor": 33.37860521955293,
+      "gmp_cor_per_gene": 0.027815504349627443,
+      "subsample_seed": 601004
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "repeat": 0,
+      "gmp_cor": 34.74314150946436,
+      "gmp_cor_per_gene": 0.021714463443415224,
+      "subsample_seed": 801000
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "repeat": 1,
+      "gmp_cor": 39.130353035008746,
+      "gmp_cor_per_gene": 0.024456470646880467,
+      "subsample_seed": 801001
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "repeat": 2,
+      "gmp_cor": 42.80902671444616,
+      "gmp_cor_per_gene": 0.026755641696528852,
+      "subsample_seed": 801002
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "repeat": 3,
+      "gmp_cor": 46.60739308778318,
+      "gmp_cor_per_gene": 0.029129620679864486,
+      "subsample_seed": 801003
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "repeat": 4,
+      "gmp_cor": 44.0382244480087,
+      "gmp_cor_per_gene": 0.027523890280005438,
+      "subsample_seed": 801004
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 45.47792556728679,
+      "gmp_cor_per_gene": 0.022738962783643395,
+      "subsample_seed": 1001000
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 55.91360337930281,
+      "gmp_cor_per_gene": 0.027956801689651405,
+      "subsample_seed": 1001001
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 53.06395982672258,
+      "gmp_cor_per_gene": 0.02653197991336129,
+      "subsample_seed": 1001002
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 46.17365605598418,
+      "gmp_cor_per_gene": 0.02308682802799209,
+      "subsample_seed": 1001003
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 54.28208530631385,
+      "gmp_cor_per_gene": 0.027141042653156925,
+      "subsample_seed": 1001004
+    }
+  ],
+  "per_size": [
+    {
+      "n_cells": 200,
+      "n_genes": 400,
+      "mean": 10.538207409015673,
+      "std": 4.751532782382579,
+      "min": 3.802240487099697,
+      "max": 14.94390166388002,
+      "cv": 0.45088624639495484,
+      "mean_per_gene": 0.02634551852253918,
+      "std_per_gene": 0.011878831955956447,
+      "cv_per_gene": 0.45088624639495484
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 800,
+      "mean": 19.62641975804619,
+      "std": 7.655563980241102,
+      "min": 13.466784938713754,
+      "max": 32.97522916914189,
+      "cv": 0.3900642131687096,
+      "mean_per_gene": 0.024533024697557738,
+      "std_per_gene": 0.00956945497530138,
+      "cv_per_gene": 0.39006421316870965
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 1200,
+      "mean": 31.741181245801016,
+      "std": 6.0329946165804005,
+      "min": 21.60459726070435,
+      "max": 37.464720719303195,
+      "cv": 0.1900683711126376,
+      "mean_per_gene": 0.02645098437150085,
+      "std_per_gene": 0.005027495513817001,
+      "cv_per_gene": 0.1900683711126376
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 1600,
+      "mean": 41.46562775894223,
+      "std": 4.623474196580353,
+      "min": 34.74314150946436,
+      "max": 46.60739308778318,
+      "cv": 0.11150136743277163,
+      "mean_per_gene": 0.025916017349338894,
+      "std_per_gene": 0.00288967137286272,
+      "cv_per_gene": 0.11150136743277163
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "mean": 50.982246027122045,
+      "std": 4.820810050757559,
+      "min": 45.47792556728679,
+      "max": 55.91360337930281,
+      "cv": 0.09455860473846005,
+      "mean_per_gene": 0.025491123013561018,
+      "std_per_gene": 0.0024104050253787785,
+      "cv_per_gene": 0.09455860473846003
+    }
+  ]
+}

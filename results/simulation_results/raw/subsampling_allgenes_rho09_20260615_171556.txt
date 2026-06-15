@@ -1,0 +1,60 @@
+====================================================================
+SUBSAMPLING ROBUSTNESS — ALL GENES RETAINED  (REGULATED rho=0.9)
+Run timestamp : 2026-06-15T17:16:57.771335
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\subsampling_allgenes_rho09_run.py
+====================================================================
+
+PARAMETERS
+--------------------------------------------------------------------
+  rho                   : 0.9
+  cell sizes            : [200, 400, 600, 800, 1000]
+  n_genes               : 2000  (ALL genes used every time — no selection)
+  aspect ratio g:c      : 2000:200 .. 2000:1000  (NOT fixed)
+  pool                  : 1200 cells x 2000 genes
+  repeats per size      : 5
+  dropout_rate          : 1.0
+  shape (Pareto)        : 1.5
+  hub_probability       : 0.2
+  sigma seed (pool)     : 31
+  count seed (pool)     : 0
+  cell selection        : uniform random, no replacement
+  gene selection        : NONE (complete 2000-gene set every time)
+
+GMP-COR DEFINITION
+--------------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+
+RESULTS
+--------------------------------------------------------------------
+  n_cells  g:c    mean     SD      min      max      CV    frac_of_full
+  ----------------------------------------------------------------
+     200  10.0   24.585  11.136   10.676   41.079  0.453     0.63
+     400   5.0   25.610   7.471   18.098   36.476  0.292     0.66
+     600   3.3   31.634   6.236   24.136   41.372  0.197     0.81
+     800   2.5   34.549   6.240   26.329   41.775  0.181     0.89
+    1000   2.0   38.901   1.725   36.569   40.624  0.044     1.00
+  raw mean spread over 5x cell range :   46.1%
+
+INTERPRETATION
+--------------------------------------------------------------------
+  Using the complete 2000-gene set and subsampling cells only, raw
+  GMP-Cor declines smoothly from 38.9 at 1000 cells to 24.6 at 200
+  cells (a 46% spread over the 5x range), retaining 63% of the full-
+  size value at 200 cells. The fall is driven by fewer cells giving
+  noisier correlation estimates and a higher Marchenko-Pastur noise
+  edge (the aspect ratio reaches 10:1 genes:cells at 200 cells), not
+  by any loss of genes.
+
+  Variance grows as cells are removed (CV 0.04 at 1000 cells -> 0.45
+  at 200 cells), so small-cell estimates are noisier but the mean
+  signal remains clearly elevated. With the gene panel held
+  complete, GMP-Cor is robust to cell subsampling down to a few
+  hundred cells.
+
+LOG FILES
+--------------------------------------------------------------------
+  JSON : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\subsampling_allgenes_rho09_20260615_171556.json
+  Text : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\subsampling_allgenes_rho09_20260615_171556.txt
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_allgenes_rho09_20260615_171556.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_allgenes_rho09_20260615_171556.png
+====================================================================

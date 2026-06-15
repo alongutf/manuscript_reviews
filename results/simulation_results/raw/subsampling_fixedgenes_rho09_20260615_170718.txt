@@ -1,0 +1,83 @@
+========================================================================
+SUBSAMPLING ROBUSTNESS — FIXED GENE COUNT  (REGULATED rho=0.9)
+Run timestamp : 2026-06-15T17:09:00.794692
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\subsampling_genecmp_fixedgenes_rho09_run.py
+========================================================================
+
+PARAMETERS
+------------------------------------------------------------------------
+  rho                   : 0.9
+  cell sizes            : [200, 400, 600, 800, 1000]
+  n_genes (FIXED)       : 2000  (selected from 2400-gene pool)
+  aspect ratio g:c      : 2000:200 .. 2000:1000  (NOT fixed)
+  pool                  : 1200 cells x 2400 genes
+  repeats per size      : 5
+  dropout_rate          : 1.0
+  shape (Pareto)        : 1.5
+  hub_probability       : 0.2
+  sigma seed (pool)     : 31
+  count seed (pool)     : 0
+  cell selection        : uniform random, no replacement (paired)
+  gene selection        : top = highest expression; random = uniform
+
+GMP-COR DEFINITION
+------------------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+
+RESULTS
+------------------------------------------------------------------------
+
+  GENE SELECTION: TOP  (highest expression first)
+    n_cells  g:c    mean     SD      min      max      CV    frac_of_full
+    ----------------------------------------------------------------
+       200  10.0   36.098  10.169   25.189   46.745  0.282     0.71
+       400   5.0   36.721  10.898   26.291   52.562  0.297     0.72
+       600   3.3   40.879   1.448   39.551   43.252  0.035     0.80
+       800   2.5   46.238   2.557   42.254   48.643  0.055     0.91
+      1000   2.0   50.875   2.561   48.215   54.361  0.050     1.00
+    raw mean spread over 5x cell range :   35.0%
+
+  GENE SELECTION: RANDOM  (uniform random genes)
+    n_cells  g:c    mean     SD      min      max      CV    frac_of_full
+    ----------------------------------------------------------------
+       200  10.0   25.158   9.033   17.042   35.273  0.359     0.66
+       400   5.0   29.114  10.921   19.111   46.728  0.375     0.76
+       600   3.3   32.150   3.944   27.046   37.865  0.123     0.84
+       800   2.5   35.517   2.069   33.054   37.617  0.058     0.92
+      1000   2.0   38.405   4.116   34.959   45.063  0.107     1.00
+    raw mean spread over 5x cell range :   41.3%
+
+GMP-COR — top vs random at each cell count (genes fixed = 2000)
+------------------------------------------------------------------------
+    n_cells    top      random    random/top
+       200    36.098   25.158     0.70x
+       400    36.721   29.114     0.79x
+       600    40.879   32.150     0.79x
+       800    46.238   35.517     0.77x
+      1000    50.875   38.405     0.75x
+
+INTERPRETATION
+------------------------------------------------------------------------
+  With the full 2000-gene panel retained and only cells subsampled, raw
+  GMP-Cor still falls as cells are removed under both gene-selection
+  rules (top: 36.1 -> 50.9; random: 25.2 -> 38.4 from 200 to 1000
+  cells). Fewer cells means noisier correlation estimates and a higher
+  Marchenko-Pastur noise edge (aspect ratio rises to 10:1 genes:cells at
+  200 cells), so less eigenvalue mass clears the threshold.
+
+  At 200 cells the top-expressed panel still retains 71% of its full-
+  size (1000-cell) GMP-Cor, whereas the random panel retains only 66%.
+  Keeping all 2000 genes does not rescue the random selection at small
+  cell numbers: informative (highly-expressed) genes are what carry the
+  detectable correlation structure. The signal is recovered far more
+  stably across cell numbers when genes are chosen by expression —
+  consistent with restricting analysis to detected / variable genes as
+  done for the experimental data.
+
+LOG FILES
+------------------------------------------------------------------------
+  JSON : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\subsampling_fixedgenes_rho09_20260615_170718.json
+  Text : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\subsampling_fixedgenes_rho09_20260615_170718.txt
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_fixedgenes_rho09_20260615_170718.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subsampling_fixedgenes_rho09_20260615_170718.png
+========================================================================

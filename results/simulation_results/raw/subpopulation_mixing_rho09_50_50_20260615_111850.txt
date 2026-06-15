@@ -1,0 +1,71 @@
+=================================================================
+SUBPOPULATION MIXING — 50/50 SCENARIO  (REGULATED rho=0.9)
+Run timestamp : 2026-06-15T11:26:48.386150
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\subpopulation_mixing_rho09_run.py
+=================================================================
+
+PARAMETERS
+-----------------------------------------------------------------
+  n_cells total         : 1000  (500 per sub-pop)
+  n_genes               : 2000
+  mixing_ratio          : 0.5  (50/50)
+  rho_low  (dysreg.)    : 0.1   (reused, not re-run)
+  rho_high (reg.)       : 0.9
+  selected sigma seed A : 37
+  selected sigma seed B : 20  (different hub-network topology)
+  count seed A          : 0
+  count seed B          : 1
+  dropout_rate          : 1.0
+  shape (Pareto)        : 1.5
+  hub_probability       : 0.2
+  candidate seeds       : 20..39
+
+SEED SELECTION
+-----------------------------------------------------------------
+  Seeds chosen to make the two regulated sub-populations have a
+  reasonably similar individual GMP-Cor (matched strength, distinct
+  topologies). Selection minimised |GMP_A - GMP_B|, both >= median.
+    Sub-pop A (seed 37, count 0) GMP-Cor : 78.0261
+    Sub-pop B (seed 20, count 1) GMP-Cor : 81.7358
+    |difference|                          : 3.7097
+
+GMP-COR DEFINITION
+-----------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+
+RESULTS
+-----------------------------------------------------------------
+
+  DYSREGULATED CONDITION  (rho = 0.1)  [reused from prior run]
+    Sub-pop A GMP-Cor  : 0.0000
+    Sub-pop B GMP-Cor  : 0.0193
+    Combined  GMP-Cor  : 4.2604
+
+  REGULATED CONDITION  (rho = 0.9)
+    Sub-pop A GMP-Cor  : 78.0261
+    Sub-pop B GMP-Cor  : 81.7358
+    Combined  GMP-Cor  : 30.7103
+
+COMPARISON
+-----------------------------------------------------------------
+  Regulated combined   : 30.7103
+  Dysregulated combined: 4.2604
+  Ratio (reg / dysreg) : 7.21x
+
+INTERPRETATION
+-----------------------------------------------------------------
+  With the two regulated sub-populations matched to a similar
+  individual GMP-Cor at rho=0.9, the 50/50 mixture of two
+  distinct but internally regulated networks still yields a
+  clearly elevated combined GMP-Cor, well above the dysregulated
+  mixture. A mixture of regulated subpopulations therefore cannot
+  masquerade as dysregulation under GMP-Cor — genuine within-cell
+  loss of coordination is required.
+
+LOG FILES
+-----------------------------------------------------------------
+  JSON : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\subpopulation_mixing_rho09_50_50_20260615_111850.json
+  Text : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\subpopulation_mixing_rho09_50_50_20260615_111850.txt
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subpopulation_mixing_rho09_50_50_20260615_111850.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\subpopulation_mixing_rho09_50_50_20260615_111850.png
+=================================================================

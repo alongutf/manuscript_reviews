@@ -1,0 +1,260 @@
+{
+  "params": {
+    "rho": 0.9,
+    "cell_sizes": [
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "n_genes": 2000,
+    "n_cells_pool": 1200,
+    "n_repeats": 5,
+    "dropout_rate": 1.0,
+    "shape": 1.5,
+    "hub_probability": 0.2,
+    "sigma_seed": 31,
+    "count_seed": 0,
+    "subsample_seed_base": 1000,
+    "gene_selection": "NONE \u2014 all genes retained at every cell size",
+    "cell_selection": "uniform random without replacement",
+    "gmp_cor_definition": "sum(max(lambda_i - max_scrambled_lambda, 0))",
+    "note": "Pool generated with exactly N_GENES genes; the complete gene set is used for every subsample. Only cells are subsampled. No top/random gene-selection axis. Aspect ratio (genes:cells) varies 10:1 -> 2:1.",
+    "timestamp": "2026-06-15T17:16:57.771335"
+  },
+  "per_repeat": [
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 23.681974173684353,
+      "aspect_ratio_genes_per_cell": 10.0
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 41.079328442965,
+      "aspect_ratio_genes_per_cell": 10.0
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 19.984770964146946,
+      "aspect_ratio_genes_per_cell": 10.0
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 10.676016405106706,
+      "aspect_ratio_genes_per_cell": 10.0
+    },
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 27.50058783325293,
+      "aspect_ratio_genes_per_cell": 10.0
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 36.47561218352876,
+      "aspect_ratio_genes_per_cell": 5.0
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 28.390523022923905,
+      "aspect_ratio_genes_per_cell": 5.0
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 18.09773034507965,
+      "aspect_ratio_genes_per_cell": 5.0
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 19.2115845164778,
+      "aspect_ratio_genes_per_cell": 5.0
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 25.874646789214232,
+      "aspect_ratio_genes_per_cell": 5.0
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 41.37234034102763,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 24.13559176737204,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 29.7718179174677,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 30.762709675762295,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 32.12744509289358,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 30.172489291335246,
+      "aspect_ratio_genes_per_cell": 2.5
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 41.774959509510154,
+      "aspect_ratio_genes_per_cell": 2.5
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 26.329346086902646,
+      "aspect_ratio_genes_per_cell": 2.5
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 38.329152271648965,
+      "aspect_ratio_genes_per_cell": 2.5
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 36.13753254093149,
+      "aspect_ratio_genes_per_cell": 2.5
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 0,
+      "gmp_cor": 40.623889764482605,
+      "aspect_ratio_genes_per_cell": 2.0
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 1,
+      "gmp_cor": 38.23764451059304,
+      "aspect_ratio_genes_per_cell": 2.0
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 2,
+      "gmp_cor": 38.47883012889307,
+      "aspect_ratio_genes_per_cell": 2.0
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 3,
+      "gmp_cor": 36.569414288196796,
+      "aspect_ratio_genes_per_cell": 2.0
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "repeat": 4,
+      "gmp_cor": 40.5965707146232,
+      "aspect_ratio_genes_per_cell": 2.0
+    }
+  ],
+  "per_size": [
+    {
+      "n_cells": 200,
+      "n_genes": 2000,
+      "aspect_ratio_genes_per_cell": 10.0,
+      "mean": 24.584535563831185,
+      "std": 11.135538936077829,
+      "min": 10.676016405106706,
+      "max": 41.079328442965,
+      "cv": 0.4529489242196812,
+      "frac_of_full": 0.6319725715589707
+    },
+    {
+      "n_cells": 400,
+      "n_genes": 2000,
+      "aspect_ratio_genes_per_cell": 5.0,
+      "mean": 25.61001937144487,
+      "std": 7.470555374151198,
+      "min": 18.09773034507965,
+      "max": 36.47561218352876,
+      "cv": 0.2917044015390654,
+      "frac_of_full": 0.6583337626136904
+    },
+    {
+      "n_cells": 600,
+      "n_genes": 2000,
+      "aspect_ratio_genes_per_cell": 3.3333333333333335,
+      "mean": 31.633980958904647,
+      "std": 6.235618566275751,
+      "min": 24.13559176737204,
+      "max": 41.37234034102763,
+      "cv": 0.19711773154243134,
+      "frac_of_full": 0.8131863318442537
+    },
+    {
+      "n_cells": 800,
+      "n_genes": 2000,
+      "aspect_ratio_genes_per_cell": 2.5,
+      "mean": 34.5486959400657,
+      "std": 6.239872467355062,
+      "min": 26.329346086902646,
+      "max": 41.774959509510154,
+      "cv": 0.18061094051653506,
+      "frac_of_full": 0.888112291589281
+    },
+    {
+      "n_cells": 1000,
+      "n_genes": 2000,
+      "aspect_ratio_genes_per_cell": 2.0,
+      "mean": 38.90126988135774,
+      "std": 1.724664363111606,
+      "min": 36.569414288196796,
+      "max": 40.623889764482605,
+      "cv": 0.04433439752407927,
+      "frac_of_full": 1.0
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "params": {
+    "n_cells": 1000,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_genes": 2000,
+    "mixing_ratio": 0.5,
+    "rho_low": 0.1,
+    "rho_high": 0.9,
+    "seed_a": 37,
+    "seed_b": 20,
+    "count_seed_a": 0,
+    "count_seed_b": 1,
+    "dropout_rate": 1.0,
+    "shape": 1.5,
+    "hub_probability": 0.2,
+    "candidate_seeds": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ],
+    "seed_selection": "seed_a/seed_b chosen to minimise |GMP_A - GMP_B| among candidates, each required >= median of its count-seed distribution",
+    "seed_screen": {
+      "20": {
+        "count0": 60.289291280708184,
+        "count1": 73.63386241826805
+      },
+      "21": {
+        "count0": 50.22801757984276,
+        "count1": 35.581521145944315
+      },
+      "22": {
+        "count0": 156.40979008360978,
+        "count1": 165.57834627503723
+      },
+      "23": {
+        "count0": 118.89691730022194,
+        "count1": 176.5586891632056
+      },
+      "24": {
+        "count0": 33.66703132927303,
+        "count1": 42.949728324187625
+      },
+      "25": {
+        "count0": 67.31328375672891,
+        "count1": 62.33124709948883
+      },
+      "26": {
+        "count0": 17.560408597411225,
+        "count1": 36.08417561231912
+      },
+      "27": {
+        "count0": 45.84376325807684,
+        "count1": 80.97932406764124
+      },
+      "28": {
+        "count0": 16.845089308862725,
+        "count1": 31.022532614019422
+      },
+      "29": {
+        "count0": 42.93111443072945,
+        "count1": 56.2812013496064
+      },
+      "30": {
+        "count0": 160.15550563326292,
+        "count1": 174.72355260703424
+      },
+      "31": {
+        "count0": 36.47180369371255,
+        "count1": 29.818349055989522
+      },
+      "32": {
+        "count0": 45.779709326622466,
+        "count1": 48.7606257506595
+      },
+      "33": {
+        "count0": 28.129102088538684,
+        "count1": 32.5544049834334
+      },
+      "34": {
+        "count0": 87.39098121210634,
+        "count1": 110.36658721719289
+      },
+      "35": {
+        "count0": 29.062720701184347,
+        "count1": 33.622433102598606
+      },
+      "36": {
+        "count0": 7.327538994051755,
+        "count1": 13.499101275106652
+      },
+      "37": {
+        "count0": 74.93542566237792,
+        "count1": 65.13321327168259
+      },
+      "38": {
+        "count0": 70.71574440914311,
+        "count1": 97.17757803849815
+      },
+      "39": {
+        "count0": 36.57784935461624,
+        "count1": 62.01904029079597
+      }
+    },
+    "gmp_cor_definition": "sum(max(lambda_i - max_scrambled_lambda, 0))",
+    "dysregulated_source": "subpopulation_mixing_50_50_20260601_110038.json",
+    "note": "Regulated condition re-run at rho=0.9 with matched-GMP seeds; dysregulated (rho=0.1) values reused from prior run, not re-run.",
+    "timestamp": "2026-06-15T11:26:48.386150"
+  },
+  "dysregulated": {
+    "rho": 0.1,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_cells_total": 1000,
+    "gmp_cor_subpop_a": 0.0,
+    "gmp_cor_subpop_b": 0.019331589237957303,
+    "gmp_cor_combined": 4.260420090071651
+  },
+  "regulated": {
+    "rho": 0.9,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_cells_total": 1000,
+    "gmp_cor_subpop_a": 78.02611551986695,
+    "gmp_cor_subpop_b": 81.73584381423049,
+    "gmp_cor_combined": 30.71033052165253
+  }
+}

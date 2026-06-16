@@ -1,0 +1,63 @@
+GO_ID,GO_name,is_motility,n_fig4a_genes
+GO:0006935,chemotaxis,True,34
+GO:0071973,bacterial-type flagellum-dependent cell motility,True,20
+GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,True,10
+GO:0030254,protein secretion by the type III secretion system,False,9
+GO:0007165,signal transduction,False,8
+GO:0071978,bacterial-type flagellum-dependent swarming motility,True,7
+GO:0015031,protein transport,False,7
+GO:0044781,bacterial-type flagellum organization,True,7
+GO:0044780,bacterial-type flagellum assembly,True,6
+GO:0071977,bacterial-type flagellum-dependent swimming motility,True,4
+GO:0009306,protein secretion,False,4
+GO:0050920,regulation of chemotaxis,True,4
+GO:1902021,regulation of bacterial-type flagellum-dependent cell motility,True,3
+GO:0055085,transmembrane transport,False,3
+GO:0050918,positive chemotaxis,True,3
+GO:1902600,proton transmembrane transport,False,3
+GO:1901875,positive regulation of post-translational protein modification,False,2
+GO:0015833,peptide transport,False,2
+GO:0071230,cellular response to amino acid stimulus,False,2
+GO:0000160,phosphorelay signal transduction system,False,2
+GO:0009593,detection of chemical stimulus,False,2
+GO:0009454,aerotaxis,True,2
+GO:0007172,signal complex assembly,False,2
+GO:0015768,maltose transport,False,1
+GO:0060326,cell chemotaxis,True,1
+GO:0048870,cell motility,True,1
+GO:0050919,negative chemotaxis,True,1
+GO:0051260,protein homooligomerization,False,1
+GO:0051649,establishment of localization in cell,False,1
+GO:0052131,positive aerotaxis,True,1
+GO:0009058,biosynthetic process,False,1
+GO:0061077,chaperone-mediated protein folding,False,1
+GO:0015765,methylgalactoside transport,False,1
+GO:0008643,carbohydrate transport,False,1
+GO:0006974,DNA damage response,False,1
+GO:0006754,ATP biosynthetic process,False,1
+GO:0006605,protein targeting,False,1
+GO:0098716,nickel cation import across plasma membrane,False,1
+GO:0006482,protein demethylation,False,1
+GO:0006479,protein methylation,False,1
+GO:0045733,acetate catabolic process,False,1
+GO:0015675,nickel cation transport,False,1
+GO:0015752,D-ribose transmembrane transport,False,1
+GO:0043113,receptor clustering,False,1
+GO:0015886,heme transport,False,1
+GO:0015986,proton motive force-driven ATP synthesis,False,1
+GO:0018277,protein deamination,False,1
+GO:0018393,internal peptidyl-lysine acetylation,False,1
+GO:0018394,peptidyl-lysine acetylation,False,1
+GO:0019427,acetyl-CoA biosynthetic process from acetate,False,1
+GO:0015757,galactose transmembrane transport,False,1
+GO:0032110,regulation of protein histidine kinase activity,False,1
+GO:0032259,methylation,False,1
+GO:0006085,acetyl-CoA biosynthetic process,False,1
+GO:0034289,detection of maltose stimulus,False,1
+GO:0034421,post-translational protein acetylation,False,1
+GO:0035351,heme transmembrane transport,False,1
+GO:0035442,dipeptide transmembrane transport,False,1
+GO:0042938,dipeptide transport,False,1
+GO:0042956,maltodextrin transmembrane transport,False,1
+GO:0043052,thermotaxis,True,1
+GO:0034219,carbohydrate transmembrane transport,False,1

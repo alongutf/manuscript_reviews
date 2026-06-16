@@ -6,6 +6,7 @@ from figure_functions import PanelFigure
 import numpy as np
 import pandas as pd
 import os
+import textwrap
 from scipy import stats
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from goatools import obo_parser
@@ -200,12 +201,18 @@ def panel_B(ax):
     go_results2 = pd.read_csv(path)
     # filter go terms that appear in both conditions
     common_go_terms = set(go_results['GO_ID']).intersection(set(go_results2['GO_ID']))
-    # get the p-values of the common go terms
-    go_dict = {}
+    # get the p-values of the common go terms, plus the GO term name and gene-set size
+    # (number of background genes in the term = first element of "Ratio in Population")
+    def get_set_size(table, go_term):
+        ratio = table.loc[table['GO_ID'] == go_term, 'Ratio in Population'].values[0]
+        return int(str(ratio).strip('() ').split(',')[0])
+    go_dict, go_names, go_sizes = {}, {}, {}
     for go_term in common_go_terms:
         p_value1 = go_results[go_results['GO_ID'] == go_term]['FDR'].values[0]
         p_value2 = go_results2[go_results2['GO_ID'] == go_term]['FDR'].values[0]
         go_dict[go_term] = [p_value1, p_value2]
+        go_names[go_term] = go_results.loc[go_results['GO_ID'] == go_term, 'Term'].values[0]
+        go_sizes[go_term] = get_set_size(go_results, go_term)
 
     # create a dataframe
     df = pd.DataFrame(go_dict).T
@@ -219,26 +226,27 @@ def panel_B(ax):
     x = np.arange(len(df.index))  # the label locations
     shx_values = -np.log10(df['SHX'])
     casp_values = -np.log10(df['Casp'])
-    labels = [val[3:] for val in df.index]
+    # x-axis labels: GO term name with its gene count, e.g. "chemotaxis (n=34)"
+    labels = [f"{go_names[go]} (n={go_sizes[go]})" for go in df.index]
     # Plot each bar next to each other
     ax.bar(x - bar_width / 2, shx_values, width=bar_width, label='Dis-Arrest', color='#de2d26')
     ax.bar(x + bar_width / 2, casp_values, width=bar_width, label='Reg-Arrest', color='#9ecae1')
     # significance annotations:
     GO_pvals = pd.read_csv(os.path.join(root_dir,'scripts','figures','figure4','GO_diff_pvals.csv'),index_col=0,header=0)
-    for pos,ID,y_shx,y_casp in zip(x,labels,shx_values,casp_values):
+    for pos,go_id,y_shx,y_casp in zip(x,df.index,shx_values,casp_values):
         y = max(y_shx,y_casp)
-        p_adj = GO_pvals['p_adj'][GO_pvals.index == 'GO:'+ID].values[0]
+        p_adj = GO_pvals['p_adj'][GO_pvals.index == go_id].values[0]
         if p_adj<0.05:
             ax.plot([pos-bar_width/2,pos-bar_width/2, pos+bar_width/2, pos+bar_width/2], [y+h,y+2*h,y+2*h,y+h],color='k', linewidth=0.5)
             ax.text(pos,y+2*h,get_asterisks(p_adj), ha='center', fontsize = fsize-3)
 
     # Set title and labels
     ax.set_ylabel('Enrichment score', fontsize=fsize, labelpad=0)
-    ax.set_xlabel('GO ID', fontsize=fsize, labelpad=0)
+    ax.set_xlabel('GO term', fontsize=fsize, labelpad=0)
     ax.set_ylim([0,19])
     ax.set_yticks([4, 8, 12, 16])
     ax.set_xticks(x)  # Set x-ticks to be at the center of each pair
-    ax.set_xticklabels(labels, fontsize=fsize - 2, rotation=45, ha='right')  # Set x-tick labels to match the DataFrame index
+    ax.set_xticklabels(labels, fontsize=fsize - 5, rotation=45, ha='right')  # GO term name (n=genes)
     # Add legend
     ax.legend(fontsize=fsize-2, loc='upper center', bbox_to_anchor=(0.35, 1.015), ncol=1)
     ax.set_yticklabels([4, 8, 12, 16], fontsize=fsize-2)
@@ -377,12 +385,12 @@ lw=.5
 marker_size=2.5
 plt.close("all")
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-pf = PanelFigure(figsize=(7, 5), label_offset=(0, 0.04))
+pf = PanelFigure(figsize=(7, 6.5), label_offset=(0, 0.03))
 panel_pos = [
-    [0.08, 0.18, 0.1, 0.75],  # A
-    [0.35, 0.58, 0.55, 0.35],  # B
-    [0.3, 0.09, 0.3, 0.32],  # C
-    [0.7, 0.09, 0.28, 0.32],  # D
+    [0.08, 0.30, 0.1, 0.63],  # A
+    [0.35, 0.66, 0.6, 0.27],  # B  (extra room below for GO-term-name x labels)
+    [0.3, 0.07, 0.3, 0.20],  # C
+    [0.7, 0.07, 0.28, 0.20],  # D
 ]
 # panel A:
 pf.add_panel(panel_pos[0], draw_func=panel_A, label="A")
@@ -393,4 +401,5 @@ pf.add_panel(panel_pos[2], draw_func=panel_C, label="C")
 # panel D:
 pf.add_panel(panel_pos[3], draw_func=panel_D, label="D")
 pf.save("figure4.svg", dpi=300, transparent=True)
+pf.save("figure4_preview.png", dpi=300)
 plt.show()

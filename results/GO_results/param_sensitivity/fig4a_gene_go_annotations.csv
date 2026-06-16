@@ -1,0 +1,186 @@
+gene,uniprot,GO_ID,GO_name,namespace,is_motility
+rbsB,P02925,GO:0006935,chemotaxis,biological_process,True
+rbsB,P02925,GO:0050918,positive chemotaxis,biological_process,True
+rbsB,P02925,GO:0015752,D-ribose transmembrane transport,biological_process,False
+trg,P05704,GO:0006935,chemotaxis,biological_process,True
+trg,P05704,GO:0007165,signal transduction,biological_process,False
+nikA,P33590,GO:0055085,transmembrane transport,biological_process,False
+nikA,P33590,GO:0050919,negative chemotaxis,biological_process,True
+nikA,P33590,GO:0015675,nickel cation transport,biological_process,False
+nikA,P33590,GO:0015833,peptide transport,biological_process,False
+nikA,P33590,GO:0098716,nickel cation import across plasma membrane,biological_process,False
+tap,P07018,GO:0006935,chemotaxis,biological_process,True
+tap,P07018,GO:0007165,signal transduction,biological_process,False
+tar,P07017,GO:0071230,cellular response to amino acid stimulus,biological_process,False
+tar,P07017,GO:0006935,chemotaxis,biological_process,True
+tar,P07017,GO:0007165,signal transduction,biological_process,False
+tar,P07017,GO:0007172,signal complex assembly,biological_process,False
+tar,P07017,GO:0009593,detection of chemical stimulus,biological_process,False
+tar,P07017,GO:0050920,regulation of chemotaxis,biological_process,True
+tar,P07017,GO:1901875,positive regulation of post-translational protein modification,biological_process,False
+tar,P07017,GO:0051260,protein homooligomerization,biological_process,False
+motB,P0AF06,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+motB,P0AF06,GO:0006935,chemotaxis,biological_process,True
+motB,P0AF06,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+motB,P0AF06,GO:1902600,proton transmembrane transport,biological_process,False
+acs,P27550,GO:0034421,post-translational protein acetylation,biological_process,False
+acs,P27550,GO:0045733,acetate catabolic process,biological_process,False
+acs,P27550,GO:0006935,chemotaxis,biological_process,True
+acs,P27550,GO:0018394,peptidyl-lysine acetylation,biological_process,False
+acs,P27550,GO:0019427,acetyl-CoA biosynthetic process from acetate,biological_process,False
+acs,P27550,GO:0006085,acetyl-CoA biosynthetic process,biological_process,False
+tsr,P02942,GO:0071230,cellular response to amino acid stimulus,biological_process,False
+tsr,P02942,GO:1902021,regulation of bacterial-type flagellum-dependent cell motility,biological_process,True
+tsr,P02942,GO:0048870,cell motility,biological_process,True
+tsr,P02942,GO:0032110,regulation of protein histidine kinase activity,biological_process,False
+tsr,P02942,GO:0006935,chemotaxis,biological_process,True
+tsr,P02942,GO:0007165,signal transduction,biological_process,False
+tsr,P02942,GO:0007172,signal complex assembly,biological_process,False
+tsr,P02942,GO:0009593,detection of chemical stimulus,biological_process,False
+tsr,P02942,GO:0050920,regulation of chemotaxis,biological_process,True
+tsr,P02942,GO:0043113,receptor clustering,biological_process,False
+aer,P50466,GO:0006935,chemotaxis,biological_process,True
+aer,P50466,GO:0007165,signal transduction,biological_process,False
+aer,P50466,GO:0052131,positive aerotaxis,biological_process,True
+cheB,P07330,GO:0006482,protein demethylation,biological_process,False
+cheB,P07330,GO:0000160,phosphorelay signal transduction system,biological_process,False
+cheB,P07330,GO:0006935,chemotaxis,biological_process,True
+cheB,P07330,GO:0007165,signal transduction,biological_process,False
+cheB,P07330,GO:0018277,protein deamination,biological_process,False
+cheR,P07364,GO:0006935,chemotaxis,biological_process,True
+cheR,P07364,GO:0032259,methylation,biological_process,False
+cheR,P07364,GO:0006479,protein methylation,biological_process,False
+cheW,P0A964,GO:0009454,aerotaxis,biological_process,True
+cheW,P0A964,GO:0006935,chemotaxis,biological_process,True
+cheW,P0A964,GO:0007165,signal transduction,biological_process,False
+cheW,P0A964,GO:0051649,establishment of localization in cell,biological_process,False
+cheW,P0A964,GO:1901875,positive regulation of post-translational protein modification,biological_process,False
+cheY,P0AE67,GO:0009454,aerotaxis,biological_process,True
+cheY,P0AE67,GO:0000160,phosphorelay signal transduction system,biological_process,False
+cheY,P0AE67,GO:1902021,regulation of bacterial-type flagellum-dependent cell motility,biological_process,True
+cheY,P0AE67,GO:0043052,thermotaxis,biological_process,True
+cheY,P0AE67,GO:0071977,bacterial-type flagellum-dependent swimming motility,biological_process,True
+cheY,P0AE67,GO:0006935,chemotaxis,biological_process,True
+cheY,P0AE67,GO:0007165,signal transduction,biological_process,False
+cheY,P0AE67,GO:0050920,regulation of chemotaxis,biological_process,True
+cheY,P0AE67,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+cheY,P0AE67,GO:0018393,internal peptidyl-lysine acetylation,biological_process,False
+cheZ,P0A9H9,GO:1902021,regulation of bacterial-type flagellum-dependent cell motility,biological_process,True
+cheZ,P0A9H9,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+cheZ,P0A9H9,GO:0006935,chemotaxis,biological_process,True
+cheZ,P0A9H9,GO:0050920,regulation of chemotaxis,biological_process,True
+cheZ,P0A9H9,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+dppA,P23847,GO:0035351,heme transmembrane transport,biological_process,False
+dppA,P23847,GO:0055085,transmembrane transport,biological_process,False
+dppA,P23847,GO:0015886,heme transport,biological_process,False
+dppA,P23847,GO:0061077,chaperone-mediated protein folding,biological_process,False
+dppA,P23847,GO:0015031,protein transport,biological_process,False
+dppA,P23847,GO:0006935,chemotaxis,biological_process,True
+dppA,P23847,GO:0015833,peptide transport,biological_process,False
+dppA,P23847,GO:0035442,dipeptide transmembrane transport,biological_process,False
+dppA,P23847,GO:0042938,dipeptide transport,biological_process,False
+dppA,P23847,GO:0050918,positive chemotaxis,biological_process,True
+flgB,P0ABW9,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flgB,P0ABW9,GO:0006935,chemotaxis,biological_process,True
+flgC,P0ABX2,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flgC,P0ABX2,GO:0006935,chemotaxis,biological_process,True
+flgC,P0ABX2,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+flgF,P75938,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flgF,P75938,GO:0006935,chemotaxis,biological_process,True
+flgF,P75938,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+flgG,P0ABX5,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flgG,P0ABX5,GO:0006935,chemotaxis,biological_process,True
+flgG,P0ABX5,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+flhA,P76298,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+flhA,P76298,GO:0009306,protein secretion,biological_process,False
+flhA,P76298,GO:0015031,protein transport,biological_process,False
+flhA,P76298,GO:0006935,chemotaxis,biological_process,True
+flhA,P76298,GO:0044781,bacterial-type flagellum organization,biological_process,True
+flhA,P76298,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flhA,P76298,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+motA,P09348,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+motA,P09348,GO:0006935,chemotaxis,biological_process,True
+motA,P09348,GO:1902600,proton transmembrane transport,biological_process,False
+motA,P09348,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+motA,P09348,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+flhB,P76299,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+flhB,P76299,GO:0009306,protein secretion,biological_process,False
+flhB,P76299,GO:0015031,protein transport,biological_process,False
+flhB,P76299,GO:0006935,chemotaxis,biological_process,True
+flhB,P76299,GO:0044781,bacterial-type flagellum organization,biological_process,True
+flhB,P76299,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+flhB,P76299,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+fliG,P0ABZ1,GO:0071977,bacterial-type flagellum-dependent swimming motility,biological_process,True
+fliG,P0ABZ1,GO:0006935,chemotaxis,biological_process,True
+fliG,P0ABZ1,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliG,P0ABZ1,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+fliG,P0ABZ1,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+fliH,P31068,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliH,P31068,GO:0015031,protein transport,biological_process,False
+fliH,P31068,GO:0006935,chemotaxis,biological_process,True
+fliH,P31068,GO:0044781,bacterial-type flagellum organization,biological_process,True
+fliH,P31068,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliI,P52612,GO:0009058,biosynthetic process,biological_process,False
+fliI,P52612,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliI,P52612,GO:0015986,proton motive force-driven ATP synthesis,biological_process,False
+fliI,P52612,GO:0006754,ATP biosynthetic process,biological_process,False
+fliI,P52612,GO:0006935,chemotaxis,biological_process,True
+fliI,P52612,GO:0015031,protein transport,biological_process,False
+fliI,P52612,GO:1902600,proton transmembrane transport,biological_process,False
+fliI,P52612,GO:0044781,bacterial-type flagellum organization,biological_process,True
+fliI,P52612,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliI,P52612,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+fliJ,P52613,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliJ,P52613,GO:0015031,protein transport,biological_process,False
+fliJ,P52613,GO:0006935,chemotaxis,biological_process,True
+fliJ,P52613,GO:0044781,bacterial-type flagellum organization,biological_process,True
+fliJ,P52613,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliL,P0ABX8,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliL,P0ABX8,GO:0006935,chemotaxis,biological_process,True
+fliL,P0ABX8,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+fliL,P0ABX8,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+fliM,P06974,GO:0071977,bacterial-type flagellum-dependent swimming motility,biological_process,True
+fliM,P06974,GO:0071978,bacterial-type flagellum-dependent swarming motility,biological_process,True
+fliM,P06974,GO:0006935,chemotaxis,biological_process,True
+fliM,P06974,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliM,P06974,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+fliM,P06974,GO:0050918,positive chemotaxis,biological_process,True
+fliN,P15070,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliN,P15070,GO:0006935,chemotaxis,biological_process,True
+fliN,P15070,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+fliN,P15070,GO:0071977,bacterial-type flagellum-dependent swimming motility,biological_process,True
+fliO,P22586,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliO,P22586,GO:0006935,chemotaxis,biological_process,True
+fliO,P22586,GO:0044781,bacterial-type flagellum organization,biological_process,True
+fliO,P22586,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliO,P22586,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+fliP,P0AC05,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliP,P0AC05,GO:0009306,protein secretion,biological_process,False
+fliP,P0AC05,GO:0015031,protein transport,biological_process,False
+fliP,P0AC05,GO:0006935,chemotaxis,biological_process,True
+fliP,P0AC05,GO:0044781,bacterial-type flagellum organization,biological_process,True
+fliP,P0AC05,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliQ,P0AC07,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliQ,P0AC07,GO:0009306,protein secretion,biological_process,False
+fliQ,P0AC07,GO:0006935,chemotaxis,biological_process,True
+fliQ,P0AC07,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliQ,P0AC07,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+fliR,P33135,GO:0006605,protein targeting,biological_process,False
+fliR,P33135,GO:0030254,protein secretion by the type III secretion system,biological_process,False
+fliR,P33135,GO:0006935,chemotaxis,biological_process,True
+fliR,P33135,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliR,P33135,GO:0044780,bacterial-type flagellum assembly,biological_process,True
+malE,P0AEX9,GO:0055085,transmembrane transport,biological_process,False
+malE,P0AEX9,GO:0006974,DNA damage response,biological_process,False
+malE,P0AEX9,GO:0034219,carbohydrate transmembrane transport,biological_process,False
+malE,P0AEX9,GO:0060326,cell chemotaxis,biological_process,True
+malE,P0AEX9,GO:0034289,detection of maltose stimulus,biological_process,False
+malE,P0AEX9,GO:0008643,carbohydrate transport,biological_process,False
+malE,P0AEX9,GO:0042956,maltodextrin transmembrane transport,biological_process,False
+malE,P0AEX9,GO:0015768,maltose transport,biological_process,False
+fliE,P0A8T5,GO:0071973,bacterial-type flagellum-dependent cell motility,biological_process,True
+fliE,P0A8T5,GO:0006935,chemotaxis,biological_process,True
+fliE,P0A8T5,GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,biological_process,True
+mglB,P0AEE5,GO:0006935,chemotaxis,biological_process,True
+mglB,P0AEE5,GO:0015757,galactose transmembrane transport,biological_process,False
+mglB,P0AEE5,GO:0015765,methylgalactoside transport,biological_process,False

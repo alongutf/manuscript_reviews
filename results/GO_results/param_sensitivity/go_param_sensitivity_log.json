@@ -1,0 +1,110 @@
+{
+  "timestamp": "20260616_151106",
+  "params": {
+    "p_cutoff": 0.01,
+    "target_size": 1000,
+    "fold": "down",
+    "fig4a_go": "GO:0006935",
+    "key_terms": {
+      "GO:0006935": "chemotaxis",
+      "GO:0071973": "bacterial-type flagellum-dependent cell motility",
+      "GO:0044781": "bacterial-type flagellum organization",
+      "GO:0044780": "bacterial-type flagellum assembly",
+      "GO:0002181": "cytoplasmic translation",
+      "GO:0006412": "translation"
+    },
+    "motility_keywords": [
+      "flagel",
+      "chemotax",
+      "motil",
+      "taxis"
+    ],
+    "min_sizes": [
+      5,
+      10,
+      15
+    ],
+    "max_sizes": [
+      100,
+      200,
+      500,
+      "inf"
+    ]
+  },
+  "fig4a_specificity": {
+    "n_fig4a_genes": 36,
+    "n_unmapped": 0,
+    "n_mapped": 36,
+    "n_genes_with_motility_annotation": 36,
+    "frac_genes_with_motility_annotation": 1.0,
+    "n_distinct_go_terms": 62,
+    "n_distinct_motility_terms": 16,
+    "n_distinct_nonmotility_terms": 46,
+    "top_nonmotility_terms": [
+      {
+        "GO_ID": "GO:0030254",
+        "GO_name": "protein secretion by the type III secretion system",
+        "n_fig4a_genes": 9
+      },
+      {
+        "GO_ID": "GO:0007165",
+        "GO_name": "signal transduction",
+        "n_fig4a_genes": 8
+      },
+      {
+        "GO_ID": "GO:0015031",
+        "GO_name": "protein transport",
+        "n_fig4a_genes": 7
+      },
+      {
+        "GO_ID": "GO:0009306",
+        "GO_name": "protein secretion",
+        "n_fig4a_genes": 4
+      },
+      {
+        "GO_ID": "GO:0055085",
+        "GO_name": "transmembrane transport",
+        "n_fig4a_genes": 3
+      },
+      {
+        "GO_ID": "GO:1902600",
+        "GO_name": "proton transmembrane transport",
+        "n_fig4a_genes": 3
+      },
+      {
+        "GO_ID": "GO:1901875",
+        "GO_name": "positive regulation of post-translational protein modification",
+        "n_fig4a_genes": 2
+      },
+      {
+        "GO_ID": "GO:0015833",
+        "GO_name": "peptide transport",
+        "n_fig4a_genes": 2
+      },
+      {
+        "GO_ID": "GO:0071230",
+        "GO_name": "cellular response to amino acid stimulus",
+        "n_fig4a_genes": 2
+      },
+      {
+        "GO_ID": "GO:0000160",
+        "GO_name": "phosphorelay signal transduction system",
+        "n_fig4a_genes": 2
+      }
+    ]
+  },
+  "size_sensitivity": {
+    "n_common_terms": 20,
+    "n_windows": 8,
+    "n_windows_paired_sig": 8,
+    "wilcoxon_p_min": 0.0015764236450195312,
+    "wilcoxon_p_max": 0.00537109375
+  },
+  "size_confound": {
+    "n_common_terms": 20,
+    "spearman_rho_signed_diff_vs_size": 0.302,
+    "spearman_p_signed": 0.19516905105166973,
+    "spearman_rho_abs_diff_vs_size": 0.528,
+    "spearman_p_abs": 0.016603040756934216
+  }
+}

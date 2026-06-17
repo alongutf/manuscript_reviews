@@ -158,7 +158,7 @@ def panel_B(axes):
 def panel_E(ax):
     # scanlag plot:
     data_dir = os.path.join(os.path.dirname(os.path.dirname(root_dir)), 'scanlag_data', 'exp2')
-    x_min = 900
+    x_min = 40
     x_max = 4000
     n_points = 100
     n_reps = 3
@@ -166,6 +166,8 @@ def panel_E(ax):
     colors = {'Exponential': '#9ecae1', 'Reg-Arrest': '#31a354', 'Dis-Arrest': '#a50f15'}
     linestyles = {'Exponential': '-', 'Reg-Arrest': '--', 'Dis-Arrest': '-'}
     common_x = np.linspace(x_min, x_max, num=n_points)
+    exp_data = pd.read_csv(os.path.join(data_dir, 'REP3EXP_t00Min_ax1.csv'),header=0)
+    t0 = np.min(exp_data['X'])
     for file in os.listdir(data_dir):
         data = pd.read_csv(os.path.join(data_dir, file), header=0)
         y_interpolated = np.interp(common_x, data['X'], data['Y'])
@@ -176,15 +178,16 @@ def panel_E(ax):
         elif 'SHX' in file:
             interp_data['Dis-Arrest'].append(y_interpolated)
 
+
     for key, value in interp_data.items():
         y_mean = np.mean(value, axis=0)
         y_std = np.std(value, axis=0, ddof=1)
         t_crit = t.ppf(0.84, df=n_reps - 1)  # for 68% CI: t(0.84, df = n_reps-1)
         ci = (y_std / np.sqrt(n_reps))
         existing_values = y_mean > y_mean[-1]
-        ax.plot(common_x[existing_values], y_mean[existing_values], label=key, color=colors[key],
+        ax.plot(common_x[existing_values]-t0, y_mean[existing_values], label=key, color=colors[key],
                 linestyle=linestyles[key], linewidth=1)
-        plt.fill_between(common_x[existing_values],
+        plt.fill_between(common_x[existing_values]-t0,
                          (y_mean - ci)[existing_values],
                          (y_mean + ci)[existing_values],
                          alpha=0.3,
@@ -195,8 +198,8 @@ def panel_E(ax):
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(x_min, x_max)
-    ax.set_xticks([1000, 2000, 3000, 4000])
-    ax.set_xticklabels([1000, 2000, '', 4000])
+    #ax.set_xticks([10, 100, 1000])
+    #ax.set_xticklabels([10, 100, 1000])
     # set tick fontsize
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
     ax.set_ylim(0.002, 2)
@@ -224,7 +227,7 @@ def panel_G(ax):
     colors = ['#4393c3', '#a6dba0', '#d6604d']
     ax.scatter(dis_data.UMAP_1, dis_data.UMAP_2, color=colors[2], alpha=.6, s=.5, label='Dis-Arrest (SHX)')
     ax.scatter(reg_data.UMAP_1, reg_data.UMAP_2, color=colors[1], alpha=.6, s=.5, label='Reg-Arrest')
-    ax.scatter(exp_data.UMAP_1, exp_data.UMAP_2, color=colors[0], alpha=.6, s=.5, label='Exponential')
+    #ax.scatter(exp_data.UMAP_1, exp_data.UMAP_2, color=colors[0], alpha=.6, s=.5, label='Exponential')
     ax.legend(fontsize=fsize-2, loc='upper right', bbox_to_anchor=(1.2,1), markerscale=4, frameon=False)
     ax.grid(False)
     ax.set_xlabel('UMAP1', fontsize=fsize-2)
@@ -246,6 +249,7 @@ def panel_H(ax):
                        header=0)
     # scatter plot
     colors = ['#8073ac', '#b2182b', '#d6604d', '#4393c3', '#92c5de']
+    data = data[data['batch'] != 'exp']
     # color by cluster
     for i in range(max(data['cluster']) + 1):
         ax.scatter(data[data['cluster'] == i].UMAP_1, data[data['cluster'] == i].UMAP_2, color=colors[i], alpha=.6, s=.5,

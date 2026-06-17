@@ -41,7 +41,7 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
     noise = d1s < x2
     ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
-              color='darkgray', alpha=0.7, label='noise', markersize=3)
+              color='darkgray', alpha=0.7, label='spurious', markersize=3)
     ax.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
               color=signal_color, label='signal', markersize=3)
     ax.loglog(d2s, ccdf2, '.', linestyle='-',
@@ -276,28 +276,30 @@ def panel_G(ax):
 def panel_H(ax):
     # vapc lag time distribution
     # Load the data
-    conditions = ['CTRLt0', 'VAPCt240', 'VAPCt1400']
-    labels = ['Reg-Arrest', 'Early VapC', 'Late VapC']
+    conditions = ['CTRLt0', 'CTRLt1400', 'VAPCt240', 'VAPCt1400']
+    labels = ['Exp', 'Reg-Arrest', 'Early VapC', 'Late VapC']
     data = {}
-    colors = ['#9ecae1', '#fb6a4a', '#a50f15']
+    colors = ['#2166ac','#9ecae1', '#fb6a4a', '#a50f15']
     plt.style.use('default')
 
     for condition in conditions:
         path = os.path.join(root_dir, 'scripts', 'figures', 'figure5', condition + '.csv')
         data[condition] = pd.read_csv(path, index_col=False, header=None).to_numpy()
+        if condition=='CTRLt0':
+            t0 = np.min(data[condition])
     # plot histograms of lag time
-    edges = np.linspace(300, 1100, 51)
+    edges = np.linspace(0, 700, 51)
     for i, condition in enumerate(conditions):
-        x = data[condition].flatten() + 400
+        x = data[condition].flatten() -t0
         ax.hist(x, bins=edges, color=colors[i], histtype='stepfilled', edgecolor='k', alpha=1, label=labels[i],
                  density=True)
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
     ax.set_ylabel(r'Frequency', labelpad=0, fontsize=fsize)
-    ax.text(310, 0.0175, r'$\times{10}^{-2}$', fontsize=fsize - 3)
+    ax.text(10, 0.018, r'$\times{10}^{-2}$', fontsize=fsize - 3)
     # set axis label size
     ax.legend(fontsize=fsize-2)
-    ax.set_xlim([300, 1100])
-    ax.set_xticks([300, 700, 1100])
+    ax.set_xlim([0, 750])
+    ax.set_xticks([200, 400, 600])
     ax.set_yticks([0, 0.01, 0.02])
     ax.set_yticklabels([0, 1, 2])
     ax.tick_params(axis='both', which='major', labelsize=fsize)

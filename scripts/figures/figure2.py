@@ -107,12 +107,11 @@ def panel_D(axes):
     data1 = pcs[pcs > 0]
     data2 = pcs1[pcs1 > 0]
     bin_width = 0.15
-    x1 = (1 + np.sqrt(2)) ** 2   # MP upper edge (γ = P/N = 2)
-    x2 = float(np.max(pcs1))     # scrambled maximum = GMP-Cor threshold
+    x1 = (1 + np.sqrt(2)) ** 2 + bin_width   # MP upper edge (γ = P/N = 2)
+    x2 = float(np.max(pcs1))+bin_width     # scrambled maximum = GMP-Cor threshold
 
     all_data = np.concatenate([data1, data2])
     bin_edges = np.arange(min(all_data), max(all_data) + bin_width, bin_width)
-    xlim = (bin_edges[0], bin_edges[-1] + bin_width)
 
     ax_top = axes[0, 0]
     ax_bot = axes[1, 0]
@@ -130,117 +129,100 @@ def panel_D(axes):
         else:
             patch.set_facecolor('skyblue')
 
-    ax_top.axvline(x1, color='k', linestyle='--', alpha=0.6,
-                   label=r'$\lambda^{max}_{MP}$')
-    ax_top.axvline(x2, color='dimgray', linestyle=':', alpha=0.8,
-                   label=r'$\lambda^{max}_{scr}$')
-    legend_handles = [
-        Patch(facecolor='darkgray', edgecolor='black', label='MP noise'),
-        Patch(facecolor='salmon', edgecolor='black', label='sparsity induced correlations'),
-        Patch(facecolor='skyblue', edgecolor='black', label='true correlations'),
-    ]
-    ax_top.legend(handles=legend_handles, fontsize=fsize - 2,
-                  loc='upper right', framealpha=1)
+    # Threshold lines on BOTH subplots
+    ax_top.axvline(x1, color='k', linestyle='--', alpha=0.6, label=r'$\lambda_{max}^{MP}$')
+    ax_top.axvline(x2, color='dimgray', linestyle=':', alpha=0.8, label=r'$\lambda_{max}^{scr}$')
     ax_top.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize - 2)
     ax_top.set_title('Correlation eigenvalue density', fontsize=fsize)
     ax_top.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
-    ax_top.set_xlim(xlim)
     ax_top.set_xlim([2, 12])
     ax_top.set_ylim(0, 0.2)
     ax_top.tick_params(axis='both', which='major', labelsize=fsize - 2)
-
     ax_top.grid(False)
 
-    # Bottom: scrambled pcs1 (same x-axis)
-    ax_bot.hist(
+    # CCDF inset on the top subplot
+    inset = ax_top.inset_axes([0.37, 0.4, 0.54, 0.57])
+    _draw_ccdf(inset, data1, data2, show_legend=True, markersize=2)
+    inset.set_xlabel(r'$\lambda$', fontsize=fsize - 3, labelpad=0)
+    inset.set_ylabel('CCDF', fontsize=fsize - 3, labelpad=0)
+    inset.tick_params(labelsize=fsize - 3)
+    inset.set_xlim([0.2,14])
+
+    # Bottom: scrambled pcs1 (same x-axis), color intermediate (sparsity) bars too
+    _, _, patches2 = ax_bot.hist(
         data2, bins=bin_edges, width=bin_width * 0.8, align='right',
         edgecolor='black', color='darkgray', alpha=0.7, density=True)
-    ax_bot.axvline(x2+bin_width, color='dimgray', linestyle=':', alpha=0.8,
-                   label=r'$\lambda^{max}_{scr}$')
-    ax_bot.legend(fontsize=fsize - 2, loc='upper right', framealpha=1)
+    for patch in patches2:
+        bx = patch.get_x()
+        if bx < x1:
+            patch.set_facecolor('darkgray')
+        else:
+            patch.set_facecolor('salmon')
+    ax_bot.text(x1,0.1,r'$\lambda_{max}^{MP}$', fontsize=fsize - 3, horizontalalignment='right')
+    ax_bot.text(x2,0.1,r'$\lambda_{max}^{scr}$', fontsize=fsize - 3, horizontalalignment='right')
+    ax_bot.axvline(x1, color='k', linestyle='--', alpha=0.6)
+    ax_bot.axvline(x2, color='dimgray', linestyle=':', alpha=0.8)
     ax_bot.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax_bot.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize - 2)
-    ax_bot.set_title('', fontsize=fsize)
     ax_bot.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
     ax_bot.set_xlim([2, 12])
     ax_bot.set_ylim(0, 0.2)
     ax_bot.tick_params(axis='both', which='major', labelsize=fsize - 2)
     ax_bot.grid(False)
 
+    # Shared legend for both subplots
+    legend_handles = [
+        Patch(facecolor='darkgray', edgecolor='black', label='MP spurious correlations'),
+        Patch(facecolor='salmon', edgecolor='black', label='sparsity-induced spurious correlations'),
+        Patch(facecolor='skyblue', edgecolor='black', label='true correlation signal'),
+    ]
+    ax_bot.legend(handles=legend_handles, fontsize=fsize - 3,
+                  loc='upper right', framealpha=1)
 
-def panel_E(ax):
-    # Regulated dataset: side-by-side PDF histogram + inset CCDF
-    arr = np.load(os.path.join(ev_data_dir, 'Expira_biorep_t0A_filtered.npy'))
-    data1 = arr[0, :];  data1 = data1[data1 > 0]
-    data2 = arr[1, :];  data2 = data2[data2 > 0]
+
+def _draw_ccdf(ax, data1, data2, show_legend=True, markersize=3):
+    """Draw the loglog CCDF of original (data1) vs scrambled (data2) eigenvalues.
+
+    Shared color scheme across all CCDF plots:
+      grey  -> spurious correlations (eigenvalues below scrambled threshold)
+      blue  -> true correlations     (eigenvalues at/above scrambled threshold)
+      black -> scrambled data
+    """
     x2 = float(np.max(data2))
-    bin_width = 0.4
-    bin_edges = np.arange(min(np.concatenate([data1, data2])), 12 + bin_width, bin_width)
-
-    _, _, patches1 = ax.hist(
-        data1, bins=bin_edges, width=bin_width * 0.5, align='left',
-        edgecolor='black', color='#d9d9d9', alpha=0.7, density=True)
-    ax.hist(data2, bins=bin_edges + bin_width * 0.5, width=bin_width * 0.5,
-            edgecolor='black', color='black', alpha=0.7, density=True,
-            align='right', label='scrambled')
-    for patch in patches1:
-        patch.set_facecolor('skyblue' if patch.get_x() >= x2 else 'darkgray')
-
-    ax.set_xlabel(r'Eigenvalue - $\lambda$', fontsize=fsize - 2, labelpad=0)
-    ax.set_ylabel(r'Density - $\rho(\lambda)$', fontsize=fsize - 2, labelpad=0)
-    ax.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
-    ax.set_xlim([bin_edges[0], bin_edges[-1] + bin_width])
-    ax.grid(False)
-    ax.set_title(r'Exponential $\it{E. coli}$', fontsize=fsize)
-    ax.tick_params(axis='both', labelsize=fsize - 2)
-
-    # Inset CCDF
-    inset = ax.inset_axes([0.40, 0.38, 0.56, 0.56])
     d1s = np.sort(data1)
     d2s = np.sort(data2)
     p1 = len(d1s)
     ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
     p2 = len(d2s)
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
-    noise = d1s < x2
-    inset.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
-                 color='darkgray', alpha=0.7, label='noise', markersize=3)
-    inset.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
-                 color='skyblue', label='signal', markersize=3)
-    inset.loglog(d2s, ccdf2, '.', linestyle='-',
-                 color='black', alpha=0.5, label='scrambled', markersize=3)
-    inset.axvline(x2, color='k', linestyle='--', alpha=0.6)
-    inset.set_xlim([0.1, np.max(d1s)*1.5])
-    inset.set_xlabel(r'$\lambda$', fontsize=fsize - 2)
-    inset.set_ylabel('CCDF', fontsize=fsize - 2)
-    inset.legend(fontsize=fsize - 2)
-    inset.tick_params(labelsize=fsize - 2)
+    spurious = d1s < x2
+    ax.loglog(d1s[spurious], ccdf1[spurious], '.', linestyle='-',
+              color='darkgray', alpha=0.7, label='spurious',
+              markersize=markersize)
+    ax.loglog(d1s[~spurious], ccdf1[~spurious], '.', linestyle='-',
+              color='skyblue', label='signal', markersize=markersize)
+    ax.loglog(d2s, ccdf2, '.', linestyle='-',
+              color='black', alpha=0.5, label='scrambled',
+              markersize=markersize)
+    ax.set_xlim([0.1, np.max(d1s) * 1.5])
+    ax.axvline(x2, color='k', linestyle='--', alpha=0.6)
+    if show_legend:
+        ax.legend(fontsize=fsize - 2)
+
+
+def panel_E(ax):
+    # Regulated dataset: CCDF only (no PDF, no inset)
+    _plot_ccdf(ax, 'Expira_biorep_t0A_filtered.npy', r'Exponential $\it{E. coli}$')
 
 
 def _plot_ccdf(ax, npy_file, title):
     arr = np.load(os.path.join(ev_data_dir, npy_file))
     data1 = arr[0, :];  data1 = data1[data1 > 0]
     data2 = arr[1, :];  data2 = data2[data2 > 0]
-    x2 = float(np.max(data2))
-    d1s = np.sort(data1)
-    d2s = np.sort(data2)
-    p1 = len(d1s)
-    ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
-    p2 = len(d2s)
-    ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
-    noise = d1s < x2
-    ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
-              color='darkgray', alpha=0.7, label='noise',markersize=3)
-    ax.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
-              color='skyblue', label='signal',markersize=3)
-    ax.loglog(d2s, ccdf2, '.', linestyle='-',
-              color='black', alpha=0.5, label='scrambled',markersize=3)
-    ax.set_xlim([0.1, np.max(d1s)*1.5])
-    ax.axvline(x2, color='k', linestyle='--', alpha=0.6)
+    _draw_ccdf(ax, data1, data2)
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
-    ax.set_title(title, fontsize=fsize-2)
-    ax.legend(fontsize=fsize - 2)
+    ax.set_title(title, fontsize=fsize - 2)
     ax.tick_params(labelsize=fsize - 2)
 
 
@@ -255,16 +237,16 @@ def panel_G(ax):
 # ------------------------------------------------------------------
 # ASSEMBLE FIGURE
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 7.5), label_offset=(-0.04, 0.04))
+pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.05, 0.04))
 
 panel_pos = [
-    [0.08, 0.8, 0.19, 0.15],   # A – MP histogram only (single)
-    [0.08, 0.5, 0.19, 0.20],   # B – GMP curves (single)
-    [0.32, 0.54, 0.15, 0.40],   # C – sparse simulation (2×1 grid, stacked)
-    [0.56, 0.54, 0.4, 0.40],   # D – simulation eigenvalues (2×1 grid)
-    [0.08, 0.07, 0.47, 0.35],   # E – regulated dataset PDF + CCDF inset (wide)
-    [0.66, 0.3, 0.3, 0.15],   # F – CCDF (Exponential)   ← stacked top
-    [0.66, 0.06, 0.3, 0.15],   # G – CCDF (Reg-Arrest 2)  ← stacked bottom
+    [0.08, 0.78, 0.19, 0.16],   # A – MP histogram only (single)
+    [0.08, 0.46, 0.19, 0.21],   # B – GMP curves (single)
+    [0.33, 0.42, 0.12, 0.52],   # C – sparse simulation (2×1 grid; matches A+B height)
+    [0.55, 0.42, 0.44, 0.52],   # D – simulation eigenvalues (2×1 grid; matches A+B height)
+    [0.08, 0.08, 0.24, 0.24],   # E – CCDF (our Exponential E. coli)   ← single row
+    [0.40, 0.08, 0.24, 0.24],   # F – CCDF (Ma et al. E. coli)         ← single row
+    [0.72, 0.08, 0.24, 0.24],   # G – CCDF (Ma et al. K. pneumoniae)   ← single row
 ]
 
 # Panel A

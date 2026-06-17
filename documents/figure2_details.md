@@ -42,22 +42,20 @@ The figure is 7 × 7.5 inches; 1 unit ≈ 7 in wide, 7.5 in tall.
 ```
  0.0                                                        1.0
  ┌────────────────────────────────────────────────────────────┐ 0.97
- │  A (0.08,0.80)     C (0.32,0.54)   D (0.56,0.54)          │
- │  [0.19 × 0.15]     [0.15 × 0.40]   [0.40 × 0.40]          │
+ │  A (0.08,0.80)     C (0.33,0.50)   D (0.57,0.50)          │
+ │  [0.19 × 0.15]     [0.15 × 0.45]   [0.39 × 0.45]          │
  │  single histogram  2×1 grid        2-row grid              │
- │                    ─ orig sparse   ─ sim eigenvalues       │
- │  B (0.08,0.50)     ─ scrambled     ─ sim scrambled         │
- │  [0.19 × 0.20]                                             │
+ │                    ─ orig sparse   ─ sim eigenvalues+CCDF  │
+ │  B (0.08,0.50)     ─ scrambled       inset (top)          │
+ │  [0.19 × 0.20]                     ─ sim scrambled         │
  │  single GMP curves                                         │
- ├──────────────────────────────────────────────────────────── ~0.47
+ │  C & D span 0.50→0.95 = A+B combined height               │
+ ├──────────────────────────────────────────────────────────── ~0.45
  │                                                            │
- │  E (0.08,0.07)                     F (0.66,0.30)           │
- │  [0.47 × 0.35]                     [0.30 × 0.15]           │
- │  single (wide)                     CCDF only               │
- │  PDF + inset CCDF                                          │
- │                                    G (0.66,0.06)           │
- │                                    [0.30 × 0.15]           │
- │                                    CCDF only               │
+ │  E (0.08,0.09)     F (0.40,0.09)   G (0.72,0.09)          │
+ │  [0.24 × 0.32]     [0.24 × 0.32]   [0.24 × 0.32]          │
+ │  CCDF only         CCDF only       CCDF only              │
+ │  ── single row of three CCDF panels ──                    │
  └────────────────────────────────────────────────────────────┘ 0.06
 ```
 
@@ -108,6 +106,9 @@ Keep ≥ 0.03 gap between adjacent panels to avoid overlap.
 **Grid call:** `pf.add_grid_panel(panel_pos[2], 2, 1, hspace=0.30)`  
 `axes[0, 0]` = original matrix (top); `axes[1, 0]` = scrambled matrix (bottom)
 
+Panel C now spans `0.50 → 0.95` in height (`[0.33, 0.50, 0.15, 0.45]`) so its total
+height matches the combined height of panels A (`0.80→0.95`) and B (`0.50→0.70`).
+
 ### Synthetic matrix
 | Parameter | Value | Notes |
 |---|---|---|
@@ -129,18 +130,42 @@ No arrows are drawn. Change `hspace` in the grid call to widen the gap between t
 **Grid call:** `pf.add_grid_panel(panel_pos[3], 2, 1, hspace=0.3)`  
 **Data file:** `ev_data/simulated_pcs.npy` — shape (2, N): row 0 = pcs, row 1 = pcs1 (scrambled)
 
+Panel D now spans `0.50 → 0.95` in height (`[0.57, 0.50, 0.39, 0.45]`) so its total
+height matches the combined height of panels A + B.
+
 ### Thresholds
 | Threshold | Formula | Meaning |
 |---|---|---|
 | `x1` | `(1 + √2)²` ≈ 5.83 | Analytical MP upper edge (γ = P/N = 2) |
 | `x2` | `max(pcs1)` | Maximum scrambled eigenvalue = GMP-Cor threshold |
 
-### Color coding (top subplot bars)
-| Color | Condition | Legend label |
+### Color coding — **top subplot** (original pcs)
+| Color | Condition | Category |
 |---|---|---|
-| `'darkgray'` | bin_x < x1 | `'MP noise'` |
-| `'salmon'` | x1 ≤ bin_x < x2 | `'sparsity induced correlations'` |
-| `'skyblue'` | bin_x ≥ x2 | `'true correlations'` |
+| `'darkgray'` | bin_x < x1 | MP spurious correlations |
+| `'salmon'` | x1 ≤ bin_x < x2 | Sparsity induced spurious correlations |
+| `'skyblue'` | bin_x ≥ x2 | true correlations |
+
+### Color coding — **bottom subplot** (scrambled pcs1)
+Same scheme **without** the `skyblue` class (scrambled data has no eigenvalue ≥ x2):
+| Color | Condition |
+|---|---|
+| `'darkgray'` | bin_x < x1 |
+| `'salmon'` | bin_x ≥ x1 (intermediate / sparsity induced) |
+
+Coloring the intermediate (salmon) bars in the bottom plot shows that sparsity-induced
+correlations appear even in scrambled data.
+
+### Shared legend
+A single legend (drawn on the **bottom** subplot, `loc='upper right'`, fontsize `fsize-3`)
+serves both subplots, with three `Patch` handles:
+`'MP spurious correlations'` (darkgray), `'Sparsity induced spurious correlations'`
+(salmon), `'true correlations'` (skyblue).
+
+### CCDF inset (top subplot)
+`ax_top.inset_axes([0.46, 0.42, 0.52, 0.55])`, drawn via the shared `_draw_ccdf` helper
+(`show_legend=False`, `markersize=2`). Uses the shared CCDF color scheme
+(grey spurious / blue true / black scrambled). Inset font is `fsize-3`.
 
 ### Other settings
 | Parameter | Value | Notes |
@@ -150,61 +175,47 @@ No arrows are drawn. Change `hspace` in the grid call to widen the gap between t
 | align | `'right'` | Bars anchor to right edge of each bin |
 | x-axis | fixed `[2, 12]` on both subplots | |
 | y-axis | fixed `[0, 0.2]` on both subplots | |
-| Threshold lines | top: `x1` black `'--'`; both: `x2` dimgray `':'` | Bottom vline at `x2 + bin_width` |
+| Threshold lines | **both subplots**: `x1` black `'--'`; `x2` dimgray `':'` | Extended to both subplots |
 | yticks | [0, 0.1, 0.2, 0.3, 0.4] | Both subplots (clipped by ylim) |
 | Top title | `'Correlation eigenvalue density'` | |
-| Bottom title | none (empty string) | |
+| Bottom title | none | |
 
 **To change:** swap `simulated_pcs.npy` for `simulated_pcs_0.9.npy` etc. to show a specific correlation strength. Adjust `bin_width` for finer/coarser histogram.
 
 ---
 
-## Panel E — Regulated dataset: PDF + inset CCDF
+## Panels E, F & G — CCDF-only panels (single row)
 
-**Function:** `panel_E(ax)` — single wide panel  
-**Panel call:** `pf.add_panel(panel_pos[4], draw_func=panel_E)`  
-**Data file:** `ev_data/Expira_biorep_t0A_filtered.npy` — shape (2, N): row 0 = data, row 1 = scrambled  
-**Title:** `r'Exponential $\it{E. coli}$'`
+E, F, and G are now **three CCDF-only panels in a single bottom row**
+(`[0.08/0.40/0.72, 0.09, 0.24, 0.32]`). Panel E used to be a wide PDF histogram
+with a CCDF inset — that is gone; it is now just a CCDF plot like F and G.
 
-### Main histogram
-| Parameter | Value | Notes |
-|---|---|---|
-| bin_width | 0.4 | |
-| bin_edges upper cap | 12 | `np.arange(..., 12 + bin_width, ...)` — change to extend x-axis |
-| Data bars | width=`bin_width*0.5`, `align='left'` | Left half of each bin |
-| Scrambled bars | shifted by `+bin_width*0.5`, `align='right'` | Right half of each bin, solid black |
-| Color threshold | `x2 = max(scrambled)` | Bars < x2: darkgray; bars ≥ x2: skyblue |
-| yticks | [0, 0.1, 0.2, 0.3, 0.4] | |
-
-### Inset CCDF
-| Parameter | Value | Notes |
-|---|---|---|
-| Inset position | `[0.40, 0.38, 0.56, 0.56]` | `[left, bottom, width, height]` in axes-fraction coords |
-| Scale | loglog | |
-| Noise line | darkgray, α=0.7, markersize=3 | eigenvalues < x2 |
-| Signal line | skyblue, markersize=3 | eigenvalues ≥ x2 |
-| Scrambled line | black, α=0.5, markersize=3 | |
-| CCDF formula | `1 - rank/p + 1/p` | Avoids zero (log-safe). Computed independently for data and scrambled |
-| x limits | `[0.1, max(data) * 1.5]` | |
-| Threshold vline | x2, black dashed | |
-
-**To change dataset:** replace `'Expira_biorep_t0A_filtered.npy'` with any `.npy` in `ev_data/`. Update the title string accordingly.
-
----
-
-## Panels F & G — CCDF-only panels
-
-Both call the shared helper `_plot_ccdf(ax, npy_file, title)`.
+All three call the shared helper `_plot_ccdf(ax, npy_file, title)`, which in turn
+calls `_draw_ccdf(...)`.
 
 | Panel | Data file | Title |
 |---|---|---|
+| E | `Expira_biorep_t0A_filtered.npy` | `r'Exponential $\it{E. coli}$'` (our data) |
 | F | `deb_Ec_CDS_untreated.npy` | `"Exponential $\it{E. coli}$, Ma et. al"` |
 | G | `deb_KP_CDS_untreated.npy` | `"Exponential $\it{K. pneumoniae}$, Ma et. al"` |
 
-`_plot_ccdf` uses loglog scale, same color scheme as panel E's inset (darkgray noise / skyblue signal / black scrambled), same CCDF formula (`1 - rank/p + 1/p`), markersize=3, x limits `[0.1, max(data)*1.5]`. Note: title fontsize in `_plot_ccdf` is `fsize-2` (8pt) rather than `fsize`.
+### `_draw_ccdf(ax, data1, data2, show_legend=True, markersize=3)`
+Shared CCDF drawing routine (used by E/F/G **and** the panel D inset).
 
-**To swap dataset:** change the filename string in `panel_F` or `panel_G`.  
-**To change x-limits or markersize:** edit `_plot_ccdf` directly — it applies to both F and G.
+| Element | Color | Legend label |
+|---|---|---|
+| eigenvalues < x2 (`x2 = max(scrambled)`) | `'darkgray'`, α=0.7 | `'spurious correlations'` |
+| eigenvalues ≥ x2 | `'skyblue'` | `'true correlations'` |
+| scrambled data | `'black'`, α=0.5 | `'scrambled data'` |
+
+- Scale: loglog. CCDF formula `1 - rank/p + 1/p` (log-safe, computed independently for data and scrambled).
+- x limits `[0.1, max(data)*1.5]`; threshold `x2` drawn as a black dashed vline.
+- `show_legend=False` suppresses the legend (used for the compact panel D inset).
+
+`_plot_ccdf` adds the `λ` / `CCDF` axis labels and the title (fontsize `fsize-2`).
+
+**To swap a dataset:** change the filename string in `panel_E` / `panel_F` / `panel_G`.  
+**To change x-limits, markersize, colors, or legend labels:** edit `_draw_ccdf` — it applies to E, F, G and the panel D inset at once.
 
 ---
 
@@ -229,10 +240,9 @@ All files: shape `(2, N)` — row 0 = original eigenvalues, row 1 = scrambled ei
 | Resize the whole figure | `figsize=(W, H)` in `PanelFigure(...)` in assembly block |
 | Change all font sizes at once | `fsize = 10` at line 16 |
 | Move a panel | edit `panel_pos[i]` — `[left, bottom, width, height]` |
-| Change panel E dataset | replace `'Expira_biorep_t0A_filtered.npy'` and update the title string |
-| Change panel F or G dataset | replace filename in `panel_F` / `panel_G` and update title |
+| Change panel E/F/G dataset | replace filename in `panel_E` / `panel_F` / `panel_G` and update title |
 | Show more/fewer GMP curves in B | edit the `files` and `labels` lists in `panel_B` |
 | Change simulation correlation strength in D | replace `'simulated_pcs.npy'` with `'simulated_pcs_0.9.npy'` etc. |
-| Adjust inset position in E | `ax.inset_axes([left, bottom, width, height])` in `panel_E` |
-| Adjust CCDF x-range | change `np.max(d1s)*1.5` multiplier in `_plot_ccdf` or `panel_E` inset |
+| Adjust panel D CCDF inset position | `ax_top.inset_axes([left, bottom, width, height])` in `panel_D` |
+| Adjust CCDF x-range / colors / labels | edit `_draw_ccdf` — applies to E, F, G and the D inset |
 | Save as SVG | uncomment `pf.save("figure2.svg", dpi=300)` and comment out `plt.show()` |

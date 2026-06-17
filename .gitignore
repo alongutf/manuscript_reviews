@@ -29,3 +29,7 @@ scripts/RNA-seq mapping/*.fa
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Microsoft Word lock / temporary files
+~$*
+~WRL*.tmp

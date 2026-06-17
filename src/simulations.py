@@ -62,7 +62,7 @@ def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
 
 # ── scRNA-seq count simulation ───────────────────────────────────────────────
 
-def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout_rate=2, seed=None):
+def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout_rate=2, inv_gamma_shape=1.5, inv_gamma_scale=0.01, seed=None):
     """
     Simulate single-cell RNA-seq count data with realistic noise.
 
@@ -95,7 +95,7 @@ def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout
     rng = np.random.default_rng(seed)
     for i in range(n_genes):
         # Gene mean drawn from inverse-Gamma (heavy-tailed expression distribution)
-        gene_mu = 1.0 / rng.gamma(1.5, 1.0 / 0.01, 1)
+        gene_mu = 1.0 / rng.gamma(inv_gamma_shape, 1.0 / inv_gamma_scale, 1)
         gene_r = 0.5  # NB dispersion typical of scRNA-seq
         p_param = gene_r / (gene_r + gene_mu)
         counts[:, i] = nbinom.ppf(uniform_data[:, i], gene_r, p_param)

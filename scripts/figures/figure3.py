@@ -1,6 +1,5 @@
 import src.analysis_functions as af
 import src.data_functions as df
-from src.simulations import generate_gram_hub_matrix
 import matplotlib.pyplot as plt
 from figure_functions import PanelFigure
 from matplotlib.colors import to_rgba
@@ -24,8 +23,10 @@ RESULTS_DIR = os.path.join(root_dir, 'results', 'simulation_results')
 REG_COLOR = 'steelblue'
 DIS_COLOR = '#E07B54'
 
-# Parameters matching the rho_sweep run that generated the .npy files
-_HEATMAP_PARAMS = dict(n=2000, shape=1.5, hub_probability=0.2, seed=31)
+# Shared style for the median reference lines in panels E and F
+# (kept identical so the dashed lines have the same width/opacity in both).
+REF_LW = 1
+REF_ALPHA = 0.85
 
 
 def _load_group_medians():
@@ -53,7 +54,7 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
     noise = d1s < x2
     ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
-              color='darkgray', alpha=0.7, label='noise', markersize=3)
+              color='darkgray', alpha=0.7, label='spurious', markersize=3)
     ax.loglog(d1s[~noise], ccdf1[~noise], '.', linestyle='-',
               color=signal_color, label='signal', markersize=3)
     ax.loglog(d2s, ccdf2, '.', linestyle='-',
@@ -70,18 +71,6 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ax.tick_params(labelsize=fsize - 2)
 
 
-def _plot_heatmap(ax, rho, title):
-    R = generate_gram_hub_matrix(alpha=rho, **_HEATMAP_PARAMS)
-    R = R[:100,:100]
-    im = ax.imshow(R, cmap='RdBu_r', vmin=-1, vmax=1,
-                   aspect='auto', interpolation='nearest')
-    cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-    cbar.ax.tick_params(labelsize=fsize - 2)
-    ax.set_title(title, fontsize=fsize)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-
 def format_p(p):
     if p < 0.0001:
         return '****'
@@ -95,34 +84,26 @@ def format_p(p):
         return 'NS'
 
 
-# ── Row 1: Regulated / high ρ ─────────────────────────────────────
+# ── Row 1: Experimental data (Reg-Arrest / Dis-Arrest) ─────────────
 def panel_A(ax):
     _plot_ccdf(ax, 'sample_15b_filtered.npy', 'Reg-Arrest', signal_color=REG_COLOR)
 
 
 def panel_B(ax):
-    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\rho=0.9$)', signal_color=REG_COLOR)
-
-
-def panel_C(ax):
-    _plot_heatmap(ax, rho=0.9, title=r'$\rho=0.9$')
-
-
-# ── Row 2: Dis-Arrest / low ρ ──────────────────────────────────────
-def panel_D(ax):
     _plot_ccdf(ax, 'sample_15a_filtered.npy', 'Dis-Arrest', signal_color=DIS_COLOR)
 
 
-def panel_E(ax):
+# ── Row 2: Simulations (high / low ρ) ──────────────────────────────
+def panel_C(ax):
+    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\rho=0.9$)', signal_color=REG_COLOR)
+
+
+def panel_D(ax):
     _plot_ccdf(ax, 'simulated_pcs_0.5.npy', r'Simulation ($\rho=0.5$)', signal_color=DIS_COLOR)
 
 
-def panel_F(ax):
-    _plot_heatmap(ax, rho=0.5, title=r'$\rho=0.5$')
-
-
 # ── Row 3: Analysis (calibration curve + box plot) ─────────────────
-def panel_G(ax):
+def panel_E(ax):
     summary = pd.read_csv(os.path.join(RESULTS_DIR, 'raw', 'rho_sweep_summary.txt'),
                           sep=r'\s+', comment='#', index_col=0)
     rho_vals = summary.index.values
@@ -130,11 +111,11 @@ def panel_G(ax):
     stds     = summary['std'].values
 
     ax.errorbar(rho_vals, medians, yerr=stds, fmt='o-', color='steelblue',
-                capsize=4, linewidth=1.8, markersize=6, label='median ± SD')
+                capsize=4, linewidth=1.8, markersize=6)
     ax.fill_between(rho_vals, medians - stds, medians + stds, alpha=0.3, color='steelblue')
-    ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=1, alpha=0.85,
+    ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
                label='Reg-Arrest median')
-    ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=1, alpha=0.85,
+    ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
                label='Dis-Arrest median')
     ax.set_xlabel(r'Correlation strength ($\rho$)', fontsize=fsize - 2)
     ax.set_ylabel('GMP-Cor', fontsize=fsize - 2)
@@ -147,7 +128,7 @@ def panel_G(ax):
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
 
 
-def panel_H(ax):
+def panel_F(ax):
     path = os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv')
     data = pd.read_csv(path, index_col=0)
     ranking_param = 'sum_denoised_ev'
@@ -176,8 +157,8 @@ def panel_H(ax):
         jitter = rng.uniform(-0.12, 0.12, size=len(grp))
         ax.scatter(i + jitter, grp, color=color, alpha=0.5, s=10, zorder=3, edgecolors='none')
 
-    ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=0.8, alpha=0.5)
-    ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=0.8, alpha=0.5)
+    ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA)
+    ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA)
 
     ax.set_xticklabels(['Regulated', 'Dis-Arrest'], fontsize=fsize - 2, rotation=0, ha='center')
     u_stat, u_p = stats.mannwhitneyu(group1, group0)
@@ -196,35 +177,29 @@ def panel_H(ax):
 
 
 # ------------------------------------------------------------------
-# Assemble
+# Assemble — 3×2 grid; CCDF rows are short so the figure stays ~square
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 7), label_offset=(-0.04, 0.02))
+pf = PanelFigure(figsize=(7, 6), label_offset=(-0.04, 0.02))
 panel_pos = [
-    # Row 1 — Regulated / high ρ
-    [0.08, 0.72, 0.28, 0.24],  # A — Reg-Arrest CCDF
-    [0.44, 0.72, 0.28, 0.24],  # B — Sim ρ=0.9 CCDF
-    [0.77, 0.79, 0.17, 0.17],  # C — Heatmap ρ=0.9
-    # Row 2 — Dis-Arrest / low ρ
-    [0.08, 0.4, 0.28, 0.24],  # D — Dis-Arrest CCDF
-    [0.44, 0.4, 0.28, 0.24],  # E — Sim ρ=0.5 CCDF
-    [0.77, 0.47, 0.17, 0.17],  # F — Heatmap ρ=0.5
-    # Row 3 — Analysis
-    [0.18, 0.06, 0.28, 0.24],  # G — Calibration curve
-    [0.54, 0.06, 0.28, 0.24],  # H — Box plot (shared y-axis with G)
+    # Row 1 — experimental CCDFs (short)
+    [0.08, 0.75, 0.37, 0.21],  # A — Reg-Arrest CCDF
+    [0.55, 0.75, 0.37, 0.21],  # B — Dis-Arrest CCDF
+    # Row 2 — simulation CCDFs (short)
+    [0.08, 0.44, 0.37, 0.21],  # C — Sim ρ=0.9 CCDF
+    [0.55, 0.44, 0.37, 0.21],  # D — Sim ρ=0.5 CCDF
+    # Row 3 — analysis (taller)
+    [0.15, 0.07, 0.33, 0.26],  # E — Calibration curve
+    [0.55, 0.07, 0.3, 0.26],  # F — Box plot (shared y-axis with E)
 ]
 pf.add_panel(panel_pos[0], draw_func=panel_A)
 pf.add_panel(panel_pos[1], draw_func=panel_B)
 pf.add_panel(panel_pos[2], draw_func=panel_C)
 pf.add_panel(panel_pos[3], draw_func=panel_D)
-pf.add_panel(panel_pos[4], draw_func=panel_E)
-pf.add_panel(panel_pos[5], draw_func=panel_F)
-ax_G = pf.add_panel(panel_pos[6], draw_func=panel_G)
-ax_H = pf.add_panel(panel_pos[7], draw_func=panel_H)
+ax_E = pf.add_panel(panel_pos[4], draw_func=panel_E)
+ax_F = pf.add_panel(panel_pos[5], draw_func=panel_F)
 
-# Share y-axis between G and H so reference lines align exactly
-ax_H.sharey(ax_G)
-#ax_H.tick_params(left=False, labelleft=False)
-#ax_H.spines['left'].set_visible(False)
+# Share y-axis between E and F so reference lines align exactly
+ax_F.sharey(ax_E)
 
 pf.save("figure3.pdf", dpi=300, transparent=True)
 plt.show()

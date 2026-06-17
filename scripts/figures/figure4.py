@@ -242,7 +242,7 @@ def panel_B(ax):
 
     # Set title and labels
     ax.set_ylabel('Enrichment score', fontsize=fsize, labelpad=0)
-    ax.set_xlabel('GO term', fontsize=fsize, labelpad=0)
+    #ax.set_xlabel('GO term', fontsize=fsize, labelpad=0)
     ax.set_ylim([0,19])
     ax.set_yticks([4, 8, 12, 16])
     ax.set_xticks(x)  # Set x-ticks to be at the center of each pair
@@ -336,7 +336,7 @@ def panel_C(ax):
 
 def panel_D(ax):
     data_dir = os.path.join(root_dir, 'scanlag_data', 'bulk time in shx')
-    x_min = 900
+    x_min = 50
     x_max = 3000
     cmap = plt.get_cmap('Reds')
     v_min = -400
@@ -349,7 +349,9 @@ def panel_D(ax):
     for file in os.listdir(data_dir):
         data = pd.read_csv(os.path.join(data_dir, file), header=0)
         time_point = int(file[2:file.find('Min')])
-        ax.plot(data['X'], data['Y'], color=cmap(get_normalized_value(time_point, v_min, v_max)), label=time_point,
+        if time_point == 0:
+            t0 = np.min(data['X'])
+        ax.plot(data['X']-t0, data['Y'], color=cmap(get_normalized_value(time_point, v_min, v_max)), label=time_point,
                 linewidth=1)
 
     norm = mpl.colors.Normalize(vmin=v_min, vmax=v_max)
@@ -373,8 +375,8 @@ def panel_D(ax):
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(x_min, x_max)
-    ax.set_xticks([1000, 2000, 3000])
-    ax.set_xticklabels([1000, 2000, ''])
+    #ax.set_xticks([1000, 2000, 3000])
+    #ax.set_xticklabels([1000, 2000, ''])
     # set tick fontsize
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
     ax.set_ylim(0.0005, 2)
@@ -385,12 +387,12 @@ lw=.5
 marker_size=2.5
 plt.close("all")
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-pf = PanelFigure(figsize=(7, 6.5), label_offset=(0, 0.03))
+pf = PanelFigure(figsize=(7, 6), label_offset=(0, 0.03))
 panel_pos = [
-    [0.08, 0.30, 0.1, 0.63],  # A
-    [0.35, 0.66, 0.6, 0.27],  # B  (extra room below for GO-term-name x labels)
-    [0.3, 0.07, 0.3, 0.20],  # C
-    [0.7, 0.07, 0.28, 0.20],  # D
+    [0.08, 0.32, 0.1, 0.63],  # A
+    [0.35, 0.68, 0.6, 0.27],  # B  (extra room below for GO-term-name x labels)
+    [0.3, 0.07, 0.3, 0.30],  # C
+    [0.7, 0.07, 0.28, 0.30],  # D
 ]
 # panel A:
 pf.add_panel(panel_pos[0], draw_func=panel_A, label="A")
@@ -400,6 +402,6 @@ pf.add_panel(panel_pos[1], draw_func=panel_B, label="B")
 pf.add_panel(panel_pos[2], draw_func=panel_C, label="C")
 # panel D:
 pf.add_panel(panel_pos[3], draw_func=panel_D, label="D")
-pf.save("figure4.svg", dpi=300, transparent=True)
+pf.save("figure4.pdf", dpi=300, transparent=True)
 pf.save("figure4_preview.png", dpi=300)
 plt.show()

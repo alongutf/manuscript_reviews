@@ -1,0 +1,194 @@
+% Supplementary Note — Synthetic scRNA-seq data generator
+% Companion source: src/simulations.py
+
+\section*{Supplementary Note: Synthetic Single-Cell RNA-seq Data Generator}
+
+\subsection*{Overview}
+
+To validate that the GMP-Cor metric faithfully reports gene-gene correlation strength
+under realistic noise conditions, we constructed a parameterized synthetic scRNA-seq
+data generator.
+The generator reproduces three key statistical features of real single-cell data:
+(i)~a structured, non-random gene-gene correlation matrix;
+(ii)~heavy-tailed, overdispersed count marginals consistent with a negative-binomial
+model; and
+(iii)~expression-dependent dropout sparsity.
+The two-stage design — first fixing the correlation structure, then sampling counts
+through a copula — decouples the ground-truth correlation parameter from count-level
+noise, enabling controlled calibration of GMP-Cor across a range of correlation
+strengths $\alpha$.
+
+All functions described below are implemented in \texttt{src/simulations.py}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Stage 1: Constructing the correlation matrix}
+
+\paragraph{Factor-model architecture.}
+The ground-truth gene-gene correlation matrix $R \in \mathbb{R}^{n \times n}$ is
+built from a loading matrix $A$ that encodes two levels of shared variance:
+\emph{cluster factors} group nearby genes into co-regulated modules, and a
+\emph{global hub factor} links a random subset of cluster hubs to create long-range
+correlations between modules.
+This topology mirrors transcriptional regulation at both the operon/regulon level
+(clusters) and the master-regulator level (global hub).
+
+\paragraph{Loading matrix construction.}
+Let $n$ be the number of genes and $\alpha \in (0,1)$ the shared-variance fraction.
+The loading matrix is initialized as
+\begin{equation}
+  A = \sqrt{1-\alpha}\,I_n,
+\end{equation}
+so that each gene's idiosyncratic (noise) variance equals $1-\alpha$.
+Cluster factors are appended as follows.
+Genes are partitioned into contiguous clusters whose sizes $s_k$ are drawn
+independently from a Pareto distribution:
+\begin{equation}
+  s_k \sim \mathrm{Pareto}(\text{shape}) + 1, \qquad k = 1, 2, \ldots, K,
+\end{equation}
+until all $n$ genes are assigned.
+For cluster $k$ the shared loading of its member genes is
+\begin{equation}
+  a_{ik} = \sqrt{w_k}, \quad w_k \sim \mathrm{Uniform}(0.1\alpha,\,\alpha),
+  \quad i \in \mathcal{C}_k,
+\end{equation}
+and $a_{ik} = 0$ otherwise.
+A single global-hub column is then added: for each cluster hub $h_k$
+(one gene chosen uniformly from $\mathcal{C}_k$), the hub weight is
+\begin{equation}
+  a_{h_k,\,\mathrm{hub}} =
+  \begin{cases}
+    \mathrm{Uniform}(-\alpha,\,\alpha) & \text{with probability } p_\mathrm{hub}, \\
+    0 & \text{otherwise.}
+  \end{cases}
+\end{equation}
+The resulting loading matrix $A \in \mathbb{R}^{n \times (n + K + 1)}$ satisfies
+$\tilde{C} = AA^\top \succ 0$ by construction.
+
+\paragraph{Normalization to a correlation matrix.}
+The positive-definite matrix $\tilde{C}$ is normalized to a correlation matrix by
+\begin{equation}
+  R_{ij} = \frac{\tilde{C}_{ij}}{\sqrt{\tilde{C}_{ii}\,\tilde{C}_{jj}}},
+\end{equation}
+which preserves the off-diagonal structure while setting all diagonal entries to unity.
+The parameter $\alpha$ directly controls the mean magnitude of the off-diagonal entries:
+larger $\alpha$ produces stronger, more widespread correlations across genes.
+This is implemented in \texttt{generate\_gram\_hub\_matrix()}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Stage 2: Generating count data via a Gaussian copula}
+
+\paragraph{Latent multivariate normal sampling.}
+Given the correlation matrix $R$, we draw $n_\mathrm{cells}$ latent vectors:
+\begin{equation}
+  \mathbf{z}_c \sim \mathcal{N}(\mathbf{0},\,R), \qquad c = 1,\ldots,n_\mathrm{cells}.
+\end{equation}
+These latent values encode the desired gene-gene correlation structure but have
+Gaussian marginals.
+
+\paragraph{Copula transformation.}
+The Gaussian copula maps latent values to the unit interval by applying the
+standard normal CDF gene-wise:
+\begin{equation}
+  u_{ci} = \Phi(z_{ci}) \in (0,1),
+\end{equation}
+preserving all rank correlations.
+Because $\Phi$ is a monotone transformation, the Spearman and Kendall correlations
+among genes are identical in the latent and uniform layers.
+
+\paragraph{Negative-binomial count marginals.}
+Gene counts are obtained by applying the negative-binomial (NB) quantile function to
+each uniform variate.
+For gene $i$, the mean expression level $\mu_i$ is drawn from an inverse-Gamma
+distribution,
+\begin{equation}
+  \mu_i \sim \mathrm{Inv\text{-}Gamma}(\kappa,\,\theta),
+\end{equation}
+where shape $\kappa$ and scale $\theta$ are user-specified parameters
+($\kappa = 2$, $\theta = 0.1$ in the representative simulation).
+This heavy-tailed prior reproduces the wide dynamic range of gene expression observed
+in real scRNA-seq data.
+The NB dispersion parameter is fixed at $r = 0.5$, a value characteristic of
+bacterial single-cell data.
+The count for cell $c$ and gene $i$ is then
+\begin{equation}
+  x_{ci} = F^{-1}_{\mathrm{NB}(r,\, r/(r+\mu_i))}(u_{ci}),
+\end{equation}
+where $F^{-1}_{\mathrm{NB}}$ denotes the NB quantile (percent-point) function.
+
+\paragraph{Cell-level library-size variability.}
+To model differences in sequencing depth and cell size, each cell $c$ is assigned a
+multiplicative amplitude
+\begin{equation}
+  \ell_c \sim \mathrm{LogNormal}(0.5,\,1),
+\end{equation}
+and the true count matrix is rescaled to
+$\tilde{x}_{ci} = \mathrm{round}(\ell_c \cdot x_{ci})$.
+
+\paragraph{Expression-dependent dropout.}
+Consistent with the technical dropout model widely used for scRNA-seq
+\citep{Pierson2015,Andrews2019}, a zero-inflation step masks observed counts as
+\begin{equation}
+  y_{ci} =
+  \begin{cases}
+    \tilde{x}_{ci} & \text{with probability } 1 - e^{-\lambda\,\tilde{x}_{ci}}, \\
+    0              & \text{with probability } e^{-\lambda\,\tilde{x}_{ci}},
+  \end{cases}
+\end{equation}
+where $\lambda$ is the dropout rate parameter (default $\lambda = 1$).
+This formulation ensures that lowly expressed genes are preferentially dropped,
+reproducing the characteristic expression-detection correlation seen in real data.
+The function \texttt{simulate\_scRNA\_data()} returns both the pre-dropout matrix
+$\tilde{X}$ and the observed (post-dropout) matrix $Y$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Connection to GMP-Cor calibration}
+
+The generator is used in two complementary validation regimes.
+
+\paragraph{Rho-sweep calibration (\texttt{rho\_sweep}).}
+A single correlation matrix $R_\alpha$ is generated per $\alpha$ value and held
+fixed across $n_\mathrm{repeats}$ independent count-sampling replicates, so that
+the only source of variation between replicates is count-level stochasticity.
+GMP-Cor is computed for each replicate, yielding a mean and standard deviation at
+each $\alpha$ level.
+This calibration curve (Figure~3 of the main text) confirms that GMP-Cor increases
+monotonically with $\alpha$ and is robust to count noise.
+
+\paragraph{Sub-population mixing scenario (\texttt{subpopulation\_mixing}).}
+Two sub-populations with \emph{distinct} hub-network topologies (different random
+seeds) but the same $\alpha$ are simulated and combined to test whether GMP-Cor
+can distinguish a mixture of two well-regulated populations (high $\alpha$) from
+a mixture of two dysregulated populations (low $\alpha$) — the experimentally
+relevant comparison between antibiotic-tolerant and control populations (Supplementary
+Figure~S4).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Parameter choices and reproducibility}
+
+All parameters are logged to a JSON file at run time.
+The correlation matrix seed and count-sampling seeds are stored separately,
+making it straightforward to re-run only the stochastic count layer while
+keeping the ground-truth correlation structure fixed.
+Default parameters used for the representative simulations shown in Figure~S2 are
+summarized in Table~S1.
+
+\begin{table}[h!]
+\centering
+\caption{Default parameters for the representative simulations in Figure~S2.}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\
+\hline
+Number of genes / cells      & $n$                           & 400 \\
+Shared-variance fraction     & $\alpha$                      & 0.9 \\
+Pareto shape (cluster sizes) & $s$                           & 1.5 \\
+Hub-connectivity probability & $p_\mathrm{hub}$              & 0.2 \\
+Inv-Gamma shape              & $\kappa$                      & 2   \\
+Inv-Gamma scale              & $\theta$                      & 0.1 \\
+NB dispersion                & $r$                           & 0.5 \\
+Library-size log-normal mean & $\mu_\ell$                    & 0.5 \\
+Library-size log-normal SD   & $\sigma_\ell$                 & 1.0 \\
+Dropout rate                 & $\lambda$                     & 1   \\
+\hline
+\end{tabular}
+\end{table}

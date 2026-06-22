@@ -147,14 +147,14 @@ def panel_B(ax):
     ax_A = ax.inset_axes([0.02, 0.10, 0.30, 0.82])
     ax_A.imshow(A, cmap='Reds', aspect='auto', interpolation='nearest')
     ax_A.set_xticks([]); ax_A.set_yticks([])
-    ax_A.set_title('loading matrix $A$', fontsize=fsize - 2)
+    ax_A.set_title('loading matrix $A$', fontsize=fsize - 2, pad=4)
     ax_A.set_xlabel('factors', fontsize=fsize - 3, labelpad=1)
     ax_A.set_ylabel('genes', fontsize=fsize - 3, labelpad=1)
 
     ax_R = ax.inset_axes([0.60, 0.10, 0.36, 0.82])
     im = ax_R.imshow(R, cmap='RdBu_r', vmin=-1, vmax=1, interpolation='nearest')
     ax_R.set_xticks([]); ax_R.set_yticks([])
-    ax_R.set_title('positive definite covariance', fontsize=fsize - 2)
+    ax_R.set_title('positive definite covariance', fontsize=fsize - 2, pad=4)
     cb = ax.figure.colorbar(im, ax=ax_R, fraction=0.046, pad=0.04)
     cb.set_ticks([-1, 0, 1])
     cb.ax.tick_params(labelsize=fsize - 3)
@@ -163,7 +163,7 @@ def panel_B(ax):
                 arrowprops=dict(arrowstyle='-|>', color='0.3', lw=1.6))
     ax.text(0.465, 0.60, r'$AA^{\top}$' + '\nnormalize', transform=ax.transAxes,
             ha='center', va='bottom', fontsize=fsize - 3)
-    ax.set_title('Build the correlation matrix', fontsize=fsize)
+    ax.set_title('Build the correlation matrix', fontsize=fsize, pad=10)
 
 
 # ==================================================================
@@ -214,7 +214,7 @@ def panel_E(ax):
     # (ii) uniform copula
     a2 = ax.inset_axes([xs[1], y0, w, h])
     a2.scatter(u[:, 0], u[:, 1], s=3, color=NB_C, alpha=0.5, edgecolors='none')
-    a2.set_title('uniform\n(copula)', fontsize=fsize - 3, pad=2)
+    a2.set_title('uniform', fontsize=fsize - 3, pad=2)
     a2.set_xticks([0, 1]); a2.set_yticks([0, 1])
     a2.tick_params(labelsize=fsize - 4)
 
@@ -288,21 +288,21 @@ def panel_H(ax):
 # ------------------------------------------------------------------
 # Assemble — portrait, 4-row narrative
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7.5, 9), label_offset=(-0.02, 0.02))
+pf = PanelFigure(figsize=(7, 7.5), label_offset=(-0.02, 0.02))
 
 panel_pos = [
     # Row 1 — schematics
     [0.05, 0.78, 0.42, 0.14],   # A — factor-model network
-    [0.55, 0.78, 0.42, 0.14],   # B — A -> R construction
+    [0.5, 0.78, 0.42, 0.14],   # B — A -> R construction
     # Row 2 — correlation heatmaps
     [0.10, 0.54, 0.2, 0.14],   # C — heatmap rho=0.9
-    [0.58, 0.54, 0.2, 0.14],   # D — heatmap rho=0.5
+    [0.5, 0.54, 0.2, 0.14],   # D — heatmap rho=0.5
     # Row 3 — copula flow
-    [0.04, 0.30, 0.93, 0.13],   # E — count-generation flow
+    [0.04, 0.30, 0.93, 0.15],   # E — count-generation flow
     # Row 4 — outputs
-    [0.09, 0.05, 0.21, 0.15],   # F — NB count histogram
-    [0.41, 0.05, 0.21, 0.15],   # G — gene-total CCDF
-    [0.71, 0.05, 0.25, 0.15],   # H — sparse observed matrix
+    [0.09, 0.05, 0.21, 0.16],   # F — NB count histogram
+    [0.41, 0.05, 0.21, 0.16],   # G — gene-total CCDF
+    [0.71, 0.05, 0.25, 0.16],   # H — sparse observed matrix
 ]
 
 pf.add_panel(panel_pos[0], draw_func=panel_A, hide_axis=True, label='A')
@@ -316,9 +316,9 @@ pf.add_panel(panel_pos[7], draw_func=panel_H, label='H')
 
 # Step headers down the left margin
 for y, txt in [(0.965, '1 · Design correlation structure'),
-               (0.725, '2 · Representative correlation matrices'),
-               (0.475, '3 · Generate counts (Gaussian copula)'),
-               (0.235, '4 · Representative simulated output')]:
+               (0.735, '2 · Representative correlation matrices'),
+               (0.48, '3 · Generate counts (Gaussian copula)'),
+               (0.24, '4 · Representative simulated output')]:
     pf.fig.text(0.02, y, txt, fontsize=fsize - 1, fontweight='bold', color='0.25',
                 ha='left', va='bottom')
 

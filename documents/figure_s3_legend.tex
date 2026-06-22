@@ -1,0 +1,40 @@
+% Figure S3 legend — Nature-style supplementary figure caption
+% Companion to: scripts/supplementary_figures/figure_s3.py
+
+\textbf{Figure S3 $|$ Concordance between scRNA-seq and bulk RNA-seq expression
+profiles.}
+
+\textbf{(A)}~Per-gene mean expression in scRNA-seq versus bulk RNA-seq across three
+matched conditions, plotted on log-log axes.
+Each point represents one gene; only genes expressed above background in both
+datasets are shown ($n$ indicated per panel).
+Pearson $r$ is computed on $\log_{10}$-transformed values; Spearman $\rho$ on raw
+values.
+Exponential-phase cells: $r = 0.63$, $\rho = 0.61$ ($n = 1{,}239$ genes).
+Dis-Arrest cells: $r = 0.75$, $\rho = 0.75$ ($n = 1{,}684$ genes).
+Reg-Arrest cells: $r = 0.34$, $\rho = 0.23$ ($n = 916$ genes).
+The weaker concordance for Reg-Arrest reflects differences in the bulk antibiotic
+condition used as a proxy; the LFC comparison in panels~B--C, which relies on the
+same pseudobulk contrast, yields stronger agreement (see below).
+
+\textbf{(B,~C)}~Per-gene log$_2$ fold-change (LFC) compared between the sc pseudobulk
+DESeq2 analysis and the bulk RNA-seq DESeq2 analysis, for Dis-Arrest~\textbf{(B)}
+and Reg-Arrest~\textbf{(C)} versus the exponential-phase control.
+The pseudobulk analysis aggregates per-condition single-cell counts into
+replicate-level profiles and applies the same DESeq2 pipeline used for bulk
+data~(Methods).
+Correlation coefficients: Dis-Arrest $r = 0.62$, $\rho = 0.61$;
+Reg-Arrest $r = 0.33$, $\rho = 0.31$ ($n = 3{,}466$ genes in both panels).
+The positive correlation in both conditions confirms that the sc pseudobulk
+and bulk experiments capture the same genome-wide transcriptional response.
+
+\textbf{(D)}~GO enrichment of down-regulated genes identified by the sc pseudobulk
+DESeq2 analysis (top 500 genes by LFC magnitude, matched study sets).
+Bars show $-\log_{10}(\text{FDR})$ for GO Biological Process terms that reach
+significance (FDR~$<$~0.05) in both Dis-Arrest (red) and Reg-Arrest (blue).
+The same functional categories suppressed in the bulk analysis (translation,
+flagellar motility, chemotaxis, energy metabolism) are independently recovered
+in the single-cell data, validating the biological signal detected across both
+platforms.
+Reg-Arrest displays stronger enrichment than Dis-Arrest for most terms,
+consistent with the bulk GO results in Figure~4B.

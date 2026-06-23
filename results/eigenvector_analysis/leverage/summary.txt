@@ -1,0 +1,68 @@
+Signal-subspace coordination score -- gene-level interpretation of GMP-Cor
+(Reviewer #4, comment 1)
+TOP_FRAC=0.05  TOP_MIN=50  GO=True
+
+Cross-condition Spearman correlation of coordination-score vectors:
+  regulated vs regulated : 0.189
+  dis-arrest vs dis-arrest: nan
+  regulated vs dis-arrest : nan
+
+=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85  signal modes=9 ===
+  top genes: dinj, yoba, yfci, alsk, insd-2, nird, ssuc, ydcp, kdpa, mutm, yadi, ybij, glca, yjep, ydin
+  GO: (no significant terms)
+
+=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36  signal modes=16 ===
+  top genes: trpE, srlE, pspD, mhpE, nrfG, dtd, ydcD, xylG, aldB, ydaF, melA, melB, hokC, xylE, lit
+  GO: (no significant terms)
+
+=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31  signal modes=3 ===
+  top genes: fimD, yaiL, tbpA, hipB, ycgN, ygcJ, rplO, yidA, ihfA, citC, yjeF, fpr, ugd, yqjC, yeeL
+  GO (2 terms): cytoplasmic translation; translation
+
+=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00  signal modes=2 ===
+  top genes: rpoA, ycgZ, rplL, rpsA, rplO, fusA, gapA, clpX, rplW, yqjC, tetR, rpsK, rpsE, rplJ, ymgA
+  GO (6 terms): cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation; ribosomal small subunit assembly; maintenance of translational fidelity
+
+=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09  signal modes=15 ===
+  top genes: rplQ, rpoA, rplO, rplA, rpsD, YFP, yjhE, fusA, intE, rpsE, rplD, rpsQ, appB, eutB, gcvP
+  GO (4 terms): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+
+=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52  signal modes=15 ===
+  top genes: pcm, cbrA, fucI, wcaL, rbn, wbbH, flgG, yfaT, yeeV, yraH, ybjH, yhhY, yphD, thrU---thrToperon, glxR
+  GO: (no significant terms)
+
+=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16  signal modes=15 ===
+  top genes: tff, tyrT, aspv, ffs, rrfB, kanR, csrb, rpsK, trpE, serV, rpsD, mCherry, rplO, alaw, fecC
+  GO (4 terms): cytoplasmic translation; translation; ribosomal large subunit assembly; negative regulation of translation
+
+=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70  signal modes=17 ===
+  top genes: tyrT, rpsK, rpsD, alaw, rplO, rrfB, rpoA, rpmC, aspv, rplC, tff, rplL, rplD, thrU---thrToperon, rplW
+  GO (10 terms): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; response to antibiotic; regulation of translation
+
+=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89  signal modes=5 ===
+  top genes: tyrT, aspv, alaw, serV, tff, csrb, rrfB, kanR, thrU---thrToperon, mCherry, tetR, alaXW, vapC, ydfK, lysT--lysQoperon
+  GO: (no significant terms)
+
+=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03  signal modes=30 ===
+  top genes: ybfC, phnB, ade, yeiJ, yjgI, ydfR, ybhM, yccZ, yffQ, csgA, yicJ, ulaF, yihF, ycaM, glpC
+  GO (4 terms): cytoplasmic translation; translation; ribosomal small subunit assembly; ribosomal large subunit assembly
+
+=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08  signal modes=4 ===
+  top genes: ybgO, ilvI, cysG, ydhY, racC, rluF, lpxB, yafM, insF-4, yagX, torY, yedL, eutA, yojI, mfd
+  GO: (no significant terms)
+
+=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28  signal modes=14 ===
+  top genes: yidP, queF, ygbK, ppx, ycbW, yfdR, insK, treB, hha, yjjM, yadD, ycaJ, yagR, yjcH, yagY
+  GO: (no significant terms)
+
+=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00  signal modes=0 ===
+  top genes: zwf, mcrB, mak, malM, malP, malT, malX, malY, malZ, manX, manY, manZ, marR, mazG, mcrA
+  GO: (no signal subspace -> skipped)
+
+=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37  signal modes=16 ===
+  top genes: yagU, tmRNA, yncA, dhaR, ftsX, hspQ, mrdB, ydaG, uvrC, yzgL, rplM, caiA, ydaT, stfR, yagQ
+  GO: (no significant terms)
+
+=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00  signal modes=25 ===
+  top genes: tmRNA, rpsR, hcaE, ynbB, yhfY, hemB, mokC, srmB, mutT, yahC, caiF, yjhU, nadD, betA, pgm
+  GO: (no significant terms)

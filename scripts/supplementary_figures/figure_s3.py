@@ -30,6 +30,7 @@ from figure_functions import PanelFigure
 META       = os.path.join(_REPO, 'metadata')
 DATA       = os.path.join(_REPO, 'data_for_paper')
 BULK_XLSX  = os.path.join(_REPO, 'bulk_data', 'All bulk data.xlsx')
+BULK2_CSV = os.path.join(_REPO, 'bulk_data', 'exp0224_molecules_per_cell.csv')
 BULK_DESEQ = os.path.join(_REPO, 'results', 'deseq_results', 'from counts')
 SC_DESEQ   = os.path.join(_REPO, 'results', 'deseq_results', 'sc_pseudobulk')
 GO_TABLE   = os.path.join(_REPO, 'results', 'GO_results', 'sc_pseudobulk',
@@ -103,7 +104,7 @@ def mean_expression_corr(syn, locus2name, bulk_df, sc_file, bulk_cols_prefix, ti
     sc_mean.index = harmonize(list(sc_mean.index), syn)
     sc_mean = sc_mean[~sc_mean.index.isin(SPIKE_INS)].groupby(level=0).sum()
 
-    bulk_cols = [c for c in bulk_df.columns if str(c).lower().startswith(bulk_cols_prefix)]
+    bulk_cols = [c for c in bulk_df.columns if bulk_cols_prefix in str(c).lower()]
     bulk_mean = bulk_df[bulk_cols].mean(axis=1)
     bulk_mean.index = harmonize_bulk(list(bulk_mean.index), syn, locus2name)
     bulk_mean = bulk_mean.groupby(level=0).sum()
@@ -129,7 +130,7 @@ def mean_expression_corr(syn, locus2name, bulk_df, sc_file, bulk_cols_prefix, ti
     return r, s, len(x)
 
 
-def lfc_corr(syn, locus2name, study, ax):
+def lfc_corr(syn, locus2name, study, ax, y_label = True):
     sc = pd.read_csv(os.path.join(SC_DESEQ, f'deseq2_results_{study}_vs_control.csv'),
                      index_col=0)
     sc_lfc = sc['log2FoldChange']
@@ -154,8 +155,10 @@ def lfc_corr(syn, locus2name, study, ax):
     ax.axhline(0, color='grey', lw=0.6)
     ax.axvline(0, color='grey', lw=0.6)
     ax.set_xlabel('bulk log₂FC', fontsize=10)
-    ax.set_ylabel('scRNA-seq log₂FC', fontsize=10)
+    if y_label:
+        ax.set_ylabel('scRNA-seq log₂FC', fontsize=10)
     ax.set_title(f'{label} vs control', fontsize=9, pad=2)
+    ax.set_yticks([-10,-8,-6,-4,-2,0,2,4,6,8])
     ax.text(0.05, 0.94, f'r={r:.2f}  ρ={s:.2f}  n={len(x)}',
             transform=ax.transAxes, fontsize=9, va='top')
     _style_ax(ax, grid=True)
@@ -184,6 +187,7 @@ if __name__ == '__main__':
     syn        = get_gene_synonyms()
     locus2name = map_locus_to_name()
     bulk_df    = pd.read_excel(BULK_XLSX, index_col=0)
+    bulk_exp_df = pd.read_csv(BULK2_CSV, index_col=0)
 
     fig = PanelFigure(figsize=(7, 7), label_offset=(-0.02, 0.04))
 
@@ -196,9 +200,14 @@ if __name__ == '__main__':
         ('sample_15b_filtered.csv',     'casp',       'Reg-Arrest'),
     ]
     for ax, (fname, prefix, title) in zip(axs_A[:, 0], sc_specs):
-        r, s, n = mean_expression_corr(
-            syn, locus2name, bulk_df,
-            os.path.join(DATA, fname), prefix, title, ax)
+        if prefix == 'exp':
+            r, s, n = mean_expression_corr(
+                syn, locus2name, bulk_exp_df,
+                os.path.join(DATA, fname), prefix, title, ax)
+        else:
+            r, s, n = mean_expression_corr(
+                syn, locus2name, bulk_df,
+                os.path.join(DATA, fname), prefix, title, ax)
         print(f'Mean expr {title:12s}: Pearson r={r:.2f}, Spearman ρ={s:.2f}, n={n}')
 
     # Panel B — LFC scatter: Dis-Arrest
@@ -208,7 +217,7 @@ if __name__ == '__main__':
 
     # Panel C — LFC scatter: Reg-Arrest
     ax_C = fig.add_panel([0.72, 0.6, 0.25, 0.34], label='C')
-    r, s, n = lfc_corr(syn, locus2name, 'regulated', ax_C)
+    r, s, n = lfc_corr(syn, locus2name, 'regulated', ax_C, y_label=False)
     print(f'LFC Reg-Arrest:      Pearson r={r:.2f}, Spearman ρ={s:.2f}, n={n}')
 
     # Panel D — GO bar chart

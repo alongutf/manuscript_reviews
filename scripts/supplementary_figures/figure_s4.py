@@ -380,5 +380,5 @@ pf.add_panel(panel_pos[3], draw_func=panel_D, label="D")
 pf.add_panel(panel_pos[4], draw_func=panel_E, label="E")
 # panel F:
 pf.add_panel(panel_pos[5], draw_func=panel_F, label="F")
-pf.save("figure s4.pdf", dpi=300)
+pf.save("figure_s4.pdf", dpi=300)
 plt.show()

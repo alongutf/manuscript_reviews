@@ -1,0 +1,2 @@
+GO_ID,Term,Category,modes,n_modes,best_FDR,FDR_by_mode
+GO:0002181,cytoplasmic translation,BP,1,1,0.0302623867136474,m1=3.0e-02

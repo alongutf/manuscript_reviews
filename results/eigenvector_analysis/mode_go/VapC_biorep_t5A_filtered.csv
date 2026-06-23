@@ -1,0 +1,4 @@
+GO_ID,Term,Category,modes,n_modes,best_FDR,FDR_by_mode,eig_by_mode
+GO:0002181,cytoplasmic translation,BP,1,1,2.8738402489262425e-18,m1=2.9e-18,m1=12.06
+GO:0006412,translation,BP,1,1,6.023699142037164e-16,m1=6.0e-16,m1=12.06
+GO:0000027,ribosomal large subunit assembly,BP,1,1,0.0007433925606522031,m1=7.4e-04,m1=12.06

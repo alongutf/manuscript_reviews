@@ -1,0 +1,84 @@
+Per-mode GO enrichment of leading eigenvectors, consolidated per condition
+(Reviewer #4, comment 1 follow-up)
+modes 1-5; top 50 genes by |loading| per mode; background = full gene panel; FDR<0.05 (BH)
+
+=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85 ===
+  (no significant GO terms in modes 1-5)
+
+=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36 ===
+  (no significant GO terms in modes 1-5)
+
+=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31 ===
+  [BP] cytoplasmic translation  (modes 1; m1=3.0e-02)
+
+=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00 ===
+  [BP] cytoplasmic translation  (modes 1; m1=2.9e-16)
+  [BP] translation  (modes 1; m1=2.4e-14)
+  [BP] regulation of translation  (modes 1; m1=2.2e-04)
+  [BP] ribosomal large subunit assembly  (modes 1; m1=2.3e-04)
+  [BP] ribosomal small subunit assembly  (modes 1; m1=1.5e-02)
+  [BP] DNA-templated transcription termination  (modes 1; m1=4.1e-02)
+
+=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09 ===
+  [BP] cytoplasmic translation  (modes 1; m1=3.9e-23)
+  [BP] translation  (modes 1; m1=2.9e-19)
+  [BP] ribosomal large subunit assembly  (modes 1; m1=8.2e-09)
+  [BP] ribosomal small subunit assembly  (modes 1; m1=9.9e-05)
+  [BP] regulation of translation  (modes 1; m1=9.2e-03)
+  [BP] DNA-templated transcription termination  (modes 1; m1=4.3e-02)
+
+=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52 ===
+  [BP] cytoplasmic translation  (modes 4; m4=5.9e-24)
+  [BP] translation  (modes 4; m4=2.1e-18)
+  [BP] ribosomal large subunit assembly  (modes 4; m4=1.1e-08)
+  [BP] ribosomal small subunit assembly  (modes 4; m4=1.9e-04)
+  [BP] response to antibiotic  (modes 4; m4=6.1e-03)
+  [BP] DNA-templated transcription termination  (modes 4; m4=1.8e-02)
+  [BP] ribosome assembly  (modes 4; m4=3.7e-02)
+  [BP] transcription antitermination  (modes 4; m4=3.8e-02)
+
+=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16 ===
+  [BP] cytoplasmic translation  (modes 1; m1=2.9e-18)
+  [BP] translation  (modes 1; m1=6.0e-16)
+  [BP] ribosomal large subunit assembly  (modes 1; m1=7.4e-04)
+
+=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70 ===
+  [BP] cytoplasmic translation  (modes 1,2; m1=2.1e-33; m2=3.5e-25)
+  [BP] translation  (modes 1,2; m1=3.8e-31; m2=2.4e-23)
+  [BP] ribosomal large subunit assembly  (modes 1,2; m1=1.3e-09; m2=1.3e-07)
+  [BP] ribosomal small subunit assembly  (modes 1,2; m1=1.7e-06; m2=9.8e-08)
+  [BP] response to antibiotic  (modes 1,2; m1=1.6e-04; m2=2.8e-03)
+  [BP] regulation of translation  (modes 1,2; m1=4.1e-04; m2=8.5e-04)
+  [BP] transcription antitermination  (modes 2; m2=1.2e-03)
+  [BP] regulation of DNA-templated transcription elongation  (modes 2; m2=2.1e-03)
+  [BP] DNA-templated transcription termination  (modes 2; m2=2.3e-03)
+  [BP] submerged biofilm formation  (modes 2; m2=1.6e-02)
+  [BP] cell motility  (modes 2; m2=1.6e-02)
+  [BP] intracellular iron ion homeostasis  (modes 2; m2=1.6e-02)
+
+=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89 ===
+  (no significant GO terms in modes 1-5)
+
+=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03 ===
+  [BP] cytoplasmic translation  (modes 1; m1=1.9e-48)
+  [BP] translation  (modes 1; m1=1.5e-39)
+  [BP] ribosomal large subunit assembly  (modes 1; m1=4.5e-12)
+  [BP] ribosomal small subunit assembly  (modes 1; m1=8.9e-11)
+  [BP] regulation of translation  (modes 1; m1=1.5e-03)
+  [BP] negative regulation of translation  (modes 1; m1=6.1e-03)
+  [BP] response to antibiotic  (modes 1; m1=1.8e-02)
+
+=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08 ===
+  (no significant GO terms in modes 1-5)
+
+=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28 ===
+  [BP] L-idonate catabolic process  (modes 1; m1=4.5e-02)
+
+=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00 ===
+  (no significant GO terms in modes 1-5)
+
+=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37 ===
+  (no significant GO terms in modes 1-5)
+
+=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00 ===
+  (no significant GO terms in modes 1-5)

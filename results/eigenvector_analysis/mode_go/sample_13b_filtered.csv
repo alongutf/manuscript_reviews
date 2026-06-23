@@ -1,0 +1,2 @@
+GO_ID,Term,Category,modes,n_modes,best_FDR,FDR_by_mode,eig_by_mode
+GO:0046183,L-idonate catabolic process,BP,1,1,0.04533066486343122,m1=4.5e-02,m1=14.26

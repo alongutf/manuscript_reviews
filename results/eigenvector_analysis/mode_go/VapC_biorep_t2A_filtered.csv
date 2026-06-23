@@ -1,0 +1,9 @@
+GO_ID,Term,Category,modes,n_modes,best_FDR,FDR_by_mode
+GO:0002181,cytoplasmic translation,BP,4,1,5.861136523396065e-24,m4=5.9e-24
+GO:0006412,translation,BP,4,1,2.1041881750020026e-18,m4=2.1e-18
+GO:0000027,ribosomal large subunit assembly,BP,4,1,1.1083667755934693e-08,m4=1.1e-08
+GO:0000028,ribosomal small subunit assembly,BP,4,1,0.0001868628317648,m4=1.9e-04
+GO:0046677,response to antibiotic,BP,4,1,0.0061076896338843,m4=6.1e-03
+GO:0006353,DNA-templated transcription termination,BP,4,1,0.0176583190782575,m4=1.8e-02
+GO:0042255,ribosome assembly,BP,4,1,0.0370666301208394,m4=3.7e-02
+GO:0031564,transcription antitermination,BP,4,1,0.0383937718710102,m4=3.8e-02

@@ -1,0 +1,2 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0046183,L-idonate catabolic process,BP,3.7370704751386e-05,0.04533066486343122,"(3, 36)","(4, 1654)"

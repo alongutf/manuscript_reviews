@@ -1,0 +1,5 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,4.8748094897293475e-15,5.8302721497163e-12,"(16, 66)","(31, 1511)"
+GO:0006412,translation,BP,4.406801033437929e-12,2.6352670179958817e-09,"(17, 66)","(51, 1511)"
+GO:0000027,ribosomal large subunit assembly,BP,8.538991542161668e-05,0.03153699770682666,"(5, 66)","(12, 1511)"
+GO:0017148,negative regulation of translation,BP,0.0001054749087184838,0.03153699770682666,"(4, 66)","(7, 1511)"

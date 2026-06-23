@@ -90,6 +90,75 @@ def get_eig_dist(m, norm=True, log=False, norm_method='sum', norm_sum=1):
     return pcs, pcs1, fraction_non_zero
 
 
+def get_eig_vectors(m, n_top=5, norm=True, log=False, norm_method='sum', norm_sum=1):
+    # Compute the leading eigenvectors (gene loadings) of the gene-gene correlation
+    # structure of m (cells x genes), together with their eigenvalues and the
+    # scrambled noise threshold (lambda_max^scr) used by GMP-Cor.
+    #
+    # Preprocessing mirrors get_eig_dist exactly so the spectrum is identical:
+    # drop all-zero genes/cells, normalize rows, optional log, z-transform columns.
+    #
+    # Returns
+    #   eigvals   : (n_top,)            leading eigenvalues (singular_value**2 / n_cells)
+    #   eigvecs   : (n_top, n_kept)     leading right singular vectors = gene loadings
+    #   threshold : float              mean over reps of the max scrambled eigenvalue
+    #   kept_cols : (n_genes,) bool    mask of original columns of m that survived filtering
+    #
+    # If n_top is None, all modes are returned.
+    rep = 10
+    # remove zero genes / cells (same rule as get_eig_dist)
+    gene_sums = (m > 0).sum(axis=0)
+    kept_cols = gene_sums >= 1
+    m = m[:, kept_cols]
+    cell_sums = (m > 0).sum(axis=1)
+    m = m[cell_sums >= 1, :]
+    if norm:
+        m = normalize(m, method=norm_method, target_sum=norm_sum)
+    if log:
+        m = log_transform(m)
+    m = z_transform(m)
+    n = m.shape[0]
+    # scrambled noise threshold: mean of the max eigenvalue over rep scrambles
+    max_scr = 0.0
+    for _ in range(rep):
+        m1 = scramble(m.copy())
+        max_scr += get_pcs(m1).max()
+    threshold = max_scr / rep
+    # SVD: rows of Vt are the gene-space eigenvectors of the correlation matrix
+    _, s, vt = la.svd(m, full_matrices=False)
+    eigvals = s ** 2 / n
+    if n_top is None:
+        n_top = vt.shape[0]
+    else:
+        n_top = min(n_top, vt.shape[0])
+    return eigvals[:n_top], vt[:n_top], threshold, kept_cols
+
+
+def coordination_score(eigvals, eigvecs, threshold):
+    # Per-gene coordination (leverage) score: the diagonal of the de-noised signal
+    # covariance reconstructed from the modes above the scrambled threshold,
+    #   score_i = sum_{k: eig_k > threshold} (eig_k - threshold) * eigvecs[k, i]**2 .
+    # This is rotation-invariant within the (possibly near-degenerate) signal subspace,
+    # unlike any individual eigenvector, so it gives a stable per-gene readout of how
+    # much each gene participates in the coordinated structure. Returns zeros when no
+    # mode exceeds the threshold (fully dysregulated sample).
+    eigvals = np.asarray(eigvals)
+    signal = eigvals > threshold
+    score = np.zeros(eigvecs.shape[1])
+    for k in np.where(signal)[0]:
+        score += (eigvals[k] - threshold) * eigvecs[k] ** 2
+    return score
+
+
+def participation_ratio(v):
+    # Participation ratio of a (unit-norm) eigenvector v: ranges from 1 (localized on a
+    # single gene) to len(v) (fully delocalized). PR = (sum v^2)^2 / sum v^4.
+    v = np.asarray(v, dtype=float)
+    s2 = np.sum(v ** 2)
+    s4 = np.sum(v ** 4)
+    return (s2 ** 2) / s4 if s4 > 0 else 0.0
+
+
 def mp_distribution(x, a):
     # Marchenko-Pastur distribution with ratio a
     l_min = (1-np.sqrt(a))**2

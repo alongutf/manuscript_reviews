@@ -159,6 +159,35 @@ def participation_ratio(v):
     return (s2 ** 2) / s4 if s4 > 0 else 0.0
 
 
+def eigenvector_entropy(v):
+    # Shannon entropy of an eigenvector treated as a probability distribution over genes.
+    # Each gene's squared loading is its "participation probability" p_i = v_i^2 / sum_j v_j^2
+    # (sum_i p_i = 1; for a unit-norm eigenvector the denominator is 1). The Shannon entropy
+    #   H = -sum_i p_i * ln(p_i)
+    # measures how the mode's variance is spread across genes:
+    #   H -> 0          a single gene carries the whole mode (fully localized),
+    #   H -> ln(n)      every gene participates equally (fully delocalized).
+    # We report three quantities:
+    #   entropy        : H in nats.
+    #   norm_entropy   : H / ln(n) in [0, 1] -- 0 = one gene, 1 = all genes participate.
+    #   effective_n    : exp(H), the effective number of participating ("dominant") genes,
+    #                    ranging from 1 to n (compare with participation_ratio, which is the
+    #                    exp of the order-2 Renyi entropy and is dominated by the few largest
+    #                    loadings; the Shannon effective_n weights moderate loadings more).
+    v = np.asarray(v, dtype=float)
+    p = v ** 2
+    s = p.sum()
+    n = len(v)
+    if s <= 0 or n == 0:
+        return 0.0, 0.0, 0.0
+    p = p / s
+    nz = p[p > 0]
+    entropy = float(-np.sum(nz * np.log(nz)))
+    norm_entropy = entropy / np.log(n) if n > 1 else 0.0
+    effective_n = float(np.exp(entropy))
+    return entropy, norm_entropy, effective_n
+
+
 def mp_distribution(x, a):
     # Marchenko-Pastur distribution with ratio a
     l_min = (1-np.sqrt(a))**2

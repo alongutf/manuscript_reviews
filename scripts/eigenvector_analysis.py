@@ -13,7 +13,12 @@ For every cell x gene matrix in data_for_paper/ we:
      whether it sits above or below lambda_max^scr.
   2. extract the top-loading genes of each mode (by |loading|).
   3. compute the participation ratio of each mode (localized vs delocalized).
-  4. run GO enrichment on the top-loading genes of each mode (vs the gene panel
+  4. compute the Shannon entropy of each mode (eigenvector -> probability vector
+     p_i = v_i^2): how many genes are "dominant" in the mode. Low entropy means a
+     single gene carries the mode; high entropy means all genes participate. We
+     report the entropy (nats), the normalized entropy in [0,1], and the effective
+     number of participating genes exp(H).
+  5. run GO enrichment on the top-loading genes of each mode (vs the gene panel
      background) to test whether the leading modes recover coherent programs.
 
 Run from the scripts/ directory:
@@ -23,7 +28,8 @@ Run from the scripts/ directory:
 Outputs -> results/eigenvector_analysis/
   top_genes/<file>.csv        top-loading genes per mode (signed loading)
   summary.csv                 one row per (file, mode): eigenvalue, threshold,
-                              above_threshold, participation_ratio, GMP-Cor
+                              above_threshold, participation_ratio, shannon_entropy,
+                              norm_entropy, effective_n_genes, GMP-Cor
   go/<file>_mode<k>.csv       GO enrichment of mode k top-loading genes (if any)
   summary.txt                 human-readable digest
 """
@@ -151,6 +157,7 @@ for fname in files:
         v = eigvecs[k]
         order = np.argsort(np.abs(v))[::-1]
         pr = af.participation_ratio(v)
+        entropy, norm_entropy, eff_n = af.eigenvector_entropy(v)
         above = bool(eigvals[k] > threshold)
 
         top_idx = order[:N_GENES]
@@ -166,6 +173,9 @@ for fname in files:
             "threshold_scr": threshold,
             "above_threshold": above,
             "participation_ratio": pr,
+            "shannon_entropy": entropy,
+            "norm_entropy": norm_entropy,
+            "effective_n_genes": eff_n,
             "n_genes_kept": len(kept_genes),
         })
 
@@ -173,7 +183,9 @@ for fname in files:
         top_named = ", ".join(clean_gene(g) for g in kept_genes[order[:12]])
         block.append(
             f"  mode {k+1}: eig={eigvals[k]:.3f} ({flag} thr)  "
-            f"PR={pr:.1f}/{len(kept_genes)}  top: {top_named}"
+            f"PR={pr:.1f}/{len(kept_genes)}  "
+            f"H={entropy:.2f} (norm={norm_entropy:.2f}, eff_genes={eff_n:.1f})  "
+            f"top: {top_named}"
         )
 
         if RUN_GO:

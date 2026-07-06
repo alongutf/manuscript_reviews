@@ -1,0 +1,8 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,6.766795137656101e-28,8.323158019317003e-25,"(28, 95)","(40, 1673)"
+GO:0006412,translation,BP,6.0641597003086154e-24,3.729458215689798e-21,"(30, 95)","(59, 1673)"
+GO:0000027,ribosomal large subunit assembly,BP,1.0881244171660646e-10,4.4613101103808645e-08,"(12, 95)","(21, 1673)"
+GO:0000028,ribosomal small subunit assembly,BP,5.034871096785423e-08,1.5482228622615175e-05,"(7, 95)","(9, 1673)"
+GO:0006417,regulation of translation,BP,3.5617157271267286e-05,0.008761820688731752,"(6, 95)","(13, 1673)"
+GO:0006353,DNA-templated transcription termination,BP,4.680562769623094e-05,0.009595153677727343,"(4, 95)","(5, 1673)"
+GO:1990145,maintenance of translational fidelity,BP,0.0001776747624572568,0.031219993974632262,"(3, 95)","(3, 1673)"

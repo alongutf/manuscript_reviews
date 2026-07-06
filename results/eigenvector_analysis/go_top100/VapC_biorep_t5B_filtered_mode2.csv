@@ -1,0 +1,11 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,8.395697336565044e-28,9.697030423732626e-25,"(29, 84)","(45, 1507)"
+GO:0006412,translation,BP,2.535883514482077e-25,1.4644727296133995e-22,"(31, 84)","(61, 1507)"
+GO:0000027,ribosomal large subunit assembly,BP,8.041788185205457e-11,3.096088451304101e-08,"(12, 84)","(21, 1507)"
+GO:0000028,ribosomal small subunit assembly,BP,1.423081862366691e-10,4.10914887758382e-08,"(10, 84)","(14, 1507)"
+GO:0065002,intracellular protein transmembrane transport,BP,0.00016737728028027704,0.024470134939188586,"(3, 84)","(3, 1507)"
+GO:0006353,DNA-templated transcription termination,BP,0.00016737728028027704,0.024470134939188586,"(3, 84)","(3, 1507)"
+GO:0006886,intracellular protein transport,BP,0.00016737728028027704,0.024470134939188586,"(3, 84)","(3, 1507)"
+GO:0006417,regulation of translation,BP,0.00016949011213290794,0.024470134939188586,"(5, 84)","(11, 1507)"
+GO:0032784,regulation of DNA-templated transcription elongation,BP,0.00027693840603761543,0.03209504025944788,"(4, 84)","(7, 1507)"
+GO:0031564,transcription antitermination,BP,0.0002778791364454362,0.03209504025944788,"(5, 84)","(12, 1507)"

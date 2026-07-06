@@ -1,0 +1,4 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0043709,cell adhesion involved in single-species biofilm formation,BP,1.8150521893830004e-06,0.0022143636710472607,"(11, 152)","(24, 1703)"
+GO:0007155,cell adhesion,BP,7.833769028056795e-06,0.004778599107114645,"(12, 152)","(32, 1703)"
+GO:0009103,lipopolysaccharide biosynthetic process,BP,9.412152455180153e-05,0.03827608665106595,"(11, 152)","(34, 1703)"

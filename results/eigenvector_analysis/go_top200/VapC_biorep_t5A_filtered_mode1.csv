@@ -1,0 +1,4 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,1.2914674029809106e-14,1.544595013965169e-11,"(21, 158)","(31, 1511)"
+GO:0006412,translation,BP,9.30494537840907e-11,5.564357336288624e-08,"(23, 158)","(51, 1511)"
+GO:0000028,ribosomal small subunit assembly,BP,6.0635718219161686e-05,0.02417343966337246,"(7, 158)","(12, 1511)"

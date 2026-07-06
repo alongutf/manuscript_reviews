@@ -1,0 +1,6 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,8.535857526246247e-24,9.901594730445647e-21,"(25, 85)","(38, 1471)"
+GO:0006412,translation,BP,1.8463204799974546e-19,1.0708658783985238e-16,"(27, 85)","(61, 1471)"
+GO:0000027,ribosomal large subunit assembly,BP,2.5354212967364913e-13,9.803629014047766e-11,"(12, 85)","(15, 1471)"
+GO:0000028,ribosomal small subunit assembly,BP,3.870494633419991e-05,0.011224434436917972,"(6, 85)","(13, 1471)"
+GO:0032784,regulation of DNA-templated transcription elongation,BP,0.0001428205242112878,0.03313436161701877,"(4, 85)","(6, 1471)"

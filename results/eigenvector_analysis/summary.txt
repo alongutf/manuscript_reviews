@@ -3,182 +3,182 @@ N_TOP=5  N_GENES=30  GO=True
 Note: top-N modes are taken regardless of the scrambled threshold, because in
 some Dis-Arrest samples no eigenvalue exceeds it.
 
-=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85  lambda_max^scr=6.904 ===
-  mode 1: eig=17.159 (ABOVE thr)  PR=17.4/1997  top: ydin, ybij, nird, yjep, insd-2, ydcp, yoba, kdpa, mutm, dinj, glca, alsk
+=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85  lambda_max^scr=6.899 ===
+  mode 1: eig=17.159 (ABOVE thr)  PR=17.4/1997  H=2.91 (norm=0.38, eff_genes=18.4)  top: ydin, ybij, nird, yjep, insd-2, ydcp, yoba, kdpa, mutm, dinj, glca, alsk
         GO: (no significant terms)
-  mode 2: eig=15.484 (ABOVE thr)  PR=21.9/1997  top: mraz, emry, ddpf, yeda, ygfi, rpib, kefb, yjfj, ygcg, yiel, yhjr, ydeh
+  mode 2: eig=15.484 (ABOVE thr)  PR=21.9/1997  H=3.33 (norm=0.44, eff_genes=27.9)  top: mraz, emry, ddpf, yeda, ygfi, rpib, kefb, yjfj, ygcg, yiel, yhjr, ydeh
         GO: (no significant terms)
-  mode 3: eig=11.740 (ABOVE thr)  PR=22.9/1997  top: essq, yehr, glcf, baes, ycjr, ydhb, ygfg, ypdb, seta, inso-2, ribd, yibd
+  mode 3: eig=11.740 (ABOVE thr)  PR=22.9/1997  H=3.59 (norm=0.47, eff_genes=36.1)  top: essq, yehr, glcf, baes, ycjr, ydhb, ygfg, ypdb, seta, inso-2, ribd, yibd
         GO: (no significant terms)
-  mode 4: eig=11.130 (ABOVE thr)  PR=11.4/1997  top: cusf, yhdz, fino, yfap, ydcd, yjhf, argk, yfax, yfbb, teha, yjin, glnl
+  mode 4: eig=11.130 (ABOVE thr)  PR=11.4/1997  H=2.52 (norm=0.33, eff_genes=12.4)  top: cusf, yhdz, fino, yfap, ydcd, yjhf, argk, yfax, yfbb, teha, yjin, glnl
         GO: (no significant terms)
-  mode 5: eig=7.986 (ABOVE thr)  PR=15.2/1997  top: sgrr, pdxj, prov, tqsa, ytfg, acrf, lit, yjfk, yjjv, araf, alla, trph
-        GO: (no significant terms)
-
-=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36  lambda_max^scr=6.397 ===
-  mode 1: eig=9.503 (ABOVE thr)  PR=419.0/1997  top: pspA, yehB, galS, fiu, ycaO, yqaA, xylE, yeiJ, nfrB, csgE, yfaV, pdxK
-        GO: (no significant terms)
-  mode 2: eig=7.944 (ABOVE thr)  PR=42.3/1997  top: pspD, mhpE, srlE, trpE, melB, melA, yhhQ, ygeX, lit, dtd, nrfG, ygcG
-        GO: (no significant terms)
-  mode 3: eig=7.776 (ABOVE thr)  PR=74.5/1997  top: ydcD, nrfG, dtd, xylG, hokC, pspD, mhpE, trpE, srlE, nikA, mdlA, pppA
-        GO: (no significant terms)
-  mode 4: eig=7.535 (ABOVE thr)  PR=74.3/1997  top: aldB, ydaF, yffL, ygfK, yafZ, cmtA, yggP, dgoD, rhsC, yffN, hslU, gyrB
-        GO: (no significant terms)
-  mode 5: eig=7.112 (ABOVE thr)  PR=139.4/1997  top: gltK, araB, cobC, ydaF, aldB, yraH, yceF, ybeQ, nfrB, ampC, dacA, ygfK
+  mode 5: eig=7.986 (ABOVE thr)  PR=15.2/1997  H=3.29 (norm=0.43, eff_genes=26.9)  top: sgrr, pdxj, prov, tqsa, ytfg, acrf, lit, yjfk, yjjv, araf, alla, trph
         GO: (no significant terms)
 
-=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31  lambda_max^scr=6.421 ===
-  mode 1: eig=7.651 (ABOVE thr)  PR=466.5/1998  top: ygcJ, fimD, rplO, ihfA, yqjC, hipB, ydeT, rplL, tetR, ybeQ, yeeL, ybdM
+=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36  lambda_max^scr=6.421 ===
+  mode 1: eig=9.503 (ABOVE thr)  PR=419.0/1997  H=6.52 (norm=0.86, eff_genes=676.1)  top: pspA, yehB, galS, fiu, ycaO, yqaA, xylE, yeiJ, nfrB, csgE, yfaV, pdxK
+        GO: (no significant terms)
+  mode 2: eig=7.944 (ABOVE thr)  PR=42.3/1997  H=4.88 (norm=0.64, eff_genes=132.2)  top: pspD, mhpE, srlE, trpE, melB, melA, yhhQ, ygeX, lit, dtd, nrfG, ygcG
+        GO: (no significant terms)
+  mode 3: eig=7.776 (ABOVE thr)  PR=74.5/1997  H=5.15 (norm=0.68, eff_genes=173.0)  top: ydcD, nrfG, dtd, xylG, hokC, pspD, mhpE, trpE, srlE, nikA, mdlA, pppA
+        GO: (no significant terms)
+  mode 4: eig=7.535 (ABOVE thr)  PR=74.3/1997  H=5.42 (norm=0.71, eff_genes=225.0)  top: aldB, ydaF, yffL, ygfK, yafZ, cmtA, yggP, dgoD, rhsC, yffN, hslU, gyrB
+        GO: (no significant terms)
+  mode 5: eig=7.112 (ABOVE thr)  PR=139.4/1997  H=5.77 (norm=0.76, eff_genes=321.3)  top: gltK, araB, cobC, ydaF, aldB, yraH, yceF, ybeQ, nfrB, ampC, dacA, ygfK
+        GO: (no significant terms)
+
+=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31  lambda_max^scr=6.355 ===
+  mode 1: eig=7.651 (ABOVE thr)  PR=466.5/1998  H=6.63 (norm=0.87, eff_genes=757.1)  top: ygcJ, fimD, rplO, ihfA, yqjC, hipB, ydeT, rplL, tetR, ybeQ, yeeL, ybdM
         GO: cytoplasmic translation
-  mode 2: eig=6.564 (ABOVE thr)  PR=67.1/1998  top: fimD, yaiL, tbpA, yidA, citC, ycgN, hipB, yjeF, ompG, dgoD, yagL, fpr
+  mode 2: eig=6.564 (ABOVE thr)  PR=67.1/1998  H=5.50 (norm=0.72, eff_genes=243.9)  top: fimD, yaiL, tbpA, yidA, citC, ycgN, hipB, yjeF, ompG, dgoD, yagL, fpr
         GO: (no significant terms)
-  mode 3: eig=6.387 (below thr)  PR=394.6/1998  top: intR, fes, hycB, yahC, cobS, norV, emtA, yccS, intD, yfcJ, puuC, ygaW
+  mode 3: eig=6.387 (ABOVE thr)  PR=394.6/1998  H=6.59 (norm=0.87, eff_genes=728.6)  top: intR, fes, hycB, yahC, cobS, norV, emtA, yccS, intD, yfcJ, puuC, ygaW
         GO: (no significant terms)
-  mode 4: eig=6.231 (below thr)  PR=211.2/1998  top: mdoH, yjhW, yidA, hokC, uspF, ytfE, yobF, aroH, yfjX, potD, ygcU, yddK
+  mode 4: eig=6.231 (below thr)  PR=211.2/1998  H=6.34 (norm=0.83, eff_genes=564.1)  top: mdoH, yjhW, yidA, hokC, uspF, ytfE, yobF, aroH, yfjX, potD, ygcU, yddK
         GO: (no significant terms)
-  mode 5: eig=6.196 (below thr)  PR=276.3/1998  top: alsB, intR, evgS, ydiO, dcrB, eutG, murD, cobS, aroD, intG, rstA, rlmB
+  mode 5: eig=6.196 (below thr)  PR=276.3/1998  H=6.37 (norm=0.84, eff_genes=583.0)  top: alsB, intR, evgS, ydiO, dcrB, eutG, murD, cobS, aroD, intG, rstA, rlmB
         GO: (no significant terms)
 
-=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00  lambda_max^scr=5.921 ===
-  mode 1: eig=8.332 (ABOVE thr)  PR=315.8/1997  top: rpoA, ycgZ, rplL, rpsA, rplO, fusA, gapA, clpX, rplW, yqjC, tetR, rpsK
+=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00  lambda_max^scr=5.870 ===
+  mode 1: eig=8.332 (ABOVE thr)  PR=315.8/1997  H=6.49 (norm=0.85, eff_genes=661.5)  top: rpoA, ycgZ, rplL, rpsA, rplO, fusA, gapA, clpX, rplW, yqjC, tetR, rpsK
         GO: cytoplasmic translation; translation; regulation of translation
-  mode 2: eig=6.654 (ABOVE thr)  PR=235.3/1997  top: ygcJ, yphG, maeB, ppdB, ygbT, yfcO, ygcW, yfjK, tap, ygcI, thyA, oxc
+  mode 2: eig=6.654 (ABOVE thr)  PR=235.3/1997  H=6.29 (norm=0.83, eff_genes=539.2)  top: ygcJ, yphG, maeB, ppdB, ygbT, yfcO, ygcW, yfjK, tap, ygcI, thyA, oxc
         GO: (no significant terms)
-  mode 3: eig=5.954 (ABOVE thr)  PR=313.8/1997  top: pqqL, rspB, yeaE, ydfW, ddpA, yeaZ, ydhU, gadC, ssuE, ompN, ydjL, yncA
+  mode 3: eig=5.954 (ABOVE thr)  PR=313.8/1997  H=6.49 (norm=0.85, eff_genes=660.9)  top: pqqL, rspB, yeaE, ydfW, ddpA, yeaZ, ydhU, gadC, ssuE, ompN, ydjL, yncA
         GO: (no significant terms)
-  mode 4: eig=5.835 (below thr)  PR=328.0/1997  top: rpmB, mrdA, pgaC, malX, yceI, kefG, ydcE, nfrB, mdtC, ybiW, uhpT, yaeI
+  mode 4: eig=5.835 (below thr)  PR=328.0/1997  H=6.53 (norm=0.86, eff_genes=684.9)  top: rpmB, mrdA, pgaC, malX, yceI, kefG, ydcE, nfrB, mdtC, ybiW, uhpT, yaeI
         GO: (no significant terms)
-  mode 5: eig=5.806 (below thr)  PR=613.4/1997  top: ytfA, ydeU, fhlA, rutF, rem, yhaM, uxaC, yccT, hyaF, yiaD, ycbC, yobD
-        GO: (no significant terms)
-
-=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09  lambda_max^scr=5.844 ===
-  mode 1: eig=9.055 (ABOVE thr)  PR=352.1/1998  top: rplQ, rpoA, rplO, rplA, rpsD, YFP, rpsE, fusA, rplD, rpsQ, rpoD, rpoH
-        GO: cytoplasmic translation; translation; ribosomal large subunit assembly
-  mode 2: eig=6.499 (ABOVE thr)  PR=195.3/1998  top: nrdA, yadS, xerC, ybhT, hisG, artJ, yfaX, ldcC, hisQ, cheZ, yebC, narP
-        GO: (no significant terms)
-  mode 3: eig=6.460 (ABOVE thr)  PR=94.9/1998  top: intE, yjhE, appB, eutB, gcvP, ygaY, hyaF, tap, yegZ, yohC, htrG, yraP
-        GO: (no significant terms)
-  mode 4: eig=6.276 (ABOVE thr)  PR=413.5/1998  top: yffI, yjhE, ydcH, tatC, ygfB, appB, yehU, gcvP, intE, ygaY, fliA, spoT
-        GO: (no significant terms)
-  mode 5: eig=6.250 (ABOVE thr)  PR=374.2/1998  top: folX, metI, gyrB, rplK, tktB, sgrT, dsbC, sufA, ytfE, ldcC, yniB, yiaT
+  mode 5: eig=5.806 (below thr)  PR=613.4/1997  H=6.82 (norm=0.90, eff_genes=916.5)  top: ytfA, ydeU, fhlA, rutF, rem, yhaM, uxaC, yccT, hyaF, yiaD, ycbC, yobD
         GO: (no significant terms)
 
-=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52  lambda_max^scr=6.066 ===
-  mode 1: eig=14.628 (ABOVE thr)  PR=252.3/1797  top: thrU---thrToperon, tff, csrb, flgG, yphD, pcm, yhhY, ybjH, ydfK, rbn, cbrA, wbbH
-        GO: (no significant terms)
-  mode 2: eig=9.949 (ABOVE thr)  PR=79.3/1797  top: pcm, wcaL, fucI, yfaT, yeeV, cbrA, wbbH, yraH, rhaS, yjiO, yehE, znuA
-        GO: (no significant terms)
-  mode 3: eig=9.552 (ABOVE thr)  PR=139.5/1797  top: pcm, cbrA, wbbH, yraH, wcaL, fucI, yeeV, ybbV, yfaT, rhaS, yjiO, creD
-        GO: (no significant terms)
-  mode 4: eig=8.243 (ABOVE thr)  PR=118.7/1797  top: tyrT, rrfB, alaw, rpsD, rpsK, serV, rpmC, rpoA, rplD, rplW, rplO, rplC
+=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09  lambda_max^scr=5.890 ===
+  mode 1: eig=9.055 (ABOVE thr)  PR=352.1/1998  H=6.59 (norm=0.87, eff_genes=726.9)  top: rplQ, rpoA, rplO, rplA, rpsD, YFP, rpsE, fusA, rplD, rpsQ, rpoD, rpoH
         GO: cytoplasmic translation; translation; ribosomal large subunit assembly
-  mode 5: eig=8.147 (ABOVE thr)  PR=79.5/1797  top: rbn, flgG, ycfK, dinI, ybhB, yjhW, pioO, thrU---thrToperon, ycgX, yiaG, rcsB, ydfO
+  mode 2: eig=6.499 (ABOVE thr)  PR=195.3/1998  H=6.23 (norm=0.82, eff_genes=508.0)  top: nrdA, yadS, xerC, ybhT, hisG, artJ, yfaX, ldcC, hisQ, cheZ, yebC, narP
+        GO: (no significant terms)
+  mode 3: eig=6.460 (ABOVE thr)  PR=94.9/1998  H=5.95 (norm=0.78, eff_genes=384.9)  top: intE, yjhE, appB, eutB, gcvP, ygaY, hyaF, tap, yegZ, yohC, htrG, yraP
+        GO: (no significant terms)
+  mode 4: eig=6.276 (ABOVE thr)  PR=413.5/1998  H=6.60 (norm=0.87, eff_genes=738.0)  top: yffI, yjhE, ydcH, tatC, ygfB, appB, yehU, gcvP, intE, ygaY, fliA, spoT
+        GO: (no significant terms)
+  mode 5: eig=6.250 (ABOVE thr)  PR=374.2/1998  H=6.53 (norm=0.86, eff_genes=685.5)  top: folX, metI, gyrB, rplK, tktB, sgrT, dsbC, sufA, ytfE, ldcC, yniB, yiaT
         GO: (no significant terms)
 
-=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16  lambda_max^scr=5.846 ===
-  mode 1: eig=12.060 (ABOVE thr)  PR=167.4/1797  top: tff, tyrT, aspv, rrfB, ffs, kanR, serV, rpsK, mCherry, alaw, rplO, rpsD
+=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52  lambda_max^scr=6.081 ===
+  mode 1: eig=14.628 (ABOVE thr)  PR=252.3/1797  H=6.15 (norm=0.82, eff_genes=467.2)  top: thrU---thrToperon, tff, csrb, flgG, yphD, pcm, yhhY, ybjH, ydfK, rbn, cbrA, wbbH
+        GO: (no significant terms)
+  mode 2: eig=9.949 (ABOVE thr)  PR=79.3/1797  H=5.10 (norm=0.68, eff_genes=164.7)  top: pcm, wcaL, fucI, yfaT, yeeV, cbrA, wbbH, yraH, rhaS, yjiO, yehE, znuA
+        GO: (no significant terms)
+  mode 3: eig=9.552 (ABOVE thr)  PR=139.5/1797  H=5.84 (norm=0.78, eff_genes=344.3)  top: pcm, cbrA, wbbH, yraH, wcaL, fucI, yeeV, ybbV, yfaT, rhaS, yjiO, creD
+        GO: (no significant terms)
+  mode 4: eig=8.243 (ABOVE thr)  PR=118.7/1797  H=5.97 (norm=0.80, eff_genes=393.3)  top: tyrT, rrfB, alaw, rpsD, rpsK, serV, rpmC, rpoA, rplD, rplW, rplO, rplC
         GO: cytoplasmic translation; translation; ribosomal large subunit assembly
-  mode 2: eig=7.586 (ABOVE thr)  PR=335.4/1797  top: ffs, Unnamed: 1, csrb, tff, vapC, thrU---thrToperon, yeeE, mgtA, purA, trpE, yhjC, atpA
-        GO: (no significant terms)
-  mode 3: eig=6.822 (ABOVE thr)  PR=275.1/1797  top: trpE, usg, yhjC, nadC, fecC, yfdY, dsbA, emtA, yqfE, wzc, rpsK, dinF
-        GO: (no significant terms)
-  mode 4: eig=6.629 (ABOVE thr)  PR=162.3/1797  top: ybhN, acrE, nrdF, cspE, ydgD, purF, gatZ, caiT, ycjY, ydjK, dicC, arsC
-        GO: (no significant terms)
-  mode 5: eig=6.562 (ABOVE thr)  PR=237.0/1797  top: fecC, trpE, cobB, ynjD, usg, yhhS, yhjC, bioH, cbrA, nrdF, yfdY, ybhN
+  mode 5: eig=8.147 (ABOVE thr)  PR=79.5/1797  H=5.65 (norm=0.75, eff_genes=283.3)  top: rbn, flgG, ycfK, dinI, ybhB, yjhW, pioO, thrU---thrToperon, ycgX, yiaG, rcsB, ydfO
         GO: (no significant terms)
 
-=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70  lambda_max^scr=5.838 ===
-  mode 1: eig=30.002 (ABOVE thr)  PR=234.7/1798  top: tyrT, rpsK, alaw, rpsD, rplO, rpoA, rpmC, aspv, rplC, tff, rplL, rrfB
+=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16  lambda_max^scr=5.813 ===
+  mode 1: eig=12.060 (ABOVE thr)  PR=167.4/1797  H=6.21 (norm=0.83, eff_genes=500.0)  top: tff, tyrT, aspv, rrfB, ffs, kanR, serV, rpsK, mCherry, alaw, rplO, rpsD
         GO: cytoplasmic translation; translation; ribosomal large subunit assembly
-  mode 2: eig=7.706 (ABOVE thr)  PR=183.2/1798  top: rrfB, rpmC, aspv, rpsD, serV, rplC, rplW, rplF, rpsN, rpoA, rplL, alaw
+  mode 2: eig=7.586 (ABOVE thr)  PR=335.4/1797  H=6.55 (norm=0.87, eff_genes=696.0)  top: ffs, Unnamed: 1, csrb, tff, vapC, thrU---thrToperon, yeeE, mgtA, purA, trpE, yhjC, atpA
+        GO: (no significant terms)
+  mode 3: eig=6.822 (ABOVE thr)  PR=275.1/1797  H=6.45 (norm=0.86, eff_genes=631.5)  top: trpE, usg, yhjC, nadC, fecC, yfdY, dsbA, emtA, yqfE, wzc, rpsK, dinF
+        GO: (no significant terms)
+  mode 4: eig=6.629 (ABOVE thr)  PR=162.3/1797  H=6.07 (norm=0.81, eff_genes=432.4)  top: ybhN, acrE, nrdF, cspE, ydgD, purF, gatZ, caiT, ycjY, ydjK, dicC, arsC
+        GO: (no significant terms)
+  mode 5: eig=6.562 (ABOVE thr)  PR=237.0/1797  H=6.34 (norm=0.85, eff_genes=565.4)  top: fecC, trpE, cobB, ynjD, usg, yhhS, yhjC, bioH, cbrA, nrdF, yfdY, ybhN
+        GO: (no significant terms)
+
+=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70  lambda_max^scr=5.833 ===
+  mode 1: eig=30.002 (ABOVE thr)  PR=234.7/1798  H=6.47 (norm=0.86, eff_genes=643.5)  top: tyrT, rpsK, alaw, rpsD, rplO, rpoA, rpmC, aspv, rplC, tff, rplL, rrfB
+        GO: cytoplasmic translation; translation; ribosomal large subunit assembly
+  mode 2: eig=7.706 (ABOVE thr)  PR=183.2/1798  H=6.20 (norm=0.83, eff_genes=492.6)  top: rrfB, rpmC, aspv, rpsD, serV, rplC, rplW, rplF, rpsN, rpoA, rplL, alaw
         GO: cytoplasmic translation; translation; ribosomal small subunit assembly
-  mode 3: eig=6.425 (ABOVE thr)  PR=595.7/1798  top: phnC, tsgA, yfaS, npr, yjeE, bssS, treR, parE, rpoH, ydcQ, kch, yddM
+  mode 3: eig=6.425 (ABOVE thr)  PR=595.7/1798  H=6.76 (norm=0.90, eff_genes=859.2)  top: phnC, tsgA, yfaS, npr, yjeE, bssS, treR, parE, rpoH, ydcQ, kch, yddM
         GO: (no significant terms)
-  mode 4: eig=6.338 (ABOVE thr)  PR=557.2/1798  top: dgoK, mokB, appY, ydiM, thiM, ybhB, yfeO, yddM, folP, insE-4, fbp, yrhA
+  mode 4: eig=6.338 (ABOVE thr)  PR=557.2/1798  H=6.72 (norm=0.90, eff_genes=829.7)  top: dgoK, mokB, appY, ydiM, thiM, ybhB, yfeO, yddM, folP, insE-4, fbp, yrhA
         GO: (no significant terms)
-  mode 5: eig=6.242 (ABOVE thr)  PR=581.9/1798  top: ycdZ, phnC, yeeW, yoeF, fabR, visC, yehY, yihM, yjhD, wcaE, srlE, mhpC
-        GO: (no significant terms)
-
-=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89  lambda_max^scr=5.805 ===
-  mode 1: eig=10.246 (ABOVE thr)  PR=37.1/1797  top: tyrT, aspv, alaw, serV, tff, csrb, rrfB, kanR, thrU---thrToperon, mCherry, tetR, alaXW
-        GO: (no significant terms)
-  mode 2: eig=5.976 (ABOVE thr)  PR=555.8/1797  top: hscA, truB, can, yiaD, ulaE, yeaW, ygiH, xylR, lamB, astC, mdlA, yhjX
-        GO: (no significant terms)
-  mode 3: eig=5.925 (ABOVE thr)  PR=580.4/1797  top: narI, yciC, rfaC, flgM, ygfM, gapC, cstA, efp, dacD, yigL, obgE, ydhY
-        GO: (no significant terms)
-  mode 4: eig=5.857 (ABOVE thr)  PR=651.8/1797  top: hisI, msrB, ydfC, sucC, lpxD, ybjP, ynfL, araB, yddM, yegQ, fadE, cysJ
-        GO: (no significant terms)
-  mode 5: eig=5.815 (ABOVE thr)  PR=614.8/1797  top: yhbU, dgoT, yieF, nanR, ynbB, rem, entB, yagY, yihS, yafP, yliK, viaA
+  mode 5: eig=6.242 (ABOVE thr)  PR=581.9/1798  H=6.75 (norm=0.90, eff_genes=852.0)  top: ycdZ, phnC, yeeW, yoeF, fabR, visC, yehY, yihM, yjhD, wcaE, srlE, mhpC
         GO: (no significant terms)
 
-=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03  lambda_max^scr=5.988 ===
-  mode 1: eig=11.250 (ABOVE thr)  PR=347.2/3973  top: rplF, rplC, rplL, rplA, rpsD, rplD, phnB, rplP, rplW, rplJ, dps, rplI
+=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89  lambda_max^scr=5.800 ===
+  mode 1: eig=10.246 (ABOVE thr)  PR=37.1/1797  H=5.45 (norm=0.73, eff_genes=232.6)  top: tyrT, aspv, alaw, serV, tff, csrb, rrfB, kanR, thrU---thrToperon, mCherry, tetR, alaXW
+        GO: (no significant terms)
+  mode 2: eig=5.976 (ABOVE thr)  PR=555.8/1797  H=6.74 (norm=0.90, eff_genes=842.6)  top: hscA, truB, can, yiaD, ulaE, yeaW, ygiH, xylR, lamB, astC, mdlA, yhjX
+        GO: (no significant terms)
+  mode 3: eig=5.925 (ABOVE thr)  PR=580.4/1797  H=6.75 (norm=0.90, eff_genes=856.0)  top: narI, yciC, rfaC, flgM, ygfM, gapC, cstA, efp, dacD, yigL, obgE, ydhY
+        GO: (no significant terms)
+  mode 4: eig=5.857 (ABOVE thr)  PR=651.8/1797  H=6.80 (norm=0.91, eff_genes=896.3)  top: hisI, msrB, ydfC, sucC, lpxD, ybjP, ynfL, araB, yddM, yegQ, fadE, cysJ
+        GO: (no significant terms)
+  mode 5: eig=5.815 (ABOVE thr)  PR=614.8/1797  H=6.77 (norm=0.90, eff_genes=868.8)  top: yhbU, dgoT, yieF, nanR, ynbB, rem, entB, yagY, yihS, yafP, yliK, viaA
+        GO: (no significant terms)
+
+=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03  lambda_max^scr=5.922 ===
+  mode 1: eig=11.250 (ABOVE thr)  PR=347.2/3973  H=6.72 (norm=0.81, eff_genes=828.6)  top: rplF, rplC, rplL, rplA, rpsD, rplD, phnB, rplP, rplW, rplJ, dps, rplI
         GO: cytoplasmic translation; translation; ribosomal large subunit assembly
-  mode 2: eig=9.825 (ABOVE thr)  PR=72.1/3973  top: ybfC, ade, phnB, yeiJ, yjgI, ybhM, ulaF, yadM, yghG, phoE, ynfE, yjhS
+  mode 2: eig=9.825 (ABOVE thr)  PR=72.1/3973  H=5.37 (norm=0.65, eff_genes=214.3)  top: ybfC, ade, phnB, yeiJ, yjgI, ybhM, ulaF, yadM, yghG, phoE, ynfE, yjhS
         GO: (no significant terms)
-  mode 3: eig=7.645 (ABOVE thr)  PR=103.5/3973  top: yjjZ, csgA, yicJ, xdhB, ydfR, yciA, yccZ, gnsB, yihF, norW, appY, yciE
+  mode 3: eig=7.645 (ABOVE thr)  PR=103.5/3973  H=5.86 (norm=0.71, eff_genes=350.7)  top: yjjZ, csgA, yicJ, xdhB, ydfR, yciA, yccZ, gnsB, yihF, norW, appY, yciE
         GO: (no significant terms)
-  mode 4: eig=7.390 (ABOVE thr)  PR=112.8/3973  top: ydfR, yccZ, yihF, yrfD, yicJ, xdhB, yagK, ycgG, yciA, norW, gnsB, csgA
+  mode 4: eig=7.390 (ABOVE thr)  PR=112.8/3973  H=5.93 (norm=0.72, eff_genes=377.6)  top: ydfR, yccZ, yihF, yrfD, yicJ, xdhB, yagK, ycgG, yciA, norW, gnsB, csgA
         GO: (no significant terms)
-  mode 5: eig=7.217 (ABOVE thr)  PR=83.0/3973  top: ycaM, glpC, adiA, ydaF, paaH, yiaL, ytfF, yniB, yhjJ, argK, thiL, ydcK
-        GO: (no significant terms)
-
-=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08  lambda_max^scr=6.505 ===
-  mode 1: eig=8.242 (ABOVE thr)  PR=188.4/2037  top: ybgO, cysG, yafM, lpxB, rluF, yagX, yedL, mfd, ilvI, ydhY, insF-4, yjcS
-        GO: (no significant terms)
-  mode 2: eig=7.092 (ABOVE thr)  PR=115.8/2037  top: ilvI, ybgO, racC, ydhY, insF-4, torY, yojI, feaR, tmRNA, recB, cysG, ykgN
-        GO: (no significant terms)
-  mode 3: eig=6.923 (ABOVE thr)  PR=198.3/2037  top: tmRNA, ybgO, ilvI, racC, ydhY, yajR, insF-4, ybjI, phnJ, truC, recB, poxB
-        GO: (no significant terms)
-  mode 4: eig=6.682 (ABOVE thr)  PR=123.8/2037  top: yagX, eutA, pphB, ycjW, metF, yqgD, yjcS, phoU, phnJ, ompN, yfiF, htrG
-        GO: (no significant terms)
-  mode 5: eig=6.567 (ABOVE thr)  PR=74.2/2037  top: phnJ, truC, maa, glnP, ybjI, yfeT, gltI, pinQ, yfdV, spy, cobU, hlyE
+  mode 5: eig=7.217 (ABOVE thr)  PR=83.0/3973  H=5.94 (norm=0.72, eff_genes=378.1)  top: ycaM, glpC, adiA, ydaF, paaH, yiaL, ytfF, yniB, yhjJ, argK, thiL, ydcK
         GO: (no significant terms)
 
-=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28  lambda_max^scr=6.478 ===
-  mode 1: eig=14.259 (ABOVE thr)  PR=687.0/2023  top: pspA, yjjM, yjhS, ytfL, caiC, hscC, tetR, intF, ftsH, yajR, ycfT, treB
+=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08  lambda_max^scr=6.765 ===
+  mode 1: eig=8.242 (ABOVE thr)  PR=188.4/2037  H=5.97 (norm=0.78, eff_genes=391.6)  top: ybgO, cysG, yafM, lpxB, rluF, yagX, yedL, mfd, ilvI, ydhY, insF-4, yjcS
+        GO: (no significant terms)
+  mode 2: eig=7.092 (ABOVE thr)  PR=115.8/2037  H=5.87 (norm=0.77, eff_genes=352.8)  top: ilvI, ybgO, racC, ydhY, insF-4, torY, yojI, feaR, tmRNA, recB, cysG, ykgN
+        GO: (no significant terms)
+  mode 3: eig=6.923 (ABOVE thr)  PR=198.3/2037  H=6.20 (norm=0.81, eff_genes=490.6)  top: tmRNA, ybgO, ilvI, racC, ydhY, yajR, insF-4, ybjI, phnJ, truC, recB, poxB
+        GO: (no significant terms)
+  mode 4: eig=6.682 (below thr)  PR=123.8/2037  H=5.92 (norm=0.78, eff_genes=370.9)  top: yagX, eutA, pphB, ycjW, metF, yqgD, yjcS, phoU, phnJ, ompN, yfiF, htrG
+        GO: (no significant terms)
+  mode 5: eig=6.567 (below thr)  PR=74.2/2037  H=5.47 (norm=0.72, eff_genes=237.5)  top: phnJ, truC, maa, glnP, ybjI, yfeT, gltI, pinQ, yfdV, spy, cobU, hlyE
+        GO: (no significant terms)
+
+=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28  lambda_max^scr=6.503 ===
+  mode 1: eig=14.259 (ABOVE thr)  PR=687.0/2023  H=6.88 (norm=0.90, eff_genes=968.0)  top: pspA, yjjM, yjhS, ytfL, caiC, hscC, tetR, intF, ftsH, yajR, ycfT, treB
         GO: L-idonate catabolic process
-  mode 2: eig=12.093 (ABOVE thr)  PR=581.0/2023  top: argE, coaA, yiaY, yjjM, treB, yidJ, frvR, arpA, yhjJ, cadC, yehC, mdoB
+  mode 2: eig=12.093 (ABOVE thr)  PR=581.0/2023  H=6.75 (norm=0.89, eff_genes=851.0)  top: argE, coaA, yiaY, yjjM, treB, yidJ, frvR, arpA, yhjJ, cadC, yehC, mdoB
         GO: (no significant terms)
-  mode 3: eig=8.859 (ABOVE thr)  PR=26.2/2023  top: yidP, ygbK, queF, ppx, ycbW, yfdR, insK, gspO, nupG, tktA, rhsB, speC
+  mode 3: eig=8.859 (ABOVE thr)  PR=26.2/2023  H=4.25 (norm=0.56, eff_genes=70.0)  top: yidP, ygbK, queF, ppx, ycbW, yfdR, insK, gspO, nupG, tktA, rhsB, speC
         GO: (no significant terms)
-  mode 4: eig=8.260 (ABOVE thr)  PR=127.3/2023  top: hha, yadD, ycaJ, ycfQ, ydfI, ybiX, abrB, dcuC, yjtD, ydfR, ybiW, potE
+  mode 4: eig=8.260 (ABOVE thr)  PR=127.3/2023  H=6.07 (norm=0.80, eff_genes=432.6)  top: hha, yadD, ycaJ, ycfQ, ydfI, ybiX, abrB, dcuC, yjtD, ydfR, ybiW, potE
         GO: (no significant terms)
-  mode 5: eig=7.889 (ABOVE thr)  PR=136.2/2023  top: yjcH, yagY, treB, yagR, yjeS, araJ, yjjM, frmB, yjcO, acrA, idnT, yafK
-        GO: (no significant terms)
-
-=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00  lambda_max^scr=6.474 ===
-  mode 1: eig=6.095 (below thr)  PR=18.8/2004  top: ydaQ, yneJ, yjhI, idi, yfgD, eamA, diaA, mutS, cpxP, rfaE, yojI, suhB
-        GO: (no significant terms)
-  mode 2: eig=5.957 (below thr)  PR=25.9/2004  top: ybaQ, ybfP, pta, xylE, yedV, rffM, bssS, yeeA, rhsC, ygcP, secY, yihG
-        GO: (no significant terms)
-  mode 3: eig=5.842 (below thr)  PR=53.4/2004  top: rhsC, ygcP, yihG, gatC, metF, gidB, xylE, ybaQ, ybfP, nagC, pta, yfiL
-        GO: (no significant terms)
-  mode 4: eig=5.681 (below thr)  PR=113.4/2004  top: seqA, proX, thiL, cof, dedD, tmRNA, yehQ, maeB, yjeP, metC, ybaQ, pta
-        GO: (no significant terms)
-  mode 5: eig=5.645 (below thr)  PR=104.5/2004  top: ilvC, frlB, aegA, ygeQ, ycjZ, yajQ, yejH, cobU, tag, yfiL, metE, ygbM
+  mode 5: eig=7.889 (ABOVE thr)  PR=136.2/2023  H=5.90 (norm=0.78, eff_genes=365.5)  top: yjcH, yagY, treB, yagR, yjeS, araJ, yjjM, frmB, yjcO, acrA, idnT, yafK
         GO: (no significant terms)
 
-=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37  lambda_max^scr=6.284 ===
-  mode 1: eig=17.282 (ABOVE thr)  PR=662.1/2023  top: tmRNA, frc, yfaL, yedV, tetR, ydjE, gntP, wcaD, gatD, yeiC, LELOBEKK, ycjW
+=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00  lambda_max^scr=6.501 ===
+  mode 1: eig=6.095 (below thr)  PR=18.8/2004  H=3.92 (norm=0.52, eff_genes=50.6)  top: ydaQ, yneJ, yjhI, idi, yfgD, eamA, diaA, mutS, cpxP, rfaE, yojI, suhB
         GO: (no significant terms)
-  mode 2: eig=11.146 (ABOVE thr)  PR=380.2/2023  top: caiA, rplM, alsB, yihT, yzgL, yagQ, ybbC, yhdP, yadK, yifB, tdcB, cadC
+  mode 2: eig=5.957 (below thr)  PR=25.9/2004  H=4.51 (norm=0.59, eff_genes=90.7)  top: ybaQ, ybfP, pta, xylE, yedV, rffM, bssS, yeeA, rhsC, ygcP, secY, yihG
         GO: (no significant terms)
-  mode 3: eig=8.880 (ABOVE thr)  PR=98.9/2023  top: ydaG, stfR, ydaT, recE, pinR, ydaQ, recT, sieB, racR, pinQ, LELOBEKKtfaE, macA
+  mode 3: eig=5.842 (below thr)  PR=53.4/2004  H=5.08 (norm=0.67, eff_genes=161.2)  top: rhsC, ygcP, yihG, gatC, metF, gidB, xylE, ybaQ, ybfP, nagC, pta, yfiL
         GO: (no significant terms)
-  mode 4: eig=8.211 (ABOVE thr)  PR=15.0/2023  top: yagU, yncA, dhaR, hspQ, ftsX, mrdB, uvrC, yiaT, galT, hslV, fadD, arcA
+  mode 4: eig=5.681 (below thr)  PR=113.4/2004  H=6.08 (norm=0.80, eff_genes=436.2)  top: seqA, proX, thiL, cof, dedD, tmRNA, yehQ, maeB, yjeP, metC, ybaQ, pta
         GO: (no significant terms)
-  mode 5: eig=7.937 (ABOVE thr)  PR=201.1/2023  top: ydaG, stfR, ydaT, pinR, ydaQ, recE, racR, macA, nrfB, ybjC, sieB, pinQ
+  mode 5: eig=5.645 (below thr)  PR=104.5/2004  H=5.66 (norm=0.74, eff_genes=287.3)  top: ilvC, frlB, aegA, ygeQ, ycjZ, yajQ, yejH, cobU, tag, yfiL, metE, ygbM
         GO: (no significant terms)
 
-=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00  lambda_max^scr=6.162 ===
-  mode 1: eig=19.409 (ABOVE thr)  PR=490.3/2071  top: tmRNA, tetR, yeaS, wzc, wzxC, ydjI, LELOBEKK, uidC, ugd, dhaM, ygjG, gapA
+=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37  lambda_max^scr=6.517 ===
+  mode 1: eig=17.282 (ABOVE thr)  PR=662.1/2023  H=6.89 (norm=0.90, eff_genes=977.8)  top: tmRNA, frc, yfaL, yedV, tetR, ydjE, gntP, wcaD, gatD, yeiC, LELOBEKK, ycjW
         GO: (no significant terms)
-  mode 2: eig=9.524 (ABOVE thr)  PR=80.2/2071  top: rpsR, yhfY, hemB, betA, yahC, yjhU, nadD, yjhI, murB, idnR, fabZ, ytfL
+  mode 2: eig=11.146 (ABOVE thr)  PR=380.2/2023  H=6.59 (norm=0.87, eff_genes=725.3)  top: caiA, rplM, alsB, yihT, yzgL, yagQ, ybbC, yhdP, yadK, yifB, tdcB, cadC
         GO: (no significant terms)
-  mode 3: eig=8.417 (ABOVE thr)  PR=20.5/2071  top: hcaE, ynbB, mokC, srmB, mutT, caiF, pgm, mfd, yfjS, paaX, yjbM, yidL
+  mode 3: eig=8.880 (ABOVE thr)  PR=98.9/2023  H=5.77 (norm=0.76, eff_genes=321.4)  top: ydaG, stfR, ydaT, recE, pinR, ydaQ, recT, sieB, racR, pinQ, LELOBEKKtfaE, macA
         GO: (no significant terms)
-  mode 4: eig=8.285 (ABOVE thr)  PR=136.0/2071  top: rpsR, yhfY, hemB, nadD, fabZ, yahC, murB, yjhU, yhfZ, idnR, insF-4, allD
+  mode 4: eig=8.211 (ABOVE thr)  PR=15.0/2023  H=3.29 (norm=0.43, eff_genes=26.8)  top: yagU, yncA, dhaR, hspQ, ftsX, mrdB, uvrC, yiaT, galT, hslV, fadD, arcA
         GO: (no significant terms)
-  mode 5: eig=7.624 (ABOVE thr)  PR=146.3/2071  top: yhgF, ybhC, yafT, hemL, ykgH, yafD, ykfA, yidR, yafU, ykgK, dusA, aaeA
+  mode 5: eig=7.937 (ABOVE thr)  PR=201.1/2023  H=6.19 (norm=0.81, eff_genes=486.9)  top: ydaG, stfR, ydaT, pinR, ydaQ, recE, racR, macA, nrfB, ybjC, sieB, pinQ
+        GO: (no significant terms)
+
+=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00  lambda_max^scr=6.199 ===
+  mode 1: eig=19.409 (ABOVE thr)  PR=490.3/2071  H=6.81 (norm=0.89, eff_genes=905.8)  top: tmRNA, tetR, yeaS, wzc, wzxC, ydjI, LELOBEKK, uidC, ugd, dhaM, ygjG, gapA
+        GO: (no significant terms)
+  mode 2: eig=9.524 (ABOVE thr)  PR=80.2/2071  H=5.60 (norm=0.73, eff_genes=271.5)  top: rpsR, yhfY, hemB, betA, yahC, yjhU, nadD, yjhI, murB, idnR, fabZ, ytfL
+        GO: (no significant terms)
+  mode 3: eig=8.417 (ABOVE thr)  PR=20.5/2071  H=3.71 (norm=0.49, eff_genes=40.9)  top: hcaE, ynbB, mokC, srmB, mutT, caiF, pgm, mfd, yfjS, paaX, yjbM, yidL
+        GO: (no significant terms)
+  mode 4: eig=8.285 (ABOVE thr)  PR=136.0/2071  H=6.09 (norm=0.80, eff_genes=441.0)  top: rpsR, yhfY, hemB, nadD, fabZ, yahC, murB, yjhU, yhfZ, idnR, insF-4, allD
+        GO: (no significant terms)
+  mode 5: eig=7.624 (ABOVE thr)  PR=146.3/2071  H=6.08 (norm=0.80, eff_genes=435.3)  top: yhgF, ybhC, yafT, hemL, ykgH, yafD, ykfA, yidR, yafU, ykgK, dusA, aaeA
         GO: (no significant terms)

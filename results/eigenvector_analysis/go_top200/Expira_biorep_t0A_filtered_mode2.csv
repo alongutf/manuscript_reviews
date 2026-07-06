@@ -1,0 +1,4 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,8.430078296854627e-11,1.0756779906786503e-07,"(22, 172)","(47, 1667)"
+GO:0006412,translation,BP,8.565200745653812e-09,5.464598075727132e-06,"(26, 172)","(77, 1667)"
+GO:0019402,galactitol metabolic process,BP,0.00010982014849098573,0.046710169824832594,"(4, 172)","(4, 1667)"

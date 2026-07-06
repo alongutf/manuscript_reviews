@@ -1,0 +1,259 @@
+GO enrichment of leading eigenvectors at larger gene cutoffs (Reviewer #4, comment 1)
+N_TOP=5  GO_CUTOFFS=[100, 200]
+GO is run on the top-N loading genes (by |loading|) of each mode, vs the gene-panel
+background. Compare with the top-50 results in results/eigenvector_analysis/go/.
+
+=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85  lambda_max^scr=7.054  (n_genes=1997) ===
+  mode 1: eig=17.159 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=15.484 (ABOVE thr)
+      top100: 2 terms -> cytoplasmic translation; translation
+      top200: 3 terms -> cytoplasmic translation; translation; galactitol metabolic process
+  mode 3: eig=11.740 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=11.130 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.986 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36  lambda_max^scr=6.340  (n_genes=1997) ===
+  mode 1: eig=9.503 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=7.944 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=7.776 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=7.535 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.112 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31  lambda_max^scr=6.272  (n_genes=1998) ===
+  mode 1: eig=7.651 (ABOVE thr)
+      top100: 2 terms -> cytoplasmic translation; translation
+      top200: 2 terms -> cytoplasmic translation; translation
+  mode 2: eig=6.564 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=6.387 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=6.231 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=6.196 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00  lambda_max^scr=5.890  (n_genes=1997) ===
+  mode 1: eig=8.332 (ABOVE thr)
+      top100: 7 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      top200: 5 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 2: eig=6.654 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=5.954 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=5.835 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=5.806 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09  lambda_max^scr=5.919  (n_genes=1998) ===
+  mode 1: eig=9.055 (ABOVE thr)
+      top100: 10 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation
+      top200: 9 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 2: eig=6.499 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=6.460 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=6.276 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=6.250 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52  lambda_max^scr=6.043  (n_genes=1797) ===
+  mode 1: eig=14.628 (ABOVE thr)
+      top100: 2 terms -> cytoplasmic translation; translation
+      top200: 2 terms -> cytoplasmic translation; translation
+  mode 2: eig=9.949 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=9.552 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=8.243 (ABOVE thr)
+      top100: 5 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      top200: 4 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 5: eig=8.147 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16  lambda_max^scr=5.866  (n_genes=1797) ===
+  mode 1: eig=12.060 (ABOVE thr)
+      top100: 4 terms -> cytoplasmic translation; translation; negative regulation of translation; ribosomal large subunit assembly
+      top200: 3 terms -> cytoplasmic translation; translation; ribosomal small subunit assembly
+  mode 2: eig=7.586 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=6.822 (ABOVE thr)
+      top100: 2 terms -> cytoplasmic translation; translation
+      top200: 2 terms -> cytoplasmic translation; translation
+  mode 4: eig=6.629 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=6.562 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70  lambda_max^scr=5.795  (n_genes=1798) ===
+  mode 1: eig=30.002 (ABOVE thr)
+      top100: 10 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      top200: 5 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 2: eig=7.706 (ABOVE thr)
+      top100: 10 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      top200: 4 terms -> cytoplasmic translation; translation; ribosomal small subunit assembly; ribosomal large subunit assembly
+  mode 3: eig=6.425 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=6.338 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=6.242 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89  lambda_max^scr=5.808  (n_genes=1797) ===
+  mode 1: eig=10.246 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=5.976 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=5.925 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=5.857 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=5.815 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03  lambda_max^scr=5.999  (n_genes=3973) ===
+  mode 1: eig=11.250 (ABOVE thr)
+      top100: 7 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      top200: 10 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 2: eig=9.825 (ABOVE thr)
+      top100: (no significant terms)
+      top200: 3 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly
+  mode 3: eig=7.645 (ABOVE thr)
+      top100: (no significant terms)
+      top200: 3 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly
+  mode 4: eig=7.390 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.217 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08  lambda_max^scr=6.565  (n_genes=2037) ===
+  mode 1: eig=8.242 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=7.092 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=6.923 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=6.682 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=6.567 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28  lambda_max^scr=6.449  (n_genes=2023) ===
+  mode 1: eig=14.259 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=12.093 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=8.859 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=8.260 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.889 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00  lambda_max^scr=6.431  (n_genes=2004) ===
+  mode 1: eig=6.095 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=5.957 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=5.842 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=5.681 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=5.645 (below thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37  lambda_max^scr=6.412  (n_genes=2023) ===
+  mode 1: eig=17.282 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 2: eig=11.146 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=8.880 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=8.211 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.937 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+
+=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00  lambda_max^scr=5.923  (n_genes=2071) ===
+  mode 1: eig=19.409 (ABOVE thr)
+      top100: (no significant terms)
+      top200: 3 terms -> cell adhesion involved in single-species biofilm formation; cell adhesion; lipopolysaccharide biosynthetic process
+  mode 2: eig=9.524 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 3: eig=8.417 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 4: eig=8.285 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)
+  mode 5: eig=7.624 (ABOVE thr)
+      top100: (no significant terms)
+      top200: (no significant terms)

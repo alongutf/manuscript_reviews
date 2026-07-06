@@ -36,11 +36,37 @@ subunit assembly), which is driven by the highly expressed, tightly co-varying
 ribosomal-protein and tRNA/rRNA probes. Critically, this program appears in **both**
 regulated and dis-arrest samples — including weakly coordinated dis-arrest samples —
 so it reflects the dominance of the ribosomal probes in the leading mode rather than
-the regulatory state. Consistent with this, when we correlated the per-gene
+the regulatory state. This conclusion is robust to the gene cutoff: re-running the
+per-mode enrichment on the top 50, 100, and 200 loading genes recovers the same
+translation / ribosome-biogenesis module and no other consistent program (all other
+GO terms appear as isolated single hits), and several of the highest-GMP-Cor
+regulated samples return no significant terms at any cutoff. Consistent with this, when we correlated the per-gene
 coordination scores across conditions (the "compendium" comparison the reviewer
 suggests), regulated conditions did not share a common coordinated program any more
 than dis-arrest conditions did (mean Spearman ρ between coordination-score vectors:
 regulated–regulated 0.19, dis-arrest–dis-arrest 0.39, regulated–dis-arrest 0.28).
+
+To ask the complementary question — *how many genes are dominant in each mode* — we
+also measured the localization of the individual eigenvectors directly. Treating the
+squared gene loadings of a mode as a probability distribution over genes
+(p_i = v_{k,i}²), we computed its Shannon entropy H = −Σ p_i ln p_i and the
+corresponding **effective number of participating genes**, exp(H), which ranges from
+1 (a single gene carries the entire mode) to *n* (all genes participate equally). The
+result is that the leading modes are strongly *delocalized* essentially everywhere:
+in all but two of the fifteen conditions the top mode spreads its variance over
+hundreds of genes (effective number of dominant genes ≈ 230–980 out of ~1,800–4,000
+panel genes), and this holds for the most strongly coordinated (highest-GMP-Cor)
+regulated samples just as much as for dis-arrest samples (mean effective number of
+genes in the leading mode: regulated ≈ 660, dis-arrest ≈ 500; per-mode entropy is
+included in `results/eigenvector_analysis/summary.csv`). GMP-Cor does not track this
+localization (Spearman ρ between GMP-Cor and the leading-mode effective gene number
+≈ 0.35, not significant). The two exceptions are a single regulated replicate whose
+leading modes are localized on ~12–36 genes — top loadings again dominated by the
+ribosomal probes rather than a condition-specific program — and the one fully
+dysregulated (GMP-Cor ≈ 0) dis-arrest sample, whose leading mode sits at the
+scrambled-noise threshold. In short, the coordinated
+variance that GMP-Cor integrates is not carried by a small set of dominant genes; it
+is distributed across a large fraction of the panel.
 
 **Interpretation.** We read this as a meaningful, and in fact expected, result:
 GMP-Cor captures a *global, distributed* property of the gene-correlation network

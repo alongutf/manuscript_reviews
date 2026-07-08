@@ -1,0 +1,129 @@
+% Supplementary Note — Eigenvector / gene-level interpretation of GMP-Cor
+% Companion source: results/eigenvector_analysis/  (summary.csv, summary.txt)
+% Addresses Reviewer #4, Comment 1.
+
+\section*{Supplementary Note: Gene-Level Interpretation of the Correlation Spectrum}
+
+\subsection*{Motivation}
+
+GMP-Cor is a scalar that summarizes the overall gene--gene correlation strength of a
+sample from the eigenvalue density of its correlation matrix.
+A natural follow-up question (Reviewer~\#4, Comment~1) is whether the \emph{eigenvectors}
+associated with the largest eigenvalues can be used to recover \emph{which} genes drive
+the coordinated structure, and how many genes participate in each coordinated mode.
+Here we analyze the leading eigenvectors of every scRNA-seq sample and show that the
+coordinated signal captured by GMP-Cor is a \emph{global, distributed} property of the
+transcriptome rather than the activity of a small, identifiable set of gene modules.
+All quantities reported below are produced by the pipeline in
+\texttt{results/eigenvector\_analysis/} (per-mode values in \texttt{summary.csv}).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Eigenvector loadings and gene coordination score}
+
+For each sample we diagonalized the gene--gene correlation matrix and retained not only
+the eigenvalues $\lambda_k$ but also the eigenvectors $\mathbf{v}^{(k)}$.
+The loading of gene $i$ in mode $k$ is the absolute amplitude
+$\bigl|v_i^{(k)}\bigr|$.
+
+A caveat is essential here: many of the top modes are nearly degenerate
+($\lambda_k \approx \lambda_{k+1}$), and the eigenvector of a near-degenerate mode is
+\emph{not} individually stable --- it can rotate substantially under small perturbations
+(e.g.\ a change in cell calling).
+Individual genes therefore cannot be uniquely assigned to a single mode, although the
+eigen\emph{basis} spanned by the degenerate block is stable.
+To obtain a mode-independent summary we defined, for each gene $i$, a coordination score
+\begin{equation}
+  s_i \;=\; \sum_{k \,:\, \lambda_k > \lambda_\mathrm{scr}}
+            \bigl(\lambda_k - \lambda_\mathrm{scr}\bigr)\,
+            \bigl(v_i^{(k)}\bigr)^{2},
+\end{equation}
+where $\lambda_\mathrm{scr}$ is the largest eigenvalue of the scrambled (noise) matrix.
+This score sums the squared eigenvector amplitudes over all above-noise modes, weighted
+by each mode's distance from the noise threshold, i.e.\ how much above-noise coordinated
+variance each gene carries.
+Genes were ranked by $s_i$ and by their raw loadings, and GO enrichment
+(the \texttt{goatools} pipeline used for the bulk analysis) was run on the top-ranked
+genes against the full gene-panel background, in every condition.
+
+\paragraph{Result.}
+Ranking genes either by loading or by coordination score is only weakly informative:
+in most conditions the top-coordination genes do not enrich for any GO term, including
+the most strongly coordinated (highest-GMP-Cor) Reg-Arrest samples.
+The only recoverable program is the translation / ribosomal-protein module.
+Critically, this program appears in \emph{both} Reg-Arrest and Dis-Arrest samples,
+including weakly coordinated Dis-Arrest samples, so it reflects the dominance of the
+highly expressed ribosomal genes in the leading mode rather than the regulatory state
+of the cell.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Effective number of participating genes}
+
+To quantify how many genes participate in each coordinated mode we converted every
+eigenvector into a probability distribution over genes.
+Because the eigenvectors are unit-normalized, the participation probability of gene $i$
+in mode $k$ is
+\begin{equation}
+  p_i^{(k)} \;=\; \bigl(v_i^{(k)}\bigr)^{2},
+  \qquad \sum_{i} p_i^{(k)} = 1 .
+\end{equation}
+The Shannon entropy of this distribution,
+\begin{equation}
+  H_k \;=\; -\sum_{i} p_i^{(k)} \, \ln p_i^{(k)},
+\end{equation}
+measures how spread out the mode is across genes, and the effective number of
+participating genes follows as
+\begin{equation}
+  N^{\mathrm{eff}}_k \;=\; \exp\!\bigl(H_k\bigr).
+\end{equation}
+A mode dominated by a handful of genes has $N^{\mathrm{eff}}_k$ of order a few;
+a mode spread evenly over $m$ genes has $N^{\mathrm{eff}}_k \approx m$.
+
+\paragraph{Result.}
+Averaged over the first five modes and all samples, the effective number of
+participating genes is $\approx 470$ --- of the same order as, and often a substantial
+fraction of, the $\sim\!2000$ genes retained per sample (leading-mode average
+$\approx 590$).
+Most samples fall within the same order of magnitude; the lone strong outlier is the
+Reg-Arrest sample \texttt{Expira\_biorep\_t0A}, whose leading modes concentrate on only
+$\sim\!24$ genes.
+Crucially, GMP-Cor does not track this quantity: the Spearman correlation between
+GMP-Cor and the leading-mode effective gene number is only $\rho \approx 0.35$
+(not significant).
+Grouping samples by condition, the mean effective gene number in the first five modes
+is comparable in the two arrest states (Table~\ref{tab:eigvec}), i.e.\ the coordinated
+modes are broadly distributed across the transcriptome in both Reg-Arrest and Dis-Arrest.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection*{Interpretation}
+
+We regard this as a meaningful --- and in fact expected --- result.
+GMP-Cor captures a global, distributed property of the gene-correlation network rather
+than the activity of a small set of specific gene modules.
+The loss of coordination in Dis-Arrest is spread across many weakly defined modes, which
+is precisely why a single scalar that integrates most of the transcriptome, rather than
+a list of regulated/dysregulated genes, is the appropriate readout for our study.
+This is consistent with our broader claim that dysregulation is a network-level property
+and not the behavior of specific nodes.
+We note that bacterial scRNA-seq is prone to dropouts and relatively low coverage, so we
+cannot exclude that deeper data would expose recoverable, condition-specific programs.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{table}[h!]
+\centering
+\caption{Mean effective number of participating genes ($N^{\mathrm{eff}} = e^{H}$) per
+condition, averaged over the first five modes. Values are mean~$\pm$~s.d.\ over all
+sample~$\times$~mode observations in each condition; the leading-mode column averages
+mode~1 only. $n_\mathrm{samples}$ is the number of scRNA-seq samples per condition.
+Computed from \texttt{results/eigenvector\_analysis/summary.csv}.}
+\label{tab:eigvec}
+\begin{tabular}{lccc}
+\hline
+\textbf{Condition} & \textbf{$N^{\mathrm{eff}}$ (modes 1--5)} & \textbf{$N^{\mathrm{eff}}$ (leading mode)} & \textbf{$n_\mathrm{samples}$} \\
+\hline
+Reg-Arrest & $444 \pm 296$ & $664 \pm 329$ & 8 \\
+Dis-Arrest & $499 \pm 257$ & $499 \pm 277$ & 7 \\
+\hline
+All        & $470 \pm 277$ & $587 \pm 306$ & 15 \\
+\hline
+\end{tabular}
+\end{table}

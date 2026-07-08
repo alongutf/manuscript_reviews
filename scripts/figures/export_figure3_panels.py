@@ -1,30 +1,26 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
 import src.analysis_functions as af
 import src.data_functions as df
 import matplotlib.pyplot as plt
-from figure_functions import PanelFigure
 from matplotlib.colors import to_rgba
 import numpy as np
 import pandas as pd
 from scipy import stats
-import os
 import importlib
 
 importlib.reload(af)
 importlib.reload(df)
-# ------------------------------------------------------------------
-# BUILD FIGURE
-# ------------------------------------------------------------------
+
 fsize = 10
-plt.close("all")
-root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ev_data_dir = os.path.join(root_dir, 'ev_data')
 RESULTS_DIR = os.path.join(root_dir, 'results', 'simulation_results')
+OUTPUT_DIR = "/Users/along/Documents/Alon/PhD/documents/IPS 2026"
 
 REG_COLOR = 'steelblue'
 DIS_COLOR = '#E07B54'
-
-# Shared style for the median reference lines in panels E and F
-# (kept identical so the dashed lines have the same width/opacity in both).
 REF_LW = 1
 REF_ALPHA = 0.85
 
@@ -41,10 +37,23 @@ def _load_group_medians():
 med_reg, med_dis = _load_group_medians()
 
 
+def format_p(p):
+    if p < 0.0001:
+        return '****'
+    elif p < 0.001:
+        return '***'
+    elif p < 0.01:
+        return '**'
+    elif p < 0.05:
+        return '*'
+    else:
+        return 'NS'
+
+
 def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     arr = np.load(os.path.join(ev_data_dir, npy_file))
-    data1 = arr[0, :];  data1 = data1[data1 > 0]
-    data2 = arr[1, :];  data2 = data2[data2 > 0]
+    data1 = arr[0, :]; data1 = data1[data1 > 0]
+    data2 = arr[1, :]; data2 = data2[data2 > 0]
     x2 = float(np.max(data2))
     d1s = np.sort(data1)
     d2s = np.sort(data2)
@@ -71,20 +80,6 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ax.tick_params(labelsize=fsize - 2)
 
 
-def format_p(p):
-    if p < 0.0001:
-        return '****'
-    elif p < 0.001:
-        return '***'
-    elif p < 0.01:
-        return '**'
-    elif p < 0.05:
-        return '*'
-    else:
-        return 'NS'
-
-
-# ── Row 1: Experimental data (Reg-Arrest / Dis-Arrest) ─────────────
 def panel_A(ax):
     _plot_ccdf(ax, 'sample_15b_filtered.npy', 'Reg-Arrest', signal_color=REG_COLOR)
 
@@ -93,16 +88,14 @@ def panel_B(ax):
     _plot_ccdf(ax, 'sample_15a_filtered.npy', 'Dis-Arrest', signal_color=DIS_COLOR)
 
 
-# ── Row 2: Simulations (high / low ρ) ──────────────────────────────
 def panel_C(ax):
-    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\rho=0.9$)', signal_color=REG_COLOR)
+    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\chi=0.9$)', signal_color=REG_COLOR)
 
 
 def panel_D(ax):
-    _plot_ccdf(ax, 'simulated_pcs_0.5.npy', r'Simulation ($\rho=0.5$)', signal_color=DIS_COLOR)
+    _plot_ccdf(ax, 'simulated_pcs_0.5.npy', r'Simulation ($\chi=0.5$)', signal_color=DIS_COLOR)
 
 
-# ── Row 3: Analysis (calibration curve + box plot) ─────────────────
 def panel_E(ax):
     summary = pd.read_csv(os.path.join(RESULTS_DIR, 'raw', 'rho_sweep_summary.txt'),
                           sep=r'\s+', comment='#', index_col=0)
@@ -117,7 +110,7 @@ def panel_E(ax):
                label='Reg-Arrest median')
     ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
                label='Dis-Arrest median')
-    ax.set_xlabel(r'Correlation strength ($\rho$)', fontsize=fsize - 2)
+    ax.set_xlabel(r'Correlation strength ($\chi$)', fontsize=fsize - 2)
     ax.set_ylabel('GMP-Cor', fontsize=fsize - 2)
     ax.set_title('GMP-Cor calibration curve', fontsize=fsize)
     ax.set_xticks(np.arange(0, 1.05, 0.2))
@@ -129,11 +122,9 @@ def panel_E(ax):
 
 
 def panel_F(ax):
-    path = os.path.join(root_dir, 'results', 'data_metrics', 'data_metrics.csv')
+    path = os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv')
     data = pd.read_csv(path, index_col=0)
     ranking_param = 'sum_denoised_ev'
-    to_exclude = ['adam_matrix_filtered.csv','deb_Ec_CDS_untreated.csv','deb_KP_CDS_untreated.csv']
-    data = data[~data['file_name'].isin(to_exclude)]
     data['Rank'] = data[ranking_param].rank(method='min').astype(int)
     group1 = data[data['category'] == 'r'][ranking_param]
     group0 = data[data['category'] == 'd'][ranking_param]
@@ -178,30 +169,20 @@ def panel_F(ax):
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
 
 
-# ------------------------------------------------------------------
-# Assemble — 3×2 grid; CCDF rows are short so the figure stays ~square
-# ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 6), label_offset=(-0.04, 0.02))
-panel_pos = [
-    # Row 1 — experimental CCDFs (short)
-    [0.08, 0.75, 0.37, 0.21],  # A — Reg-Arrest CCDF
-    [0.55, 0.75, 0.37, 0.21],  # B — Dis-Arrest CCDF
-    # Row 2 — simulation CCDFs (short)
-    [0.08, 0.44, 0.37, 0.21],  # C — Sim ρ=0.9 CCDF
-    [0.55, 0.44, 0.37, 0.21],  # D — Sim ρ=0.5 CCDF
-    # Row 3 — analysis (taller)
-    [0.15, 0.07, 0.33, 0.26],  # E — Calibration curve
-    [0.55, 0.07, 0.3, 0.26],  # F — Box plot (shared y-axis with E)
+panels = [
+    ('A', panel_A, (3.5, 2.8)),
+    ('B', panel_B, (3.5, 2.8)),
+    ('C', panel_C, (3.5, 2.8)),
+    ('D', panel_D, (3.5, 2.8)),
+    ('E', panel_E, (4.0, 3.0)),
+    ('F', panel_F, (3.0, 3.0)),
 ]
-pf.add_panel(panel_pos[0], draw_func=panel_A)
-pf.add_panel(panel_pos[1], draw_func=panel_B)
-pf.add_panel(panel_pos[2], draw_func=panel_C)
-pf.add_panel(panel_pos[3], draw_func=panel_D)
-ax_E = pf.add_panel(panel_pos[4], draw_func=panel_E)
-ax_F = pf.add_panel(panel_pos[5], draw_func=panel_F)
 
-# Share y-axis between E and F so reference lines align exactly
-ax_F.sharey(ax_E)
-
-pf.save("figure3.pdf", dpi=300, transparent=True)
-plt.show()
+for label, func, figsize in panels:
+    fig, ax = plt.subplots(figsize=figsize)
+    func(ax)
+    fig.tight_layout()
+    out_path = os.path.join(OUTPUT_DIR, f'figure3_panel{label}.png')
+    fig.savefig(out_path, dpi=300, bbox_inches='tight')
+    plt.close(fig)
+    print(f"Saved panel {label} → {out_path}")

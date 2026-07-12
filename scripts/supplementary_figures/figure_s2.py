@@ -182,11 +182,11 @@ def _heatmap(ax, R, title):
 
 
 def panel_C(ax):
-    _heatmap(ax, R_high, 'High correlation\n($\\rho=0.9$)')
+    _heatmap(ax, R_high, 'High correlation\n($\\chi=0.9$)')
 
 
 def panel_D(ax):
-    _heatmap(ax, R_low, 'Low correlation\n($\\rho=0.5$)')
+    _heatmap(ax, R_low, 'Low correlation\n($\\chi=0.5$)')
 
 
 # ==================================================================

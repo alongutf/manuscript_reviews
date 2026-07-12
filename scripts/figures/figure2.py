@@ -35,7 +35,7 @@ def panel_A(ax):
     x = np.linspace(0, 6, 100)
     y = np.array([af.mp_distribution(val, P / N) for val in x])
     ax.plot(x, y, color='r', linewidth=1, linestyle='--', label='MP')
-    ax.set_title('Random matrix (RM)\nMP distribution', fontsize=fsize)
+    ax.set_title('Random matrix\nMP distribution', fontsize=fsize-2, pad=0)
     ax.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize - 2, labelpad=0)
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
@@ -60,7 +60,7 @@ def panel_B(ax):
     ax.set_xticks([0, 2, 4, 6, 8])
     ax.set_yticks([0, 0.1, 0.2, 0.3])
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
-    ax.set_title('RM with correlations\nGeneralized MP', fontsize=fsize)
+    ax.set_title('Random matrix\nwith correlations\nGeneralized MP', fontsize=fsize-2, pad=0)
     ax.legend(fontsize=fsize - 2)
 
 
@@ -88,7 +88,7 @@ def panel_C(axes):
     axes[0, 0].set_yticks([])
     axes[0, 0].set_xlabel('genes', fontsize=fsize - 2, labelpad=2)
     axes[0, 0].set_ylabel('cells', fontsize=fsize - 2, labelpad=2)
-    axes[0, 0].set_title('Synthetic data\nwith correlations', fontsize=fsize)
+    axes[0, 0].set_title('Synthetic data\nwith correlations', fontsize=fsize-2, pad=0)
 
     axes[1, 0].imshow(scrambled, aspect='auto', cmap='Greys', vmin=0, vmax=vmax,
                       interpolation='nearest')
@@ -133,7 +133,7 @@ def panel_D(axes):
     ax_top.axvline(x1, color='k', linestyle='--', alpha=0.6, label=r'$\lambda_{max}^{MP}$')
     ax_top.axvline(x2, color='dimgray', linestyle=':', alpha=0.8, label=r'$\lambda_{max}^{scr}$')
     ax_top.set_ylabel(r'$\rho(\lambda)$', fontsize=fsize - 2)
-    ax_top.set_title('Correlation eigenvalue density', fontsize=fsize)
+    ax_top.set_title('Correlation eigenvalue density', fontsize=fsize-2, pad=0)
     ax_top.set_yticks([0, 0.1, 0.2, 0.3, 0.4])
     ax_top.set_xlim([2, 12])
     ax_top.set_ylim(0, 0.2)
@@ -173,7 +173,7 @@ def panel_D(axes):
     # Shared legend for both subplots
     legend_handles = [
         Patch(facecolor='darkgray', edgecolor='black', label='MP spurious correlations'),
-        Patch(facecolor='salmon', edgecolor='black', label='sparsity-induced spurious correlations'),
+        Patch(facecolor='salmon', edgecolor='black', label='spurious correlations'),
         Patch(facecolor='skyblue', edgecolor='black', label='true correlation signal'),
     ]
     ax_bot.legend(handles=legend_handles, fontsize=fsize - 3,
@@ -222,7 +222,7 @@ def _plot_ccdf(ax, npy_file, title):
     _draw_ccdf(ax, data1, data2)
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
-    ax.set_title(title, fontsize=fsize - 2)
+    ax.set_title(title, fontsize=fsize - 2, pad=0)
     ax.tick_params(labelsize=fsize - 2)
 
 
@@ -231,17 +231,17 @@ def panel_F(ax):
 
 
 def panel_G(ax):
-    _plot_ccdf(ax, 'deb_KP_CDS_untreated.npy', 'Exponential $\it{K. pneumoniae}$, Ma et. al')
+    _plot_ccdf(ax, 'deb_KP_CDS_untreated.npy', 'Exponential $\it{K. pneumoniae}$,\nMa et. al')
 
 
 # ------------------------------------------------------------------
 # ASSEMBLE FIGURE
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.05, 0.04))
+pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.03, 0.04))
 
 panel_pos = [
     [0.08, 0.78, 0.19, 0.16],   # A – MP histogram only (single)
-    [0.08, 0.46, 0.19, 0.21],   # B – GMP curves (single)
+    [0.08, 0.44, 0.19, 0.21],   # B – GMP curves (single)
     [0.33, 0.42, 0.12, 0.52],   # C – sparse simulation (2×1 grid; matches A+B height)
     [0.55, 0.42, 0.44, 0.52],   # D – simulation eigenvalues (2×1 grid; matches A+B height)
     [0.08, 0.08, 0.24, 0.24],   # E – CCDF (our Exponential E. coli)   ← single row

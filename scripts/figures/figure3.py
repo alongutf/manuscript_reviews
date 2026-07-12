@@ -18,7 +18,6 @@ fsize = 10
 plt.close("all")
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 ev_data_dir = os.path.join(root_dir, 'ev_data')
-RESULTS_DIR = os.path.join(root_dir, 'results', 'simulation_results')
 
 REG_COLOR = 'steelblue'
 DIS_COLOR = '#E07B54'
@@ -66,7 +65,7 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
             transform=ax.get_xaxis_transform())
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
-    ax.set_title(title, fontsize=fsize)
+    ax.set_title(title, fontsize=fsize-2, pad=0)
     ax.legend(fontsize=fsize - 2)
     ax.tick_params(labelsize=fsize - 2)
 
@@ -95,40 +94,15 @@ def panel_B(ax):
 
 # ── Row 2: Simulations (high / low ρ) ──────────────────────────────
 def panel_C(ax):
-    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\rho=0.9$)', signal_color=REG_COLOR)
+    _plot_ccdf(ax, 'simulated_pcs_0.9.npy', r'Simulation ($\chi=0.9$)', signal_color=REG_COLOR)
 
 
 def panel_D(ax):
-    _plot_ccdf(ax, 'simulated_pcs_0.5.npy', r'Simulation ($\rho=0.5$)', signal_color=DIS_COLOR)
+    _plot_ccdf(ax, 'simulated_pcs_0.5.npy', r'Simulation ($\chi=0.5$)', signal_color=DIS_COLOR)
 
 
-# ── Row 3: Analysis (calibration curve + box plot) ─────────────────
+# ── Panel E: Box plot (Regulated vs Dis-Arrest GMP-Cor) ────────────
 def panel_E(ax):
-    summary = pd.read_csv(os.path.join(RESULTS_DIR, 'raw', 'rho_sweep_summary.txt'),
-                          sep=r'\s+', comment='#', index_col=0)
-    rho_vals = summary.index.values
-    medians  = summary['median'].values
-    stds     = summary['std'].values
-
-    ax.errorbar(rho_vals, medians, yerr=stds, fmt='o-', color='steelblue',
-                capsize=4, linewidth=1.8, markersize=6)
-    ax.fill_between(rho_vals, medians - stds, medians + stds, alpha=0.3, color='steelblue')
-    ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
-               label='Reg-Arrest median')
-    ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
-               label='Dis-Arrest median')
-    ax.set_xlabel(r'Correlation strength ($\rho$)', fontsize=fsize - 2)
-    ax.set_ylabel('GMP-Cor', fontsize=fsize - 2)
-    ax.set_title('GMP-Cor calibration curve', fontsize=fsize)
-    ax.set_xticks(np.arange(0, 1.05, 0.2))
-    ax.set_xlim(-0.02, 1.02)
-    ax.set_ylim(bottom=-1, top=45)
-    ax.grid(True, linestyle='--', alpha=0.2)
-    ax.legend(fontsize=fsize - 2)
-    ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
-
-
-def panel_F(ax):
     path = os.path.join(root_dir, 'results', 'data_metrics', 'data_metrics.csv')
     data = pd.read_csv(path, index_col=0)
     ranking_param = 'sum_denoised_ev'
@@ -172,36 +146,31 @@ def panel_F(ax):
     ax.plot([x1, x1, x2, x2], [y, y + h, y + h, y], lw=.75, color='black')
     ax.text((x1 + x2) * 0.5, y + h * 1.1, asterisks, ha='center', va='bottom',
             color='black', fontsize=fsize - 2)
-    ax.set_ylabel('')
+    ax.set_ylabel('GMP-Cor', fontsize=fsize - 2)
     ax.set_ylim(bottom=-1, top=45)
     ax.grid(False)
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
 
 
 # ------------------------------------------------------------------
-# Assemble — 3×2 grid; CCDF rows are short so the figure stays ~square
+# Assemble — 2×2 grid of CCDFs (A–D) with the box plot (E) to the right
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 6), label_offset=(-0.04, 0.02))
+pf = PanelFigure(figsize=(7, 3.5), label_offset=(-0.04, 0.05))
 panel_pos = [
-    # Row 1 — experimental CCDFs (short)
-    [0.08, 0.75, 0.37, 0.21],  # A — Reg-Arrest CCDF
-    [0.55, 0.75, 0.37, 0.21],  # B — Dis-Arrest CCDF
-    # Row 2 — simulation CCDFs (short)
-    [0.08, 0.44, 0.37, 0.21],  # C — Sim ρ=0.9 CCDF
-    [0.55, 0.44, 0.37, 0.21],  # D — Sim ρ=0.5 CCDF
-    # Row 3 — analysis (taller)
-    [0.15, 0.07, 0.33, 0.26],  # E — Calibration curve
-    [0.55, 0.07, 0.3, 0.26],  # F — Box plot (shared y-axis with E)
+    # Left block — 2×2 experimental / simulation CCDFs (short)
+    [0.07, 0.61, 0.26, 0.32],  # A — Reg-Arrest CCDF
+    [0.42, 0.61, 0.26, 0.32],  # B — Dis-Arrest CCDF
+    [0.07, 0.11, 0.26, 0.32],  # C — Sim χ=0.9 CCDF
+    [0.42, 0.11, 0.26, 0.32],  # D — Sim χ=0.5 CCDF
+    # Right — box plot spanning the height of the A–D block
+    [0.76, 0.25, 0.2, 0.5],  # E — Box plot (Regulated vs Dis-Arrest)
 ]
 pf.add_panel(panel_pos[0], draw_func=panel_A)
 pf.add_panel(panel_pos[1], draw_func=panel_B)
 pf.add_panel(panel_pos[2], draw_func=panel_C)
 pf.add_panel(panel_pos[3], draw_func=panel_D)
-ax_E = pf.add_panel(panel_pos[4], draw_func=panel_E)
-ax_F = pf.add_panel(panel_pos[5], draw_func=panel_F)
-
-# Share y-axis between E and F so reference lines align exactly
-ax_F.sharey(ax_E)
+pf.add_panel(panel_pos[4], draw_func=panel_E)
 
 pf.save("figure3.pdf", dpi=300, transparent=True)
+pf.save("figure3_preview.png", dpi=200)
 plt.show()

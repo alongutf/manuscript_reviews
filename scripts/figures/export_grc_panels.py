@@ -76,13 +76,42 @@ def render_grid(ns, panel, name, figsize):
     save(fig, name)
 
 
+def _wrap_two_rows(text):
+    """Split a label across two rows at the space that best balances line length."""
+    words = text.split(' ')
+    if len(words) < 2:
+        return text
+    best_i, best_diff = 1, None
+    for i in range(1, len(words)):
+        diff = abs(len(' '.join(words[:i])) - len(' '.join(words[i:])))
+        if best_diff is None or diff < best_diff:
+            best_diff, best_i = diff, i
+    return ' '.join(words[:best_i]) + '\n' + ' '.join(words[best_i:])
+
+
+def _tidy_go_label(text):
+    """Shorten a GO-term x-tick label for the poster panel 4B."""
+    # drop the trailing gene count, e.g. " (n=34)"
+    text = re.sub(r'\s*\(n=\d+\)', '', text)
+    # rule 1: remove 'bacterial-type'
+    text = re.sub(r'\bbacterial-type\s*', '', text)
+    # rules 2 & 3: abbreviations
+    text = re.sub(r'type III secretion system', 'T3SS', text, flags=re.IGNORECASE)
+    text = re.sub(r'proton motive force', 'PMF', text, flags=re.IGNORECASE)
+    text = re.sub(r'\s+', ' ', text).strip()
+    # rule 4: if still > 5 words (a dash counts as 2 words), break into two rows
+    if len(re.split(r'[\s-]+', text)) > 5:
+        text = _wrap_two_rows(text)
+    return text
+
+
 def strip_gene_counts(ax):
-    """Remove the trailing ' (n=X)' from each x-tick label, keeping font/rotation."""
+    """Apply the panel-4B label rules to each x-tick label, keeping font/rotation."""
     old = ax.get_xticklabels()
     if not old:
         return
     fs = old[0].get_fontsize()
-    labels = [re.sub(r'\s*\(n=\d+\)', '', t.get_text()) for t in old]
+    labels = [_tidy_go_label(t.get_text()) for t in old]
     ax.set_xticklabels(labels, fontsize=fs, rotation=45, ha='right')
 
 

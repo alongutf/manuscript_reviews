@@ -1,0 +1,11 @@
+curve,time_h,mean_survival_fraction,error_low,error_high
+Reg-Arrest,0.012,1.02e+00,1.02e+00,1.02e+00
+Reg-Arrest,2.013,7.41e-03,5.87e-03,8.81e-03
+Reg-Arrest,4.013,1.09e-04,9.40e-05,1.22e-04
+Reg-Arrest,6.014,2.10e-05,1.77e-05,2.44e-05
+Dis-Arrest,0.012,1.02e+00,1.02e+00,1.02e+00
+Dis-Arrest,2.013,1.23e-02,1.09e-02,1.35e-02
+Dis-Arrest,4.013,8.79e-03,7.11e-03,1.05e-02
+Dis-Arrest,6.014,8.42e-03,4.63e-03,1.19e-02
+Dis-Arrest,9.257,3.58e-03,2.14e-03,4.94e-03
+Dis-Arrest,23.998,2.62e-04,1.79e-04,3.48e-04

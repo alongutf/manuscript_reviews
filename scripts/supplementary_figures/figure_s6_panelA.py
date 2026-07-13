@@ -44,17 +44,16 @@ shx  = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_shx.csv'))
 vapc_filt = vapc[vapc['kept'] == True].copy()
 shx_filt  = shx[shx['kept'] == True].copy()
 
-shx_filt['label'] = shx_filt['condition'].map({'SHX': 'Dis-Arrest\n(SHX)', 'CASP': 'Reg-Arrest\n(SHX)'})
-vapc_filt['label'] = vapc_filt['condition'].map({'VapC': 'VapC 24h', 'Reg-Arrest': 'Reg-Arrest\n(VapC)'})
+shx_filt['label'] = shx_filt['condition'].map({'SHX': 'Dis-Arrest\n(SHX)', 'CASP': 'Reg-Arrest'})
+vapc_filt['label'] = vapc_filt['condition'].map({'VapC': 'VapC 24h'})
 
-PANEL_A_ORDER = ['Dis-Arrest\n(SHX)', 'Reg-Arrest\n(SHX)', 'VapC 24h', 'Reg-Arrest\n(VapC)']
-PANEL_A_COLORS = [DIS_COLOR, REG_COLOR, DIS_COLOR, REG_COLOR]
+PANEL_A_ORDER = ['Dis-Arrest\n(SHX)', 'VapC 24h', 'Reg-Arrest']
+PANEL_A_COLORS = [DIS_COLOR, DIS_COLOR, REG_COLOR]
 
 area_data = {
     'Dis-Arrest\n(SHX)':  shx_filt.loc[shx_filt['label'] == 'Dis-Arrest\n(SHX)',  'area_px'].values,
-    'Reg-Arrest\n(SHX)':  shx_filt.loc[shx_filt['label'] == 'Reg-Arrest\n(SHX)',  'area_px'].values,
     'VapC 24h': vapc_filt.loc[vapc_filt['label'] == 'VapC 24h', 'area_px'].values,
-    'Reg-Arrest\n(VapC)': vapc_filt.loc[vapc_filt['label'] == 'Reg-Arrest\n(VapC)', 'area_px'].values,
+    'Reg-Arrest': shx_filt.loc[shx_filt['label'] == 'Reg-Arrest', 'area_px'].values
 }
 
 

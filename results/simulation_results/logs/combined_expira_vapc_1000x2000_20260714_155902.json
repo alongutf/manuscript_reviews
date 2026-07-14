@@ -1,0 +1,45 @@
+{
+  "experiment": "combined_dataset_gmpcor",
+  "timestamp": "20260714_155902",
+  "seed": 0,
+  "params": {
+    "file1": "Expira_biorep_t0A_filtered.csv",
+    "file2": "VapC_biorep_t2A_filtered.csv",
+    "n_cells_per_dataset": 500,
+    "n_genes": 2000,
+    "cell_selection": "top total counts",
+    "gene_selection": "top fano factor",
+    "norm": true,
+    "log": false,
+    "norm_method": "sum",
+    "norm_sum": 1,
+    "get_eig_dist_reps": 10
+  },
+  "dataset1_shape": [
+    994,
+    1997
+  ],
+  "dataset2_shape": [
+    900,
+    1797
+  ],
+  "gene_union": {
+    "shared": 96,
+    "only1": 1901,
+    "only2": 1701,
+    "union": 3698,
+    "added_vs_dataset1": 1701,
+    "added_vs_dataset2": 1901
+  },
+  "final_shape": [
+    1000,
+    2000
+  ],
+  "results": {
+    "fraction_non_zero": 0.0327955,
+    "lambda_max": 56.99862867160557,
+    "lambda_max_scrambled": 6.537743859899166,
+    "n_signal_eigenvalues": 14,
+    "gmp_cor": 106.28324709453865
+  }
+}

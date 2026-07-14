@@ -1,0 +1,35 @@
+Dataset-mixing GMP-Cor
+================================
+run timestamp       : 20260714_163210
+script              : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\dataset_mixing_gmpcor_run.py
+datasets            : EXP_biorep_t0A_filtered.csv + VAPC_biorep_t2A_filtered.csv
+data_dir            : C:\Users\owner\Documents\Projects\manuscript_reviews\data_for_umap
+dataset1 shape      : 979 cells x 3974 genes
+dataset2 shape      : 999 cells x 3878 genes
+
+preprocessing
+  case_fold         : True
+  drop_nongene      : True
+  excluded genes    : ['ampr', 'gfp', 'laci']
+
+gene space          : SHARED-ONLY (intersection)
+  shared genes      : 3792
+  only in dataset1  : 182
+  only in dataset2  : 86
+  gene space size   : 3789
+
+subsampling
+  cells/dataset     : 500 (highest total counts)
+  gene selection    : top 2000 by Fano factor (var/mean)
+  final matrix      : 1000 cells x 2000 genes
+
+GMP-Cor
+  fraction non-zero : 0.0608
+  lambda_max        : 32.3809
+  lambda_max^scr    : 6.1604
+  # signal eigenvals: 13
+  GMP-Cor           : 58.8843
+
+outputs
+  SVG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\mixing_EXP_biorep_t0A_filtered__VAPC_biorep_t2A_filtered_shared_1000x2000_20260714_163210.svg
+  PNG  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\mixing_EXP_biorep_t0A_filtered__VAPC_biorep_t2A_filtered_shared_1000x2000_20260714_163210.png

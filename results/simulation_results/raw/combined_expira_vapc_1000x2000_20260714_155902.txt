@@ -1,0 +1,25 @@
+Combined-dataset GMP-Cor test
+================================
+datasets            : Expira_biorep_t0A_filtered.csv + VapC_biorep_t2A_filtered.csv
+dataset1 shape      : 994 cells x 1997 genes
+dataset2 shape      : 900 cells x 1797 genes
+
+gene union
+  shared genes      : 96
+  only in dataset1  : 1901
+  only in dataset2  : 1701
+  union size        : 3698
+  added vs dataset1 : 1701
+  added vs dataset2 : 1901
+
+subsampling
+  cells/dataset     : 500 (highest total counts)
+  gene selection    : top 2000 by Fano factor (var/mean)
+  final matrix      : 1000 cells x 2000 genes
+
+GMP-Cor
+  fraction non-zero : 0.0328
+  lambda_max        : 56.9986
+  lambda_max^scr    : 6.5377
+  # signal eigenvals: 14
+  GMP-Cor           : 106.2832

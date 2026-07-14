@@ -5,9 +5,10 @@ Explains, end to end, how the simulated single-cell data used in the paper is
 produced, with schematics + representative example renderings:
 
   1. Design the gene-gene correlation structure (cluster + hub factor model)
-  2. Representative correlation matrices (covariance heatmaps, high vs low rho)
-  3. Generate counts via a Gaussian copula (MVN -> CDF -> NB -> library -> dropout)
-  4. Representative simulated output (count marginal, heavy tail, sparse matrix)
+     and representative correlation matrices (covariance heatmaps, high vs low chi)
+  2. Generate counts (MVN -> CDF -> NB -> library -> dropout)
+  3. Representative simulated output (cell / gene rank plots) compared against
+     real data (sample_2b_filtered.csv)
 
 Run from this directory:
     cd scripts/supplementary_figures
@@ -24,8 +25,8 @@ sys.path.insert(0, _REPO)                                            # import sr
 sys.path.insert(0, os.path.join(_REPO, 'scripts', 'figures'))        # figure_functions
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
 from scipy.stats import norm, nbinom
 
 from figure_functions import PanelFigure
@@ -40,63 +41,70 @@ plt.close("all")
 GENE_C = '#9ecae1'    # ordinary gene node
 HUB_C = '#E07B54'    # cluster hub
 GHUB_C = '#c0392b'    # global hub
-NB_C = 'steelblue'   # count distributions
+NB_C = 'steelblue'   # count distributions (flow-chart insets)
+RANK_C = '#404040'   # dark grey — all rank plots
 
-# Heatmap generation parameters (match the rho_sweep run behind the Fig. 3 CCDFs)
+# Heatmap generation parameters (match the chi_sweep run behind the Fig. 3 CCDFs)
 _HEATMAP_PARAMS = dict(n=2000, shape=1.5, hub_probability=0.2, seed=31)
+
+# Representative real dataset used for the simulated-vs-data rank comparison
+_REAL_DATA_PATH = os.path.join(_REPO, 'data_for_paper', 'sample_2b_filtered.csv')
 
 # ------------------------------------------------------------------
 # Pre-computed data (generated once, reused across panels)
 # ------------------------------------------------------------------
-# Representative correlation matrices for the heatmaps (row 2)
+# Representative correlation matrices for the heatmaps (row 1)
 R_high = generate_gram_hub_matrix(alpha=0.9, **_HEATMAP_PARAMS)
 R_low = generate_gram_hub_matrix(alpha=0.5, **_HEATMAP_PARAMS)
 
-# Small correlation matrix used to drive the representative count simulation (row 4)
+# Small correlation matrix used to drive the count-generation schematic (row 2 flow inset)
 _N_SMALL = 400
 R_small = generate_gram_hub_matrix(n=_N_SMALL, alpha=0.9, shape=1.5,
                                    hub_probability=0.2, seed=31)
 true_counts, obs_counts = simulate_scRNA_data(
     n_cells=_N_SMALL, n_genes=_N_SMALL, sigma=R_small, dropout_rate=1, inv_gamma_shape=2, inv_gamma_scale=0.1, seed=0)
 
+# Larger simulation, shaped to match the real data (1000 cells x 2000 genes), for the
+# simulated-vs-data rank plots. Parameters mirror the rho_sweep GMP-Cor calibration
+# (scripts/simulated_data.ipynb): dropout_rate=1, seed=31, and the default count model
+# (inv_gamma_shape=1.5, inv_gamma_scale=0.01) so the marginals track the real data.
+# R_high is exactly the sweep's sigma at rho=0.9 (generate_gram_hub_matrix(2000, 0.9, 1.5, 0.2, seed=31)).
+_N_CELLS_RANK, _N_GENES_RANK = 1000, 2000
+_, rank_obs_counts = simulate_scRNA_data(
+    n_cells=_N_CELLS_RANK, n_genes=_N_GENES_RANK, sigma=R_high,
+    dropout_rate=1, seed=31)
+sim_cell_totals = rank_obs_counts.sum(axis=1)
+sim_gene_totals = rank_obs_counts.sum(axis=0)
 
-def _illustrative_loading_matrix(n=40, alpha=0.8, seed=3):
-    """Build a small, clean loading matrix A in the same form the generator uses:
-    A = sqrt(1-alpha) * I  |  cluster columns  |  one global-hub column.
-    Returns A (n x k) and the normalized correlation matrix R (n x n)."""
-    rng = np.random.default_rng(seed)
-    A = np.eye(n) * np.sqrt(1 - alpha)
-    cluster_sizes = [10, 8, 12, 6, 4]
-    cols, hubs, idx = [], [], 0
-    for size in cluster_sizes:
-        if idx >= n:
-            break
-        size = min(size, n - idx)
-        col = np.zeros((n, 1))
-        col[idx:idx + size] = np.sqrt(rng.uniform(0.4 * alpha, alpha))
-        cols.append(col)
-        hubs.append(idx + size // 2)
-        idx += size
-    global_hub = np.zeros((n, 1))
-    for h in hubs:
-        if rng.random() < 0.6:
-            global_hub[h] = rng.uniform(0.4 * alpha, alpha)
-    cols.append(global_hub)
-    A = np.hstack([A] + cols)
-    C = A @ A.T
-    d = np.sqrt(np.diag(C))
-    R = C / np.outer(d, d)
-    return A, R
+# Real data (cells x genes); totals drive the comparison rank plots
+_real = pd.read_csv(_REAL_DATA_PATH, index_col=0).fillna(0).to_numpy(dtype=float)
+real_cell_totals = _real.sum(axis=1)
+real_gene_totals = _real.sum(axis=0)
 
 
-def _ccdf(values):
-    v = np.sort(values[values > 0])
-    p = len(v)
-    return v, 1 - np.arange(1, p + 1) / p + 1 / p
+def _rank(values, drop_top=False):
+    """Return (ranks, sorted_values) for a rank plot: values sorted descending.
+    If drop_top, omit the single highest value (an outlier that stretches the scale),
+    keeping the original rank index (so ranks start at 2)."""
+    v = np.sort(values[values > 0])[::-1]
+    ranks = np.arange(1, len(v) + 1)
+    if drop_top and len(v) > 1:
+        v, ranks = v[1:], ranks[1:]
+    return ranks, v
+
+
+def _pair_ylim(a, b, drop_top=False, pad=1.6):
+    """Shared y-limits spanning both series of a simulated-vs-data pair."""
+    all_v = np.concatenate([_rank(a, drop_top)[1], _rank(b, drop_top)[1]])
+    return all_v.min() / pad, all_v.max() * pad
+
+
+_CELL_YLIM = _pair_ylim(sim_cell_totals, real_cell_totals)
+_GENE_YLIM = _pair_ylim(sim_gene_totals, real_gene_totals, drop_top=True)
 
 
 # ==================================================================
-# Row 1 — Design the correlation structure (schematics)
+# Row 1 — Design the correlation structure (schematic + heatmaps)
 # ==================================================================
 def panel_A(ax):
     """Cluster + hub factor-model network schematic."""
@@ -140,35 +148,6 @@ def panel_A(ax):
     ax.set_title('Cluster + hub factor model', fontsize=fsize)
 
 
-def panel_B(ax):
-    """A -> AAᵀ -> normalize -> R construction schematic."""
-    A, R = _illustrative_loading_matrix()
-
-    ax_A = ax.inset_axes([0.02, 0.10, 0.30, 0.82])
-    ax_A.imshow(A, cmap='Reds', aspect='auto', interpolation='nearest')
-    ax_A.set_xticks([]); ax_A.set_yticks([])
-    ax_A.set_title('loading matrix $A$', fontsize=fsize - 2, pad=4)
-    ax_A.set_xlabel('factors', fontsize=fsize - 3, labelpad=1)
-    ax_A.set_ylabel('genes', fontsize=fsize - 3, labelpad=1)
-
-    ax_R = ax.inset_axes([0.60, 0.10, 0.36, 0.82])
-    im = ax_R.imshow(R, cmap='RdBu_r', vmin=-1, vmax=1, interpolation='nearest')
-    ax_R.set_xticks([]); ax_R.set_yticks([])
-    ax_R.set_title('positive definite covariance', fontsize=fsize - 2, pad=4)
-    cb = ax.figure.colorbar(im, ax=ax_R, fraction=0.046, pad=0.04)
-    cb.set_ticks([-1, 0, 1])
-    cb.ax.tick_params(labelsize=fsize - 3)
-
-    ax.annotate('', xy=(0.585, 0.5), xytext=(0.345, 0.5), xycoords='axes fraction',
-                arrowprops=dict(arrowstyle='-|>', color='0.3', lw=1.6))
-    ax.text(0.465, 0.60, r'$AA^{\top}$' + '\nnormalize', transform=ax.transAxes,
-            ha='center', va='bottom', fontsize=fsize - 3)
-    ax.set_title('Build the correlation matrix', fontsize=fsize, pad=10)
-
-
-# ==================================================================
-# Row 2 — Representative correlation matrices (covariance heatmaps)
-# ==================================================================
 def _heatmap(ax, R, title):
     im = ax.imshow(R[:100, :100], cmap='RdBu_r', vmin=-1, vmax=1,
                    aspect='auto', interpolation='nearest')
@@ -190,7 +169,7 @@ def panel_D(ax):
 
 
 # ==================================================================
-# Row 3 — Generate counts via a Gaussian copula (schematic + mini examples)
+# Row 2 — Generate counts (schematic + mini examples)
 # ==================================================================
 def panel_E(ax):
     rng = np.random.default_rng(7)
@@ -200,8 +179,8 @@ def panel_E(ax):
     mu, r = 3.0, 0.5
     counts = nbinom.ppf(u[:, 0], r, r / (r + mu))
 
-    w, h, y0 = 0.165, 0.58, 0.10
-    xs = [0.025, 0.285, 0.545, 0.805]
+    w, h, y0 = 0.22, 0.60, 0.08
+    xs = [0.04, 0.39, 0.74]
 
     # (i) correlated latent MVN
     a1 = ax.inset_axes([xs[0], y0, w, h])
@@ -211,34 +190,33 @@ def panel_E(ax):
     a1.set_xlabel('gene $i$', fontsize=fsize - 3, labelpad=1)
     a1.set_ylabel('gene $j$', fontsize=fsize - 3, labelpad=1)
 
-    # (ii) uniform copula
+    # (ii) negative-binomial counts
     a2 = ax.inset_axes([xs[1], y0, w, h])
-    a2.scatter(u[:, 0], u[:, 1], s=3, color=NB_C, alpha=0.5, edgecolors='none')
-    a2.set_title('uniform', fontsize=fsize - 3, pad=2)
-    a2.set_xticks([0, 1]); a2.set_yticks([0, 1])
+    a2.hist(counts, bins=np.arange(0, counts.max() + 2) - 0.5,
+            color=NB_C, edgecolor='white', lw=0.3)
+    a2.set_title('NB counts', fontsize=fsize - 3, pad=2)
+    a2.set_xlabel('count', fontsize=fsize - 3, labelpad=1)
+    a2.set_yticks([])
     a2.tick_params(labelsize=fsize - 4)
 
-    # (iii) negative-binomial counts
+    # (iii) observed counts (scaled + dropout) — the real generator output
     a3 = ax.inset_axes([xs[2], y0, w, h])
-    a3.hist(counts, bins=np.arange(0, counts.max() + 2) - 0.5,
-            color=NB_C, edgecolor='white', lw=0.3)
-    a3.set_title('NB counts', fontsize=fsize - 3, pad=2)
-    a3.set_xlabel('count', fontsize=fsize - 3, labelpad=1)
-    a3.set_yticks([])
-    a3.tick_params(labelsize=fsize - 4)
-
-    # (iv) sparse observed matrix (reuse the row-4 simulation)
-    a4 = ax.inset_axes([xs[3], y0, w, h])
-    a4.imshow(obs_counts[:40, :40] > 0, cmap='Greys', aspect='auto',
+    sub = obs_counts[:40, :40].astype(float)
+    vmax = np.percentile(sub[sub > 0], 95) if np.any(sub > 0) else 1
+    a3.imshow(sub, cmap='Greys', vmin=0, vmax=vmax, aspect='auto',
               interpolation='nearest')
-    a4.set_title('+ scale cell total\n+ model dropouts', fontsize=fsize - 3, pad=2)
-    a4.set_xticks([]); a4.set_yticks([])
-    a4.set_xlabel('genes', fontsize=fsize - 3, labelpad=1)
-    a4.set_ylabel('cells', fontsize=fsize - 3, labelpad=1)
+    a3.set_title('observed counts', fontsize=fsize - 3, pad=2)
+    a3.set_xticks([]); a3.set_yticks([])
+    a3.set_xlabel('genes', fontsize=fsize - 3, labelpad=1)
+    a3.set_ylabel('cells', fontsize=fsize - 3, labelpad=1)
+    zero_frac = np.mean(obs_counts == 0)
+    a3.text(0.97, 0.04, f'{zero_frac * 100:.0f}% zeros', transform=a3.transAxes,
+            ha='right', va='bottom', fontsize=fsize - 4, color='black',
+            bbox=dict(boxstyle='round,pad=0.15', fc='white', ec='0.7', lw=0.5))
 
     # arrows + operator labels between the mini-axes
-    labels = [r'$\Phi$', r'NB$^{-1}$', 'scale,\ndrop']
-    for i in range(3):
+    labels = [r'$\Phi,\ \mathrm{NB}^{-1}$', 'scale,\ndrop']
+    for i in range(2):
         x1 = xs[i] + w + 0.02
         x2 = xs[i + 1] - 0.02
         ax.annotate('', xy=(x2, y0 + h / 2), xytext=(x1, y0 + h / 2),
@@ -249,78 +227,74 @@ def panel_E(ax):
 
 
 # ==================================================================
-# Row 4 — Representative simulated output (examples)
+# Row 3 — Representative simulated output vs real data (rank plots)
 # ==================================================================
-def panel_F(ax):
-    # cell total
-    v, ccdf = _ccdf(true_counts.sum(axis=1))
-    ax.loglog(v, ccdf, '.', linestyle='-', color=NB_C, markersize=3)
-    ax.set_title('Cell distribution', fontsize=fsize)
-    ax.set_xlabel('cell total', fontsize=fsize - 2, labelpad=0)
-    ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
+def _rank_plot(ax, totals, title, xlabel, show_ylabel=True, drop_top=False, ylim=None):
+    ranks, v = _rank(totals, drop_top=drop_top)
+    ax.semilogy(ranks, v, '-', color=RANK_C, lw=1)
+    ax.set_title(title, fontsize=fsize)
+    ax.set_xlabel(xlabel, fontsize=fsize - 2, labelpad=0)
+    if show_ylabel:
+        ax.set_ylabel('total expression', fontsize=fsize - 2, labelpad=0)
+    if ylim is not None:
+        ax.set_ylim(ylim)
     ax.tick_params(labelsize=fsize - 2)
+    if not show_ylabel:                 # matched y-axis within the pair -> drop duplicate ticks
+        ax.tick_params(labelleft=False)
 
 
-def panel_G(ax):
-    v, ccdf = _ccdf(true_counts.sum(axis=0))
-    ax.loglog(v, ccdf, '.', linestyle='-', color=NB_C, markersize=3)
-    ax.set_title('Gene distribution', fontsize=fsize)
-    ax.set_xlabel('gene total', fontsize=fsize - 2, labelpad=0)
-    ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
-    ax.tick_params(labelsize=fsize - 2)
+def panel_F(ax):      # simulated — cells
+    _rank_plot(ax, sim_cell_totals, 'Simulated', 'cell rank', ylim=_CELL_YLIM)
 
 
-def panel_H(ax):
-    sub = obs_counts[:120, :120].astype(float)
-    vmax = np.percentile(sub[sub > 0], 95) if np.any(sub > 0) else 1
-    ax.imshow(sub, cmap='Greys', vmin=0, vmax=vmax, aspect='auto',
-              interpolation='nearest')
-    zero_frac = np.mean(obs_counts == 0)
-    ax.set_title('Observed counts (sparse)', fontsize=fsize)
-    ax.set_xticks([]); ax.set_yticks([])
-    ax.set_xlabel('genes', fontsize=fsize - 2, labelpad=1)
-    ax.set_ylabel('cells', fontsize=fsize - 2, labelpad=1)
-    ax.text(0.97, 0.04, f'{zero_frac * 100:.0f}% zeros', transform=ax.transAxes,
-            ha='right', va='bottom', fontsize=fsize - 3, color='black',
-            bbox=dict(boxstyle='round,pad=0.2', fc='white', ec='0.7', lw=0.5))
+def panel_F_data(ax):  # real data — cells
+    _rank_plot(ax, real_cell_totals, 'Data', 'cell rank', show_ylabel=False, ylim=_CELL_YLIM)
+
+
+def panel_G(ax):      # simulated — genes
+    _rank_plot(ax, sim_gene_totals, 'Simulated', 'gene rank', drop_top=True, ylim=_GENE_YLIM)
+
+
+def panel_G_data(ax):  # real data — genes
+    _rank_plot(ax, real_gene_totals, 'Data', 'gene rank', show_ylabel=False,
+               drop_top=True, ylim=_GENE_YLIM)
 
 
 # ------------------------------------------------------------------
-# Assemble — portrait, 4-row narrative
+# Assemble — portrait, 3-row narrative
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 7.5), label_offset=(-0.02, 0.02))
+pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.02, 0.02))
 
 panel_pos = [
-    # Row 1 — schematics
-    [0.05, 0.78, 0.42, 0.14],   # A — factor-model network
-    [0.5, 0.78, 0.42, 0.14],   # B — A -> R construction
-    # Row 2 — correlation heatmaps
-    [0.10, 0.54, 0.2, 0.14],   # C — heatmap rho=0.9
-    [0.5, 0.54, 0.2, 0.14],   # D — heatmap rho=0.5
-    # Row 3 — copula flow
-    [0.04, 0.30, 0.93, 0.15],   # E — count-generation flow
-    # Row 4 — outputs
-    [0.09, 0.05, 0.21, 0.16],   # F — NB count histogram
-    [0.41, 0.05, 0.21, 0.16],   # G — gene-total CCDF
-    [0.71, 0.05, 0.25, 0.16],   # H — sparse observed matrix
+    # Row 1 — design: network schematic + two correlation heatmaps
+    [0.02, 0.64, 0.30, 0.24],   # A — factor-model network
+    [0.41, 0.66, 0.23, 0.20],   # C — heatmap chi=0.9
+    [0.72, 0.66, 0.23, 0.20],   # D — heatmap chi=0.5
+    # Row 2 — count-generation flow
+    [0.05, 0.36, 0.90, 0.17],   # E — count-generation flow
+    # Row 3 — rank plots: simulated vs data, paired (cells | genes)
+    [0.09, 0.07, 0.16, 0.15],   # F  — simulated cell rank
+    [0.28, 0.07, 0.16, 0.15],   # F' — data cell rank
+    [0.57, 0.07, 0.16, 0.15],   # G  — simulated gene rank
+    [0.76, 0.07, 0.16, 0.15],   # G' — data gene rank
 ]
 
 pf.add_panel(panel_pos[0], draw_func=panel_A, hide_axis=True, label='A')
-pf.add_panel(panel_pos[1], draw_func=panel_B, hide_axis=True, label='B')
-pf.add_panel(panel_pos[2], draw_func=panel_C, label='C')
-pf.add_panel(panel_pos[3], draw_func=panel_D, label='D')
-pf.add_panel(panel_pos[4], draw_func=panel_E, hide_axis=True, label='E')
-pf.add_panel(panel_pos[5], draw_func=panel_F, label='F')
-pf.add_panel(panel_pos[6], draw_func=panel_G, label='G')
-pf.add_panel(panel_pos[7], draw_func=panel_H, label='H')
+pf.add_panel(panel_pos[1], draw_func=panel_C, label='B')
+pf.add_panel(panel_pos[2], draw_func=panel_D, label='C')
+pf.add_panel(panel_pos[3], draw_func=panel_E, hide_axis=True, label='D')
+pf.add_panel(panel_pos[4], draw_func=panel_F, label='E')
+pf.add_panel(panel_pos[5], draw_func=panel_F_data, label=' ')
+pf.add_panel(panel_pos[6], draw_func=panel_G, label='F')
+pf.add_panel(panel_pos[7], draw_func=panel_G_data, label=' ')
 
 # Step headers down the left margin
-for y, txt in [(0.965, '1 · Design correlation structure'),
-               (0.735, '2 · Representative correlation matrices'),
-               (0.48, '3 · Generate counts (Gaussian copula)'),
-               (0.24, '4 · Representative simulated output')]:
+for y, txt in [(0.925, '1 · Design correlation structure'),
+               (0.575, '2 · Generate counts'),
+               (0.255, '3 · Representative output vs. data')]:
     pf.fig.text(0.02, y, txt, fontsize=fsize - 1, fontweight='bold', color='0.25',
                 ha='left', va='bottom')
 
+pf.save("figure_s2_preview.png", dpi=200)
 pf.save("figure_s2.pdf", dpi=300, transparent=True)
 plt.show()

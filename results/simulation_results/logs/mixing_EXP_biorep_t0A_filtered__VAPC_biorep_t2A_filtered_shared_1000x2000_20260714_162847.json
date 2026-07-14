@@ -1,0 +1,53 @@
+{
+  "experiment": "dataset_mixing_gmpcor",
+  "timestamp": "20260714_162847",
+  "seed": 0,
+  "params": {
+    "file1": "EXP_biorep_t0A_filtered.csv",
+    "file2": "VAPC_biorep_t2A_filtered.csv",
+    "data_dir": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\data_for_umap",
+    "gene_space": "shared",
+    "n_cells_per_dataset": 500,
+    "n_genes": 2000,
+    "case_fold": true,
+    "drop_nongene": true,
+    "excluded_genes": [
+      "ampr",
+      "gfp",
+      "laci"
+    ],
+    "cell_selection": "top total counts",
+    "gene_selection": "top fano factor",
+    "norm": true,
+    "log": false,
+    "norm_method": "sum",
+    "norm_sum": 1,
+    "get_eig_dist_reps": 10
+  },
+  "dataset1_shape": [
+    979,
+    3974
+  ],
+  "dataset2_shape": [
+    999,
+    3878
+  ],
+  "gene_space_info": {
+    "mode": "SHARED-ONLY (intersection)",
+    "shared": 3792,
+    "only1": 182,
+    "only2": 86,
+    "size": 3789
+  },
+  "final_shape": [
+    1000,
+    2000
+  ],
+  "results": {
+    "fraction_non_zero": 0.0607905,
+    "lambda_max": 32.380866845922895,
+    "lambda_max_scrambled": 6.160404017798308,
+    "n_signal_eigenvalues": 13,
+    "gmp_cor": 58.88433363623883
+  }
+}

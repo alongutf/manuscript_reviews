@@ -1,0 +1,39 @@
+{
+  "params": {
+    "n_cells": 1000,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_genes": 2000,
+    "mixing_ratio": 0.5,
+    "rho_low": 0.1,
+    "rho_high": 0.8,
+    "seed_a": 20,
+    "seed_b": 21,
+    "count_seed_a": 0,
+    "count_seed_b": 1,
+    "dropout_rate": 1.0,
+    "shape": 1.5,
+    "hub_probability": 0.2,
+    "gmp_cor_definition": "sum(max(lambda_i - max_scrambled_lambda, 0))",
+    "note": "seed_a / seed_b determine hub-network topology (sigma matrix); count_seed_a / count_seed_b determine count-sampling noise. Two distinct networks per rho level \u2014 different seeds \u2192 different hub structures.",
+    "timestamp": "2026-07-14T16:47:33.415979"
+  },
+  "dysregulated": {
+    "rho": 0.1,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_cells_total": 1000,
+    "gmp_cor_subpop_a": 0.0,
+    "gmp_cor_subpop_b": 0.019331589237957303,
+    "gmp_cor_combined": 4.260420090071651
+  },
+  "regulated": {
+    "rho": 0.8,
+    "n_cells_a": 500,
+    "n_cells_b": 500,
+    "n_cells_total": 1000,
+    "gmp_cor_subpop_a": 19.64341151133165,
+    "gmp_cor_subpop_b": 16.243186384789155,
+    "gmp_cor_combined": 11.321183188897987
+  }
+}

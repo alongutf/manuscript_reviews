@@ -172,7 +172,7 @@ print(f'\nText log written to: {TEXT_LOG}')
 
 print('\nGenerating figure ...')
 
-CONDITIONS  = ['Dysregulated\n(ρ = 0.1)', 'Regulated\n(ρ = 0.8)']
+CONDITIONS  = ['Dysregulated\n(χ = 0.1)', 'Regulated\n(χ = 0.8)']
 BAR_LABELS  = ['Sub-pop A', 'Sub-pop B', 'Combined']
 DIS_VALS    = [dis['gmp_cor_subpop_a'], dis['gmp_cor_subpop_b'], dis['gmp_cor_combined']]
 REG_VALS    = [reg['gmp_cor_subpop_a'], reg['gmp_cor_subpop_b'], reg['gmp_cor_combined']]
@@ -181,8 +181,11 @@ REG_VALS    = [reg['gmp_cor_subpop_a'], reg['gmp_cor_subpop_b'], reg['gmp_cor_co
 DIS_COLORS  = ['#9ecae1', '#3182bd', '#08519c']   # blue family → dysregulated
 REG_COLORS  = ['#fc9272', '#de2d26', '#67000d']   # red family  → regulated
 
-fig, axes = plt.subplots(1, 2, figsize=(9, 5), sharey=False)
+fig, axes = plt.subplots(1, 2, figsize=(9, 5), sharey=True)
 fig.subplots_adjust(wspace=0.38)
+
+# Shared y-axis limit across both subplots so bar heights are directly comparable
+y_max = max(max(DIS_VALS), max(REG_VALS)) * 1.18
 
 for ax, vals, colors, title in zip(
     axes,
@@ -197,7 +200,7 @@ for ax, vals, colors, title in zip(
     for bar, v in zip(bars, vals):
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            bar.get_height() + max(vals) * 0.02,
+            bar.get_height() + y_max * 0.02,
             f'{v:.2f}',
             ha='center', va='bottom', fontsize=9,
         )
@@ -206,7 +209,7 @@ for ax, vals, colors, title in zip(
     ax.set_xticklabels(BAR_LABELS, fontsize=10)
     ax.set_ylabel('GMP-Cor', fontsize=11)
     ax.set_title(title, fontsize=12, fontweight='bold', pad=8)
-    ax.set_ylim(0, max(vals) * 1.18)
+    ax.set_ylim(0, y_max)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 

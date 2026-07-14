@@ -10,50 +10,46 @@ Each gene (blue nodes) belongs to a cluster whose members share variance through
 dedicated cluster hub (orange nodes).
 A randomly selected subset of cluster hubs is additionally linked to a single global hub
 (red star), introducing long-range correlation between clusters.
-Edge weights are drawn from a uniform distribution and are modulated by the
-shared-variance parameter $\alpha$.
+Edge weights are modulated by the shared-variance parameter $\chi$.
 
-\textbf{(B)}~Construction of the positive-definite correlation matrix $R$ from the loading
-matrix $A$.
-$A$ encodes the factor structure: an identity block (right, scaled by $\sqrt{1-\alpha}$)
-provides each gene's unique variance, while additional columns (one per cluster factor and
-one for the global hub) encode shared variance.
-The correlation matrix is obtained as $R = \tilde{C}/\sqrt{\mathrm{diag}(\tilde{C})\,
-\mathrm{diag}(\tilde{C})^\top}$, where $\tilde{C} = AA^\top$.
-
-\textbf{(C,~D)}~Representative $100\times 100$ sub-blocks of correlation matrices generated
-with high ($\alpha = 0.9$, \textbf{C}) and low ($\alpha = 0.5$, \textbf{D})
+\textbf{(B,~C)}~Representative $100\times 100$ sub-blocks of correlation matrices generated
+with high ($\chi = 0.9$, \textbf{B}) and low ($\chi = 0.5$, \textbf{C})
 shared-variance fractions.
 Block-diagonal structure reflects the cluster topology; off-diagonal inter-cluster
 correlations arise through the global hub.
 
-\textbf{(E)}~Flow diagram of count generation via a Gaussian copula.
+\textbf{(D)}~Flow diagram of count generation.
 \textit{Left:} Correlated latent variables are drawn from a multivariate normal
 distribution $\mathcal{N}(\mathbf{0},\,R)$.
-\textit{Center-left:} The standard normal CDF $\Phi$ maps each latent value to a
-uniform marginal, preserving the rank-correlation structure.
-\textit{Center-right:} Gene counts are obtained by applying the negative-binomial quantile
-function $\mathrm{NB}^{-1}$ to each uniform variate; the per-gene mean $\mu_i$ is drawn
-from an inverse-Gamma distribution to reproduce the heavy-tailed expression distribution
-observed in real scRNA-seq data.
+\textit{Center:} Gene counts are obtained by mapping each latent value to a uniform
+marginal with the standard normal CDF $\Phi$ and then applying the negative-binomial
+quantile function $\mathrm{NB}^{-1}$; the per-gene mean $\mu_i$ is drawn from an
+inverse-Gamma distribution to reproduce the heavy-tailed expression distribution observed
+in real scRNA-seq data.
 \textit{Right:} Cell-level library-size variability is introduced by multiplicative
 log-normal amplitudes, followed by expression-dependent dropout
-($P(\text{dropout}) = e^{-\lambda\,x}$) to generate the sparse observed count matrix.
+($P(\text{dropout}) = e^{-\lambda\,x}$) to generate the sparse observed count matrix;
+the inset reports the overall fraction of zero entries.
 
-\textbf{(F,~G)}~Complementary cumulative distribution functions (CCDFs) of per-cell
-(\textbf{F}) and per-gene (\textbf{G}) total counts on log-log axes, confirming that the
-simulated data exhibit the heavy-tailed expression distributions characteristic of
-real single-cell data.
-
-\textbf{(H)}~Binary (zero/non-zero) projection of a representative $120 \times 120$
-sub-block of the observed count matrix, illustrating the high sparsity produced by the
-dropout model.
-The inset reports the overall fraction of zero entries.
+\textbf{(E,~F)}~Rank plots of per-cell (\textbf{E}) and per-gene (\textbf{F}) total
+expression, with rank in descending order of total expression on the $x$-axis and total
+expression on a logarithmic $y$-axis.
+Within each pair the simulated data (left) are shown alongside a representative real
+dataset (right; \texttt{sample\_2b\_filtered.csv}) on a shared $y$-axis; the simulation is
+sized to match the data ($1000$ cells $\times$ $2000$ genes) and uses the observed
+(post-dropout) counts.
+For the per-gene panels the single highest-expression gene is omitted so that the
+remaining distribution is not compressed by one outlier.
+Together these confirm that the simulation reproduces the heavy-tailed cell- and gene-level
+total-expression distributions characteristic of real single-cell data.
 
 \medskip
 \noindent
-All panels in rows~1--2 are generated from matrices with $n = 2000$ genes,
+The correlation heatmaps in row~1 are generated from matrices with $n = 2000$ genes,
 Pareto shape parameter $s = 1.5$, and hub-connectivity probability
 $p_\mathrm{hub} = 0.2$.
-Rows~3--4 use a representative simulation with $n_\mathrm{cells} = n_\mathrm{genes} = 400$,
-$\alpha = 0.9$, dropout rate $\lambda = 1$, and inverse-Gamma shape/scale of $2/0.1$.
+The count-generation schematic (row~2) uses a small
+$n_\mathrm{cells} = n_\mathrm{genes} = 400$ simulation. The rank plots (row~3) use a
+$1000 \times 2000$ simulation whose parameters mirror the GMP-Cor calibration sweep
+($\chi = 0.9$, dropout rate $\lambda = 1$, inverse-Gamma shape/scale $1.5/0.01$), so the
+simulated total-expression distributions track the real data.

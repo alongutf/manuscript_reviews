@@ -58,7 +58,7 @@ METRICS_CSV = os.path.join(_REPO, 'results', 'cancer_pc9', 'pc9_day14_gmp_cor.cs
 # Subpopulation color scheme (shared across panels A/B/C).
 # low/med/high refer to the *fluorescent marker* level; the proliferation state
 # is the OPPOSITE (low marker = proliferating/cycling, high marker = arrested).
-COND_COLOR = {'low': 'steelblue', 'med': '#fec44f', 'high': 'salmon'}
+COND_COLOR = {'low': 'steelblue', 'med': '#beaed4', 'high': '#1b9e77'}
 COND_ORDER = ['low', 'med', 'high']
 COND_DISPLAY = {'low': 'Proliferating', 'med': 'Intermediate', 'high': 'Arrested'}
 

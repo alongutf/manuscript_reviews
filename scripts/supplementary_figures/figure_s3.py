@@ -39,6 +39,19 @@ GO_TABLE   = os.path.join(_REPO, 'results', 'GO_results', 'sc_pseudobulk',
 SPIKE_INS = {'gfp', 'mcherry', 'tetr', 'laci', 'ampr', 'lelobekk'}
 
 
+def _fmt_p(p):
+    """Format a p-value rounded to the nearest decade, e.g. p = 10⁻¹⁶ (mathtext)."""
+    if not np.isfinite(p) or p <= 0:
+        return r'$p < 10^{-300}$'
+    exp = int(round(np.log10(p)))
+    return rf'$p = 10^{{{exp}}}$'
+
+
+# rounded annotation box with a transparent fill (grid shows through)
+_ANNO_BBOX = dict(boxstyle='round,pad=0.35', facecolor='none', edgecolor='0.6',
+                  linewidth=0.6)
+
+
 def _style_ax(ax, grid=True):
     """White background, full black box, optional light grid."""
     ax.set_facecolor('white')
@@ -114,7 +127,7 @@ def mean_expression_corr(syn, locus2name, bulk_df, sc_file, bulk_cols_prefix, ti
     y = sc_mean.reindex(common).to_numpy()
     keep = (x > 1e-3) & (y > 5e-3)
     x, y = x[keep], y[keep]
-    r, _ = pearsonr(np.log10(x), np.log10(y))
+    r, p = pearsonr(np.log10(x), np.log10(y))
     s, _ = spearmanr(x, y)
 
     ax.scatter(x, y, s=5, alpha=0.4, color='#3182bd', edgecolors='none')
@@ -123,8 +136,8 @@ def mean_expression_corr(syn, locus2name, bulk_df, sc_file, bulk_cols_prefix, ti
     ax.set_ylabel('scRNA-seq', fontsize=8)
     ax.text(0.05, 0.97, title, transform=ax.transAxes,
             fontsize=9, va='top', fontweight='bold')
-    ax.text(0.05, 0.84, f'r={r:.2f}  ρ={s:.2f}  n={len(x)}',
-            transform=ax.transAxes, fontsize=7.5, va='top')
+    ax.text(0.05, 0.82, f'$r = {r:.2f}$\n{_fmt_p(p)}\n$n = {len(x)}$',
+            transform=ax.transAxes, fontsize=7.5, va='top', bbox=_ANNO_BBOX)
     ax.tick_params(labelsize=7)
     _style_ax(ax, grid=True)
     return r, s, len(x)
@@ -147,7 +160,7 @@ def lfc_corr(syn, locus2name, study, ax, y_label = True):
     y = sc_lfc.reindex(common).to_numpy()
     keep = np.isfinite(x) & np.isfinite(y)
     x, y = x[keep], y[keep]
-    r, _ = pearsonr(x, y)
+    r, p = pearsonr(x, y)
     s, _ = spearmanr(x, y)
 
     label = 'Dis-Arrest' if study == 'disrupted' else 'Reg-Arrest'
@@ -159,8 +172,8 @@ def lfc_corr(syn, locus2name, study, ax, y_label = True):
         ax.set_ylabel('scRNA-seq log₂FC', fontsize=10)
     ax.set_title(f'{label} vs control', fontsize=9, pad=2)
     ax.set_yticks([-10,-8,-6,-4,-2,0,2,4,6,8])
-    ax.text(0.05, 0.94, f'r={r:.2f}  ρ={s:.2f}  n={len(x)}',
-            transform=ax.transAxes, fontsize=9, va='top')
+    ax.text(0.05, 0.94, f'$r = {r:.2f}$\n{_fmt_p(p)}\n$n = {len(x)}$',
+            transform=ax.transAxes, fontsize=9, va='top', bbox=_ANNO_BBOX)
     _style_ax(ax, grid=True)
     return r, s, len(x)
 

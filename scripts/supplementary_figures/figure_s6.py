@@ -3,11 +3,11 @@ Supplementary Figure S6 — Microscopy characterisation of Dis-Arrest vs Reg-Arr
 
 Panels:
   A. Violin plot of cell area distributions for the four conditions
-     (SHX Dis-Arrest, SHX Reg-Arrest, VapC Dis-Arrest, VapC Reg-Arrest).
-     Mean and CV annotated per condition.
-  B. Violin plot of constitutive mCherry expression: VapC Dis-Arrest vs Reg-Arrest.
-  C. Violin plot of constitutive YFP expression:    SHX Dis-Arrest vs Reg-Arrest.
-  D. 2×2 grid of representative phase/fluorescence images.
+     (SHX⁺, SHX⁻, VapC⁺ 24h, VapC⁻). Mean, n and CV annotated per condition.
+  B. Histogram of constitutive mCherry expression in VapC⁺ 24h cells,
+     annotated with mean, n and CV.
+  D. Single row of representative phase/fluorescence images, one per condition
+     in the same order (and with the same labels) as panel A.
 
 Run from this directory:
     cd scripts/supplementary_figures
@@ -16,6 +16,8 @@ The figure is written next to this script as figure_s6.pdf.
 """
 import os
 import sys
+
+from networkx.algorithms.bipartite.basic import density
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO = os.path.dirname(os.path.dirname(_HERE))
@@ -60,8 +62,9 @@ shx_filt['label'] = shx_filt['condition'].map({'SHX': 'Dis-Arrest (SHX)', 'CASP'
 vapc_filt = vapc_filt.copy()
 vapc_filt['label'] = vapc_filt['condition'].map({'VapC': 'VapC 24h', 'Reg-Arrest': 'Reg-Arrest (VapC)'})
 
-# Ordered groups for panel A
+# Ordered groups for panel A (data keys) and their display labels
 PANEL_A_ORDER = ['Dis-Arrest (SHX)', 'Reg-Arrest (SHX)', 'VapC 24h', 'Reg-Arrest (VapC)']
+PANEL_A_LABELS = ['SHX$^+$', 'SHX$^-$', 'VapC$^+$ 24h', 'VapC$^-$']
 PANEL_A_COLORS = [DIS_COLOR, REG_COLOR, DIS_COLOR, REG_COLOR]
 
 area_data = {
@@ -118,7 +121,7 @@ def _violin(ax, data_dict, order, colors, ylabel, title, fsize):
     ax.spines['right'].set_visible(False)
 
 
-def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
+def _violin_with_stats(ax, data_dict, order, colors, ylabel, title, xlabels=None):
     datasets = [data_dict[k] for k in order]
 
     parts = ax.violinplot(datasets, positions=range(len(order)),
@@ -137,7 +140,7 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
                 markersize=4, zorder=3)
 
     ax.set_xticks(range(len(order)))
-    ax.set_xticklabels(order, fontsize=fsize - 2)
+    ax.set_xticklabels(xlabels if xlabels is not None else order, fontsize=fsize - 2)
     ax.set_ylabel(ylabel, fontsize=fsize - 1, labelpad=2)
     ax.tick_params(axis='y', labelsize=fsize - 2)
     ax.spines['top'].set_visible(False)
@@ -166,30 +169,38 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
 # ==================================================================
 def panel_A(ax):
     _violin_with_stats(ax, area_data, PANEL_A_ORDER, PANEL_A_COLORS,
-                       'Cell area (px)', 'Cell area distributions')
+                       'Cell area (px)', 'Cell area distributions',
+                       xlabels=PANEL_A_LABELS)
 
 
 def panel_B(ax):
-    order  = ['VapC 24h', 'Reg-Arrest (VapC)']
-    colors = [DIS_COLOR, REG_COLOR]
-    _violin_with_stats(ax, mcherry_data, order, colors,
-                       'mCherry (arbitrary units)', 'Constitutive mCherry expression (VapC)')
+    """Histogram of constitutive mCherry expression in VapC⁺ 24h cells."""
+    vals = mcherry_data['VapC 24h']
+    ax.hist(vals, bins=30, color=DIS_COLOR, alpha=0.8, edgecolor='0.3', linewidth=0.4, density=True)
 
+    mean_val = vals.mean()
+    cv_val   = vals.std() / mean_val if mean_val != 0 else float('nan')
+    ax.text(0.95, 0.95,
+            f'n={len(vals)}\nmean={mean_val:.0f}\nCV={cv_val:.2f}',
+            transform=ax.transAxes, ha='right', va='top', fontsize=fsize - 3,
+            bbox=dict(boxstyle='round,pad=0.35', facecolor='none', edgecolor='0.6',
+                      linewidth=0.6))
 
-def panel_C(ax):
-    order  = ['Dis-Arrest (SHX)', 'Reg-Arrest (SHX)']
-    colors = [DIS_COLOR, REG_COLOR]
-    _violin_with_stats(ax, yfp_data, order, colors,
-                       'YFP (arbitrary units)', 'Constitutive YFP expression (SHX)')
+    ax.set_xlabel('mCherry (arbitrary units)', fontsize=fsize - 1, labelpad=2)
+    ax.set_ylabel('Density', fontsize=fsize - 1, labelpad=2)
+    ax.set_title('VapC expression', fontsize=fsize, pad=2)
+    ax.tick_params(labelsize=fsize - 2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
 
 
 def panel_D(ax):
     """Single row of 4 microscopy images in the same order as panel A."""
     images = [
-        ('shx2.png',      'Dis-Arrest (SHX)',  DIS_COLOR),
-        ('shx_reg1.png',  'Reg-Arrest (SHX)',  REG_COLOR),
-        ('vapc1.png',     'VapC 24h', DIS_COLOR),
-        ('vapc_reg1.png', 'Reg-Arrest (VapC)', REG_COLOR),
+        ('shx2.png',      'SHX$^+$',       DIS_COLOR),
+        ('shx_reg1.png',  'SHX$^-$',       REG_COLOR),
+        ('vapc1.png',     'VapC$^+$ 24h',  DIS_COLOR),
+        ('vapc_reg1.png', 'VapC$^-$',      REG_COLOR),
     ]
 
     n = len(images)
@@ -222,17 +233,14 @@ def panel_D(ax):
 # ------------------------------------------------------------------
 # Assemble
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.04, 0.02))
+pf = PanelFigure(figsize=(7, 5), label_offset=(-0.04, 0.04))
 
-# Row 1: panel A (wide, area violins)
-pf.add_panel([0.08, 0.72, 0.84, 0.22], draw_func=panel_A, label='A')
+# Row 1: panel A (narrower, area violins) + panel B (mCherry histogram)
+pf.add_panel([0.08, 0.62, 0.52, 0.30], draw_func=panel_A, label='A')
+pf.add_panel([0.70, 0.62, 0.26, 0.30], draw_func=panel_B, label='B')
 
-# Row 2: panels B and C side by side
-pf.add_panel([0.08, 0.4, 0.36, 0.22], draw_func=panel_B, label='B')
-pf.add_panel([0.56, 0.4, 0.36, 0.22], draw_func=panel_C, label='C')
-
-# Row 3: panel D — microscopy images (single row)
-pf.add_panel([0.08, 0.05, 0.8, 0.25], draw_func=panel_D, hide_axis=True, label='D')
+# Row 2: panel D — microscopy images (single row)
+pf.add_panel([0.1, 0.1, 0.8, 0.4], draw_func=panel_D, hide_axis=True, label='C')
 
 pf.save("figure_s6.pdf", dpi=300, transparent=True)
 pf.fig.savefig("figure_s6_preview.png", dpi=200)

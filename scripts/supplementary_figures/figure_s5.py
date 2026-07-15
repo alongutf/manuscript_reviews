@@ -90,9 +90,13 @@ def _plot_ccdf(ax, npy_path, title, gmp_cor, signal_color='skyblue',
     if show_ylabel:
         ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
 
-    # GMP-Cor annotation (the new metric: sum_denoised_ev)
+    # GMP-Cor annotation (the new metric: sum_denoised_ev), on a rounded,
+    # semi-transparent box tinted by category (salmon = dis-arrest,
+    # steelblue = regulated) via the panel's signal_color.
     ax.text(0.04, 0.05, f'GMP-Cor: {gmp_cor:.2f}', transform=ax.transAxes,
-            fontsize=fsize - 3, weight='bold', va='bottom', ha='left')
+            fontsize=fsize - 3, weight='bold', va='bottom', ha='left',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor=signal_color,
+                      alpha=0.5, edgecolor='none'))
 
     if show_legend:
         ax.legend(fontsize=fsize - 4, loc='upper right', framealpha=0.9)

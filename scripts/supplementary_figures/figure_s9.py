@@ -35,7 +35,7 @@ SCANLAG_DIR = os.path.join(_REPO, 'scanlag_data', 'CASP+SHX')
 # condition -> (lag-time column, OneMinusCDF column, plot color)
 CCDF_CONDITIONS = [
     ('Reg-Arrest',     2, 3, REG_COLOR),
-    ('Reg-Arrest+SHX', 0, 1, SHX_COLOR),
+    ('Reg-Arrest\n+SHX', 0, 1, SHX_COLOR),
     ('Dis-Arrest',     4, 5, DIS_COLOR),
 ]
 
@@ -63,7 +63,7 @@ def panel_A(ax):
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
-    ax.set_ylabel('CCDF', fontsize=fsize, labelpad=0)
+    ax.set_ylabel('Fraction of arrested bacteria', fontsize=fsize, labelpad=0)
     ax.set_xlim(30, 3000)
     ax.set_ylim(0.002, 1.5)
     leg = ax.legend(loc='upper right', fontsize=fsize - 2, frameon=True,
@@ -83,9 +83,7 @@ def panel_B(ax):
     cell_colors = []
     for c in s.columns:
         stress = str(s.loc['Stress', c])
-        is_reg = stress == 'nutrient depletion'
-        if is_reg:
-            stress = 'Reg-Arrest'
+        is_reg = 'Reg-Arrest' in stress
         rep = s.loc['Replicate', c]
         if not pd.isna(rep):
             stress = f'{stress} rep{int(rep)}'
@@ -98,7 +96,20 @@ def panel_B(ax):
         tint = REG_TINT if is_reg else DIS_TINT
         cell_colors.append([tint] * len(col_labels))
 
+    # Size each column to its widest text (header or cell); columns with
+    # less text end up narrower. Width = longest line in the column, plus a
+    # little padding, normalised so the columns fill the axes width.
+    def _col_widths(header, body, pad=2):
+        ncol = len(header)
+        w = np.array([
+            max(max(len(line) for line in str(cell).split('\n'))
+                for cell in [header[c]] + [r[c] for r in body]) + pad
+            for c in range(ncol)
+        ], dtype=float)
+        return w / w.sum()
+
     tbl = ax.table(cellText=rows, colLabels=col_labels,
+                   colWidths=_col_widths(col_labels, rows),
                    cellColours=cell_colors, cellLoc='center', loc='center')
     tbl.auto_set_font_size(False)
     tbl.set_fontsize(fsize - 3)

@@ -14,37 +14,31 @@ from figure_functions import *
 # ------------------------------------------------------------------
 
 def panel_C(ax):
+    # Kill curve panel (matches kill curves/Kill_curve.svg)
     # Load data
-    df = pd.read_csv(os.path.join(root_dir, 'figure1', 'survival_data.csv'))
-    # Define groups and their corresponding columns
-    groups = ['Reg-Arrest', 'Dis-Arrest']
-    avg_cols = [f"{g}_avg" for g in groups]
-    err_cols = [f"{g}_err" for g in groups]
-    labels = ['Short lag', 'Long lag']
-    # Define custom x positions to cluster related groups
-    x_positions = [0.2, 0.6]
-    group_values = [df[col].dropna().values for col in avg_cols]
-    group_errors = [df[err].dropna().values for err in err_cols]
-
-    # Plot individual data points
-    for x, values in zip(x_positions, group_values):
-        ax.scatter([x] * len(values), values, s=10, marker='o', alpha=0.7, color='k')
-
-    # plot error bars
-    for x, values, error in zip(x_positions, group_values, group_errors):
-        ax.errorbar(x, np.mean(values), yerr=np.std(values), fmt='', capsize=3, color='black', label='Mean ± Error')
+    project_dir = os.path.dirname(os.path.dirname(root_dir))
+    df = pd.read_csv(os.path.join(project_dir, 'kill curves', 'Kill_curve.csv'))
+    # Colors matching the reference SVG
+    colors = {'Reg-Arrest': '#0F8554', 'Dis-Arrest': '#CC503E'}
+    labels = {'Reg-Arrest': 'Reg-Arrest', 'Dis-Arrest': 'Dis-Arrest'}
+    for curve in ['Reg-Arrest', 'Dis-Arrest']:
+        sub = df[df['curve'] == curve].sort_values('time_h')
+        x = sub['time_h'].values
+        y = sub['mean_survival_fraction'].values
+        # convert absolute low/high bounds to asymmetric error deltas
+        yerr = np.vstack([y - sub['error_low'].values, sub['error_high'].values - y])
+        ax.errorbar(x, y, yerr=yerr, fmt='o-', markersize=4, capsize=2,
+                    linewidth=1, color=colors[curve], label=labels[curve])
     # Axis and formatting
-    # Custom x-ticks and labels
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(labels, rotation=30, fontsize=fsize-2)
-    ax.set_ylabel('Survival in antibiotics', fontsize=fsize-2,labelpad=1)
     ax.set_yscale('log')
-    # set y tick fontsize
-    ax.tick_params(axis='y', labelsize=fsize-2)
-    ax.set_title(r'Kaplan $\mathit{et. al.}$', fontsize=fsize-2)
-
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
-    ax.set_xlim(0, 0.8)
+    ax.set_xlabel('Time in Ampicillin (h)', fontsize=fsize-1, labelpad=1)
+    ax.set_ylabel('Survival fraction', fontsize=fsize-1, labelpad=1)
+    ax.set_title('Rotem et. al', style='italic', fontsize=fsize-2, pad=2)
+    ax.tick_params(axis='both', labelsize=fsize-2)
+    ax.set_xlim(0, 25)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.legend(fontsize=fsize-3, frameon=False, loc='upper right')
 
 
 def panel_A(axes):
@@ -194,7 +188,7 @@ def panel_E(ax):
                          color=colors[key])
 
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
-    ax.set_ylabel('Survival Function', fontsize=fsize, labelpad=0)
+    ax.set_ylabel('Fraction of arrested bacteria', fontsize=fsize-1, labelpad=0)
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(x_min, x_max)
@@ -274,8 +268,8 @@ fsize = 10
 pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.03,0.03))
 panel_pos = [
     [0.05, 0.68, 0.35, 0.28],  # A
-    [0.5, 0.7, 0.22, 0.26],  # B
-    [0.83, 0.74, 0.15, 0.22],  # C
+    [0.48, 0.7, 0.22, 0.26],  # B
+    [0.8, 0.74, 0.18, 0.22],  # C
     [0.05, 0.37, 0.2, 0.25],  # D
     [0.33, 0.37, 0.22, 0.25],  # E
     [0.05, 0.02, 0.47, 0.28],  # F

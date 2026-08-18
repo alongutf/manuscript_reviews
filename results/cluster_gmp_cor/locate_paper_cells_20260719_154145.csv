@@ -1,0 +1,3 @@
+file,n_found_in_unfiltered,median_total,median_mrna,median_rrna_frac,median_detected_pc,median_rank_by_total,median_rank_by_mrna,pct_in_top1000_by_total,pct_in_top1000_by_mrna
+paper,1000,512.0,24.0,0.9283154121863799,23.0,7701.0,9939.0,6.2,5.5
+umap,1000,2394.5,147.0,0.9282951440166163,127.0,501.5,550.5,99.9,66.4

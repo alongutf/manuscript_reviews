@@ -1,0 +1,36 @@
+{
+  "params": {
+    "n_cells": 1000,
+    "detection_frac": 0.05,
+    "norm_sum": 50,
+    "seed": 0
+  },
+  "results": {
+    "dis1_mrna": {
+      "sample": "dis1",
+      "metric": "mrna",
+      "n_cells": 1000,
+      "n_genes": 427,
+      "mean_total_expression": 79.738,
+      "median_total_expression": 46.0,
+      "mean_genes_detected": 55.78,
+      "gmp_cor": 6.0202459196477465,
+      "lambda_max": 4.560170525269576,
+      "lambda_max_scrambled": 2.755500969192231,
+      "n_modes_above_threshold": 14
+    },
+    "dis2_mrna": {
+      "sample": "dis2",
+      "metric": "mrna",
+      "n_cells": 1000,
+      "n_genes": 427,
+      "mean_total_expression": 166.206,
+      "median_total_expression": 102.5,
+      "mean_genes_detected": 110.863,
+      "gmp_cor": 11.267589886005345,
+      "lambda_max": 6.056196516859267,
+      "lambda_max_scrambled": 2.692742040773228,
+      "n_modes_above_threshold": 19
+    }
+  }
+}

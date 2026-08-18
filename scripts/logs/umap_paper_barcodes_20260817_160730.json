@@ -1,0 +1,80 @@
+{
+  "timestamp": "20260817_160730",
+  "script": "umap_paper_barcodes.py",
+  "barcode_source": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\data_for_paper",
+  "matrix_source": "C:\\Users\\owner\\Documents\\Projects\\rnaseq_correlations\\data",
+  "scanpy_version": "1.9.8",
+  "params": {
+    "normalisation": "uniform target_sum across all samples",
+    "target_sum": 10000.0,
+    "genes_to_remove": [
+      "16s_mature",
+      "16s_unprocessed",
+      "LELOBEKK",
+      "kanR",
+      "mCherry"
+    ],
+    "filter_genes_min_cells": 3,
+    "n_top_genes": 2000,
+    "pca_n_comps": 50,
+    "pca_svd_solver": "arpack",
+    "n_neighbors": 40,
+    "n_pcs": 40,
+    "umap_min_dist": 0.3,
+    "random_state": 0,
+    "leiden_resolution": 0.4,
+    "rank_genes_method": "wilcoxon"
+  },
+  "samples": {
+    "sample_2b": {
+      "n_cells": 1041,
+      "n_genes_in": 4141,
+      "target_sum": 10000.0,
+      "median_total_counts": 1287.0
+    },
+    "sample_13a": {
+      "n_cells": 1000,
+      "n_genes_in": 4180,
+      "target_sum": 10000.0,
+      "median_total_counts": 699.0
+    },
+    "sample_15a": {
+      "n_cells": 1000,
+      "n_genes_in": 4184,
+      "target_sum": 10000.0,
+      "median_total_counts": 512.0
+    },
+    "sample_13b": {
+      "n_cells": 1000,
+      "n_genes_in": 4184,
+      "target_sum": 10000.0,
+      "median_total_counts": 300.0
+    },
+    "sample_15b": {
+      "n_cells": 1000,
+      "n_genes_in": 4209,
+      "target_sum": 10000.0,
+      "median_total_counts": 330.0
+    }
+  },
+  "n_cells_total": 5041,
+  "n_hvg": 2000,
+  "cells_per_batch": {
+    "exp": 1041,
+    "dis1": 1000,
+    "dis2": 1000,
+    "reg1": 1000,
+    "reg2": 1000
+  },
+  "cells_per_cluster": {
+    "0": 2803,
+    "1": 1783,
+    "2": 455
+  },
+  "outputs": {
+    "coordinates": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\scanpy\\umap_coordinates_shx_paper_barcodes_20260817_160730.csv",
+    "figure_svg": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\scanpy\\umap_shx_paper_barcodes_20260817_160730.svg",
+    "figure_png": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\scanpy\\umap_shx_paper_barcodes_20260817_160730.png",
+    "markers": "C:\\Users\\owner\\Documents\\Projects\\manuscript_reviews\\scanpy\\marker_genes_shx_paper_barcodes_20260817_160730.xlsx"
+  }
+}

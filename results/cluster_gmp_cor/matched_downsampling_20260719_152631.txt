@@ -1,0 +1,25 @@
+Matched downsampling: equal p, n and per-cell depth within source
+generated 20260719_152631
+dropped genes: ['16s_mature', '16s_unprocessed', 'mCherry']
+reps: 3
+
+h5ad: {"n_common_genes": 4041, "target_umi": 73, "target_n_cells": 500, "median_depth_per_sample": {"exp": 114.0, "dis1": 73.0, "dis2": 186.5, "reg1": 83.0, "reg2": 110.5}, "cells_available_per_sample": {"exp": 717, "dis1": 500, "dis2": 839, "reg1": 557, "reg2": 660}}
+paper: {"n_common_genes": 1096, "target_umi": 25, "target_n_cells": 509, "median_depth_per_sample": {"exp": 74.0, "dis1": 36.0, "dis2": 25.0, "reg1": 64.0, "reg2": 75.5}, "cells_available_per_sample": {"exp": 994, "dis1": 661, "dis2": 509, "reg1": 778, "reg2": 835}}
+
+        mean         std      
+source  h5ad paper  h5ad paper
+batch                         
+exp     1.44  0.30  0.11  0.26
+dis1   37.51  3.77 11.18  1.19
+dis2   10.91  1.56  0.12  1.27
+reg1   54.38  2.91  7.06  0.86
+reg2   34.93  2.25 10.78  1.43
+
+       mean_genes_detected      
+source                h5ad paper
+batch                           
+exp                   46.8  14.8
+dis1                  49.7  17.0
+dis2                  53.5  16.3
+reg1                  35.6  11.4
+reg2                  38.9  12.3

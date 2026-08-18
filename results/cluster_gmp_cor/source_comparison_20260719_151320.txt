@@ -1,0 +1,57 @@
+Source comparison: h5ad vs data_for_paper
+generated 20260719_151320
+dropped genes: ['16s_mature', '16s_unprocessed', 'mCherry']
+
+   dataset  n_cells  n_genes  aspect_p_over_n  mean_total_expression  cv_total_expression  mean_genes_detected  frac_nonzero top1_gene  top1_pct_counts  top5_pct_counts
+  exp:h5ad     1002     4041            4.033                198.665                1.399              139.370         0.034     tmRNA           20.281           21.883
+ exp:paper     1041     2071            1.989                146.930                1.012              100.730         0.049     tmRNA           23.118           25.398
+ dis1:h5ad      994     4041            4.065                142.358                1.918               98.402         0.024     tmRNA            9.233           13.376
+dis1:paper     1000     2042            2.042                 90.139                1.615               63.164         0.031     tmRNA           10.800           15.513
+ dis2:h5ad     1000     4041            4.041                323.457                1.477              214.677         0.053     tmRNA           10.613           14.765
+dis2:paper     1000     2042            2.042                 50.409                1.844               39.195         0.019     tmRNA           13.910           19.741
+ reg1:h5ad      999     4041            4.045                148.379                2.667               73.016         0.018     tmRNA           36.927           38.225
+reg1:paper     1000     2023            2.023                120.081                1.468               59.081         0.029     tmRNA           37.805           39.609
+ reg2:h5ad     1000     4041            4.041                216.186                1.896              119.490         0.030     tmRNA           32.761           34.636
+reg2:paper     1000     2023            2.023                165.098                1.649               87.427         0.043     tmRNA           35.510           37.934
+
+   dataset  frac_nonzero  lambda_max  lambda_max_scrambled  n_modes_above_threshold  top_mode_share_of_gmp  gmp_cor
+  exp:h5ad         0.034      24.137                 9.376                       21                  0.444   33.234
+ exp:paper         0.049      19.409                 6.060                       25                  0.399   33.470
+ dis1:h5ad         0.024      28.938                 9.961                       14                  0.404   46.914
+dis1:paper         0.031       8.242                 6.526                        5                  0.597    2.875
+ dis2:h5ad         0.053      14.292                 9.502                       24                  0.179   26.748
+dis2:paper         0.019       6.095                 6.184                        0                    NaN    0.000
+ reg1:h5ad         0.018      30.104                 9.991                       25                  0.234   85.779
+reg1:paper         0.029      14.259                 6.520                       13                  0.343   22.536
+ reg2:h5ad         0.030      22.043                 9.909                       22                  0.299   40.642
+reg2:paper         0.043      17.282                 6.346                       19                  0.376   29.081
+
+source   h5ad  paper  ratio_h5ad_over_paper
+batch                                      
+exp    33.234 33.470                  0.993
+dis1   46.914  2.875                 16.320
+dis2   26.748  0.000                    inf
+reg1   85.779 22.536                  3.806
+reg2   40.642 29.081                  1.398
+
+Spearman corr with GMP-Cor:
+lambda_max                        0.964
+n_modes_above_threshold           0.705
+n_genes                           0.664
+lambda_max_scrambled              0.636
+bulk_mean_eigenvalue             -0.612
+genes_all_zero                    0.558
+aspect_p_over_n                   0.538
+mean_total_expression             0.455
+mean_genes_detected               0.442
+cv_total_expression               0.406
+median_total_expression           0.345
+n_cells                          -0.314
+top_mode_share_of_gmp            -0.233
+mean_gene_fano                    0.212
+frac_nonzero                     -0.176
+fraction_non_zero_after_filter   -0.176
+top5_pct_counts                   0.152
+top1_pct_counts                   0.152
+mean_gene_mean                   -0.055
+top20_pct_counts                 -0.042

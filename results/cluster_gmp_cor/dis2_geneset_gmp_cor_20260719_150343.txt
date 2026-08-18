@@ -1,0 +1,10 @@
+GMP-Cor on all dis2 cells, 2000-gene selections
+generated 20260719_150343
+source C:\Users\owner\Documents\Projects\manuscript_reviews\data\scanpy_shx.h5ad layers["counts"]
+dropped genes: ['tmRNA', 'tetR', 'mCherry']
+gene-set overlaps: {'max_expr|mean_expr': 1563, 'max_expr|fano': 1650, 'mean_expr|fano': 1471}
+
+           n_genes  mean_total_expression  pct_of_all_counts_retained  mean_gene_fano  lambda_max  lambda_max_scrambled  gmp_cor
+max_expr  2000.000                251.136                      87.931           1.316      10.709                 5.944   55.089
+mean_expr 2000.000                263.099                      92.120           1.273      10.272                 5.899   71.195
+fano      2000.000                246.590                      86.340           1.317      11.632                 5.934   57.707

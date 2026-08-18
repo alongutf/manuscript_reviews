@@ -1,0 +1,3 @@
+sample,metric,n_cells,n_genes,mean_total_expression,median_total_expression,mean_genes_detected,gmp_cor,lambda_max,lambda_max_scrambled,n_modes_above_threshold
+dis1,mrna,1000,427,79.738,46.0,55.78,6.0202459196477465,4.560170525269576,2.755500969192231,14
+dis2,mrna,1000,427,166.206,102.5,110.863,11.267589886005345,6.056196516859267,2.692742040773228,19

@@ -1,0 +1,7 @@
+candidate,n_cells,n_genes,mean_total,median_total,min_total,mean_detected,overlap_paper,pct_of_paper,overlap_umap,pct_of_umap
+"paper-path umi(100,2000,target=None) on mRNA",937,1855,217.37566702241196,134.0,68.0,162.2540021344717,52,5.2,646,64.6
+"paper-path umi(100,2000,target=1000) on mRNA",1000,1871,211.374,130.0,70.0,158.783,56,5.6,659,65.9
+"paper-path umi(400,20000,target=None) on mRNA",150,1460,642.6,462.5,225.0,342.41333333333336,5,0.5,147,14.7
+"umap-path  umi(200,20000,target=None) on TOTAL",73601,3151,392.6876808739012,311.0,198.0,25.678944579557342,1000,100.0,960,96.0
+"umap-path  umi(200,20000,target=1000) on TOTAL",999,2123,3563.7187187187187,2233.0,1337.0,161.27327327327328,63,6.3,960,96.0
+"umap-path  umi(400,20000,target=1000) on TOTAL",999,2123,3563.7187187187187,2233.0,1337.0,161.27327327327328,63,6.3,960,96.0

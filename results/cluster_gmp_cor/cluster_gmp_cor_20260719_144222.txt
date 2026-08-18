@@ -1,0 +1,22 @@
+GMP-Cor per sample x leiden cluster (SHX)
+generated 20260719_144222
+
+Barcode match rate, data_for_paper vs scanpy_shx.h5ad:
+batch                    file  n_cells_matrix  n_cells_h5ad  n_matched  match_rate_vs_matrix
+  exp  sample_2b_filtered.csv            1041          1002        986                0.9472
+ dis1 sample_13a_filtered.csv            1000           994        632                0.6320
+ dis2 sample_15a_filtered.csv            1000          1000         62                0.0620
+ reg1 sample_13b_filtered.csv            1000           999        994                0.9940
+ reg2 sample_15b_filtered.csv            1000          1000        874                0.8740
+
+Groups with >= 100 matched cells:
+batch leiden  n_cells  mean_total_expression  gmp_cor_native  gmp_cor_common
+  exp      0      522             220.392720       34.769839       20.437716
+  exp      2      275              48.901818       12.296596        5.794318
+  exp      4      164             112.457317        9.542438        1.104645
+ dis1      1      285             206.133333       36.395815       12.539263
+ dis1      3      236              43.495763        3.166883        0.000000
+ reg1      0      475             200.172632       69.466250       32.763569
+ reg1      2      415              45.677108        7.730433        2.867546
+ reg2      0      406             305.177340       85.445963       46.917093
+ reg2      2      344              54.781977       31.534991        9.402190

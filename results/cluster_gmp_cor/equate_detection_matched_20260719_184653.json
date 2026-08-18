@@ -1,0 +1,438 @@
+{
+  "params": {
+    "umi_min": 400,
+    "umi_max": 20000,
+    "min_dispersion": 1.0,
+    "target_cells": 1000,
+    "n_bins": 40,
+    "reps": 5,
+    "norm_sum": 50,
+    "seed": 0,
+    "match_variable": "genes_detected",
+    "match_scope": "within replicate pair"
+  },
+  "results": [
+    {
+      "sample": "dis1",
+      "pair": "dis1+dis2",
+      "rep": 0,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 65.35,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1153.182,
+      "median_depth": 672.5,
+      "lambda_max": 59.395356102602236,
+      "lambda_max_scrambled": 6.224019857134804,
+      "gmp_cor": 260.8857249774041
+    },
+    {
+      "sample": "dis2",
+      "pair": "dis1+dis2",
+      "rep": 0,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 64.205,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1077.536,
+      "median_depth": 565.0,
+      "lambda_max": 27.29533878385882,
+      "lambda_max_scrambled": 6.227626922076523,
+      "gmp_cor": 128.3509490719595
+    },
+    {
+      "sample": "reg1",
+      "pair": "reg1+reg2",
+      "rep": 0,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 116.75618374558304,
+      "median_genes_detected": 79.0,
+      "mean_depth": 1109.7491166077739,
+      "median_depth": 619.0,
+      "lambda_max": 61.774715438289014,
+      "lambda_max_scrambled": 12.731732712892358,
+      "gmp_cor": 256.2473511715486
+    },
+    {
+      "sample": "reg2",
+      "pair": "reg1+reg2",
+      "rep": 0,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 118.06713780918727,
+      "median_genes_detected": 80.0,
+      "mean_depth": 1013.2367491166078,
+      "median_depth": 643.0,
+      "lambda_max": 90.31775414018178,
+      "lambda_max_scrambled": 12.763654211371382,
+      "gmp_cor": 396.2202440611027
+    },
+    {
+      "sample": "dis1",
+      "pair": "dis1+dis2",
+      "rep": 1,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 64.26,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1174.987,
+      "median_depth": 680.5,
+      "lambda_max": 73.57207418589088,
+      "lambda_max_scrambled": 6.479679904853427,
+      "gmp_cor": 273.14662462244183
+    },
+    {
+      "sample": "dis2",
+      "pair": "dis1+dis2",
+      "rep": 1,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 64.613,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1073.254,
+      "median_depth": 547.5,
+      "lambda_max": 33.75399149219192,
+      "lambda_max_scrambled": 6.271464378766062,
+      "gmp_cor": 118.05967640226527
+    },
+    {
+      "sample": "reg1",
+      "pair": "reg1+reg2",
+      "rep": 1,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 116.773851590106,
+      "median_genes_detected": 79.0,
+      "mean_depth": 1107.8409893992932,
+      "median_depth": 624.0,
+      "lambda_max": 60.473432434841186,
+      "lambda_max_scrambled": 12.716163731231083,
+      "gmp_cor": 251.7515346605196
+    },
+    {
+      "sample": "reg2",
+      "pair": "reg1+reg2",
+      "rep": 1,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 119.91872791519435,
+      "median_genes_detected": 80.0,
+      "mean_depth": 952.5053003533569,
+      "median_depth": 610.0,
+      "lambda_max": 88.05465817006349,
+      "lambda_max_scrambled": 12.633120399890492,
+      "gmp_cor": 431.1398589343631
+    },
+    {
+      "sample": "dis1",
+      "pair": "dis1+dis2",
+      "rep": 2,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 65.148,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1214.614,
+      "median_depth": 676.0,
+      "lambda_max": 74.95545632665618,
+      "lambda_max_scrambled": 6.456790331993249,
+      "gmp_cor": 285.94494829681844
+    },
+    {
+      "sample": "dis2",
+      "pair": "dis1+dis2",
+      "rep": 2,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 62.775,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1062.513,
+      "median_depth": 575.0,
+      "lambda_max": 39.638347310802914,
+      "lambda_max_scrambled": 6.3190363722895775,
+      "gmp_cor": 177.18086290617555
+    },
+    {
+      "sample": "reg1",
+      "pair": "reg1+reg2",
+      "rep": 2,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 116.75265017667844,
+      "median_genes_detected": 79.0,
+      "mean_depth": 1108.1378091872791,
+      "median_depth": 624.0,
+      "lambda_max": 61.19337564711465,
+      "lambda_max_scrambled": 12.848137720479954,
+      "gmp_cor": 246.12850693750102
+    },
+    {
+      "sample": "reg2",
+      "pair": "reg1+reg2",
+      "rep": 2,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 120.12367491166077,
+      "median_genes_detected": 80.0,
+      "mean_depth": 916.7102473498234,
+      "median_depth": 621.0,
+      "lambda_max": 89.38301871362243,
+      "lambda_max_scrambled": 12.48523661905849,
+      "gmp_cor": 416.9289726303921
+    },
+    {
+      "sample": "dis1",
+      "pair": "dis1+dis2",
+      "rep": 3,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 65.519,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1207.029,
+      "median_depth": 688.0,
+      "lambda_max": 77.79150933702775,
+      "lambda_max_scrambled": 6.399302353853981,
+      "gmp_cor": 288.068460402219
+    },
+    {
+      "sample": "dis2",
+      "pair": "dis1+dis2",
+      "rep": 3,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 62.528,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1102.834,
+      "median_depth": 573.5,
+      "lambda_max": 41.153084449491146,
+      "lambda_max_scrambled": 6.187614734244993,
+      "gmp_cor": 194.88853748397926
+    },
+    {
+      "sample": "reg1",
+      "pair": "reg1+reg2",
+      "rep": 3,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 116.76678445229682,
+      "median_genes_detected": 79.0,
+      "mean_depth": 1105.0565371024734,
+      "median_depth": 632.0,
+      "lambda_max": 60.9702329205509,
+      "lambda_max_scrambled": 12.63120517053654,
+      "gmp_cor": 255.1705465857073
+    },
+    {
+      "sample": "reg2",
+      "pair": "reg1+reg2",
+      "rep": 3,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 115.70671378091873,
+      "median_genes_detected": 80.0,
+      "mean_depth": 1010.773851590106,
+      "median_depth": 639.0,
+      "lambda_max": 79.86507693275018,
+      "lambda_max_scrambled": 12.576227299657479,
+      "gmp_cor": 381.8926442108045
+    },
+    {
+      "sample": "dis1",
+      "pair": "dis1+dis2",
+      "rep": 4,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 64.896,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1187.522,
+      "median_depth": 668.0,
+      "lambda_max": 65.2992099114772,
+      "lambda_max_scrambled": 6.267070695854444,
+      "gmp_cor": 244.8274095848838
+    },
+    {
+      "sample": "dis2",
+      "pair": "dis1+dis2",
+      "rep": 4,
+      "n_cells": 1000,
+      "n_genes": 2046,
+      "mean_genes_detected": 64.437,
+      "median_genes_detected": 39.0,
+      "mean_depth": 1138.255,
+      "median_depth": 565.0,
+      "lambda_max": 43.156084019714996,
+      "lambda_max_scrambled": 6.4156997048233295,
+      "gmp_cor": 208.76315765714946
+    },
+    {
+      "sample": "reg1",
+      "pair": "reg1+reg2",
+      "rep": 4,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 116.74911660777386,
+      "median_genes_detected": 79.0,
+      "mean_depth": 1106.2579505300353,
+      "median_depth": 604.0,
+      "lambda_max": 61.72764816860424,
+      "lambda_max_scrambled": 12.965196148532522,
+      "gmp_cor": 239.4985548237332
+    },
+    {
+      "sample": "reg2",
+      "pair": "reg1+reg2",
+      "rep": 4,
+      "n_cells": 283,
+      "n_genes": 1800,
+      "mean_genes_detected": 117.7844522968198,
+      "median_genes_detected": 80.0,
+      "mean_depth": 954.095406360424,
+      "median_depth": 628.0,
+      "lambda_max": 88.22696060563058,
+      "lambda_max_scrambled": 12.725563265492559,
+      "gmp_cor": 401.34439409873863
+    }
+  ],
+  "overlaps": [
+    {
+      "sample": "dis1",
+      "rep": 0,
+      "n_new": 1000,
+      "shared_with_published": 625,
+      "pct_of_published_retained": 62.5
+    },
+    {
+      "sample": "dis2",
+      "rep": 0,
+      "n_new": 1000,
+      "shared_with_published": 71,
+      "pct_of_published_retained": 7.1
+    },
+    {
+      "sample": "reg1",
+      "rep": 0,
+      "n_new": 283,
+      "shared_with_published": 280,
+      "pct_of_published_retained": 28.0
+    },
+    {
+      "sample": "reg2",
+      "rep": 0,
+      "n_new": 283,
+      "shared_with_published": 252,
+      "pct_of_published_retained": 25.2
+    },
+    {
+      "sample": "dis1",
+      "rep": 1,
+      "n_new": 1000,
+      "shared_with_published": 620,
+      "pct_of_published_retained": 62.0
+    },
+    {
+      "sample": "dis2",
+      "rep": 1,
+      "n_new": 1000,
+      "shared_with_published": 63,
+      "pct_of_published_retained": 6.3
+    },
+    {
+      "sample": "reg1",
+      "rep": 1,
+      "n_new": 283,
+      "shared_with_published": 280,
+      "pct_of_published_retained": 28.0
+    },
+    {
+      "sample": "reg2",
+      "rep": 1,
+      "n_new": 283,
+      "shared_with_published": 243,
+      "pct_of_published_retained": 24.3
+    },
+    {
+      "sample": "dis1",
+      "rep": 2,
+      "n_new": 1000,
+      "shared_with_published": 647,
+      "pct_of_published_retained": 64.7
+    },
+    {
+      "sample": "dis2",
+      "rep": 2,
+      "n_new": 1000,
+      "shared_with_published": 75,
+      "pct_of_published_retained": 7.5
+    },
+    {
+      "sample": "reg1",
+      "rep": 2,
+      "n_new": 283,
+      "shared_with_published": 280,
+      "pct_of_published_retained": 28.0
+    },
+    {
+      "sample": "reg2",
+      "rep": 2,
+      "n_new": 283,
+      "shared_with_published": 240,
+      "pct_of_published_retained": 24.0
+    },
+    {
+      "sample": "dis1",
+      "rep": 3,
+      "n_new": 1000,
+      "shared_with_published": 630,
+      "pct_of_published_retained": 63.0
+    },
+    {
+      "sample": "dis2",
+      "rep": 3,
+      "n_new": 1000,
+      "shared_with_published": 59,
+      "pct_of_published_retained": 5.9
+    },
+    {
+      "sample": "reg1",
+      "rep": 3,
+      "n_new": 283,
+      "shared_with_published": 280,
+      "pct_of_published_retained": 28.0
+    },
+    {
+      "sample": "reg2",
+      "rep": 3,
+      "n_new": 283,
+      "shared_with_published": 243,
+      "pct_of_published_retained": 24.3
+    },
+    {
+      "sample": "dis1",
+      "rep": 4,
+      "n_new": 1000,
+      "shared_with_published": 619,
+      "pct_of_published_retained": 61.9
+    },
+    {
+      "sample": "dis2",
+      "rep": 4,
+      "n_new": 1000,
+      "shared_with_published": 56,
+      "pct_of_published_retained": 5.6
+    },
+    {
+      "sample": "reg1",
+      "rep": 4,
+      "n_new": 283,
+      "shared_with_published": 280,
+      "pct_of_published_retained": 28.0
+    },
+    {
+      "sample": "reg2",
+      "rep": 4,
+      "n_new": 283,
+      "shared_with_published": 245,
+      "pct_of_published_retained": 24.5
+    }
+  ]
+}

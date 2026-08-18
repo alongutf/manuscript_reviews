@@ -1,0 +1,38 @@
+GMP-Cor per sample, 2000-gene selections
+generated 20260719_150727
+source C:\Users\owner\Documents\Projects\manuscript_reviews\data\scanpy_shx.h5ad layers["counts"]
+dropped genes: ['tmRNA', 'tetR', 'mCherry']
+
+batch selection  n_cells  mean_total_expression  pct_of_all_counts_retained  mean_gene_fano  lambda_max  lambda_max_scrambled   gmp_cor
+  exp  max_expr     1002             132.982036                   84.692243        1.253169   14.213140              6.192396 17.497776
+  exp mean_expr     1002             141.579840                   90.167925        1.198673   15.007442              6.022819 30.162398
+  exp      fano     1002             133.319361                   84.907075        1.232208   14.152314              6.056710 22.691748
+ dis1  max_expr      994             113.073441                   88.438720        1.528726   10.232847              6.325474 12.429360
+ dis1 mean_expr      994             117.898390                   92.212483        1.446149   11.057555              6.308117 13.965359
+ dis1      fano      994             116.966801                   91.483854        1.428834   11.167675              6.509507 12.081852
+ dis2  max_expr     1000             251.136000                   87.931234        1.315556   10.708740              5.980174 53.301383
+ dis2 mean_expr     1000             263.099000                   92.119886        1.272956   10.272342              6.004207 64.963987
+ dis2      fano     1000             246.590000                   86.339525        1.317155   11.633716              5.998475 55.193915
+ reg1  max_expr      999              79.775776                   86.309930        1.739246    9.980621              6.613708  8.387420
+ reg1 mean_expr      999              84.118118                   91.007938        1.625490   10.613470              6.604442  9.942710
+ reg1      fano      999              83.236236                   90.053825        1.575560   10.609056              6.393410 11.448814
+ reg2  max_expr     1000             113.797000                   79.291652        1.530009   11.181731              6.472778  7.427910
+ reg2 mean_expr     1000             123.490000                   86.045556        1.445504   12.201137              6.357724 10.037258
+ reg2      fano     1000             113.146000                   78.838047        1.508554   11.163932              6.393669  7.324166
+
+GMP-Cor by sample x selection:
+selection  fano  max_expr  mean_expr
+batch                               
+exp       22.69     17.50      30.16
+dis1      12.08     12.43      13.97
+dis2      55.19     53.30      64.96
+reg1      11.45      8.39       9.94
+reg2       7.32      7.43      10.04
+
+gene-set overlaps (of 2000):
+      max_expr|mean_expr  max_expr|fano  mean_expr|fano
+exp                 1613           1748            1686
+dis1                1595           1583            1877
+dis2                1563           1649            1471
+reg1                1645           1573            1869
+reg2                1554           1648            1591

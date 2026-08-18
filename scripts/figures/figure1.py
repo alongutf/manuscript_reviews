@@ -152,9 +152,9 @@ def panel_B(axes):
 def panel_E(ax):
     # scanlag plot:
     data_dir = os.path.join(os.path.dirname(os.path.dirname(root_dir)), 'scanlag_data', 'exp2')
-    x_min = 40
+    x_min = 0
     x_max = 4000
-    n_points = 100
+    n_points = 400
     n_reps = 3
     interp_data = {'Exponential': [], 'Reg-Arrest': [], 'Dis-Arrest': []}
     colors = {'Exponential': '#9ecae1', 'Reg-Arrest': '#31a354', 'Dis-Arrest': '#a50f15'}
@@ -189,9 +189,9 @@ def panel_E(ax):
 
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
     ax.set_ylabel('Fraction of arrested bacteria', fontsize=fsize-1, labelpad=0)
-    ax.set_xscale('log')
+    #ax.set_xscale('log')
     ax.set_yscale('log')
-    ax.set_xlim(x_min, x_max)
+    ax.set_xlim(0, 2500)
     #ax.set_xticks([10, 100, 1000])
     #ax.set_xticklabels([10, 100, 1000])
     # set tick fontsize
@@ -211,7 +211,7 @@ def panel_G(ax):
     # Load data
     # project directory
     project_dir = os.path.dirname(os.path.dirname(root_dir))
-    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates.csv'), index_col=0,
+    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates_shx_paper_barcodes_20260818_142615.csv'), index_col=0,
                        header=0)
     # scatter plot
     exp_data = data[data['batch'] == 'exp']
@@ -222,7 +222,7 @@ def panel_G(ax):
     ax.scatter(dis_data.UMAP_1, dis_data.UMAP_2, color=colors[2], alpha=.6, s=.5, label='Dis-Arrest (SHX)')
     ax.scatter(reg_data.UMAP_1, reg_data.UMAP_2, color=colors[1], alpha=.6, s=.5, label='Reg-Arrest')
     #ax.scatter(exp_data.UMAP_1, exp_data.UMAP_2, color=colors[0], alpha=.6, s=.5, label='Exponential')
-    ax.legend(fontsize=fsize-2, loc='upper right', bbox_to_anchor=(1.2,1), markerscale=4, frameon=False)
+    ax.legend(fontsize=fsize-2, loc='upper left', markerscale=4, frameon=False)
     ax.grid(False)
     ax.set_xlabel('UMAP1', fontsize=fsize-2)
     ax.set_ylabel('UMAP2', fontsize=fsize-2)
@@ -239,7 +239,7 @@ def panel_H(ax):
     # Load data
     # project directory
     project_dir = os.path.dirname(os.path.dirname(root_dir))
-    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates.csv'), index_col=0,
+    data = pd.read_csv(os.path.join(project_dir, 'scanpy', 'umap_coordinates_shx_paper_barcodes_20260818_142615.csv'), index_col=0,
                        header=0)
     # scatter plot
     colors = ['#8073ac', '#b2182b', '#d6604d', '#4393c3', '#92c5de']

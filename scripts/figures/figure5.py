@@ -28,6 +28,25 @@ def _load_svg_image(svg_path):
     return None
 
 
+def _read_norm_block(sheet, label, n_reps=3, n_times=5):
+    """Return (times, replicates) for a *normalised* MPN block, located by its row label.
+
+    Some labels occur twice in the sheet — once for the raw MPN counts and once for the
+    ratios normalised to each replicate's own t=0. The normalised block is the one whose
+    t=0 row is exactly 1 for every replicate.
+    """
+    rows = np.where(sheet[0].astype(str).str.strip() == label)[0]
+    for r in rows:
+        block = (sheet.iloc[r + 1:r + 1 + n_times, 0:1 + n_reps]
+                 .apply(pd.to_numeric, errors='coerce').dropna())
+        if len(block) == 0:
+            continue
+        reps = block.iloc[:, 1:].to_numpy(dtype=float)
+        if np.allclose(reps[0], 1.0):
+            return block.iloc[:, 0].to_numpy(dtype=float), reps
+    raise ValueError(f'no normalised block labelled {label!r} in the MPN sheet')
+
+
 def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     arr = np.load(os.path.join(ev_data_dir, npy_file))
     data1 = arr[0, :];  data1 = data1[data1 > 0]
@@ -117,6 +136,65 @@ def panel_A(ax):
 
 
 def panel_B(ax):
+    """Kill curve: VapC cells vs. control, in the same format as figure 1C.
+
+    Survival fractions are ratios spanning several decades, so the panel plots the
+    geometric mean with multiplicative geometric-SD whiskers (GM/GSD to GM*GSD). An
+    arithmetic mean +/- SD is unusable here: at 48 h the VapC point is 0.0069 +/- 0.0070,
+    putting the lower bound below zero, which cannot be drawn on a log axis.
+
+    GM and GSD are computed directly from the three biological replicates (sample SD of
+    the logs, ddof=1). `kill curves/VapC.xlsx` holds the same curves but only as summary
+    mean/SD, so it is not used here.
+    """
+    path = os.path.join(root_dir, 'kill curves', '20260719_VIGA24h_TolwoATC_Prep.xlsx')
+    sheet = pd.read_excel(path, sheet_name='MPN', header=None)
+
+    floor = 1e-5  # detection limit; points below it get a label only, no marker or line
+    series = [
+        ('CASP dilAMP (20260705)', 'Reg-Arrest', '#2166ac'),
+        ('Norm. vapC dilAMP', 'VapC 24h', '#b2182b'),
+    ]
+    for block_label, label, color in series:
+        x, reps = _read_norm_block(sheet, block_label)
+        # a replicate of exactly 0 is an undetected plating, not a real zero: it has no
+        # logarithm, so the time point is treated as below the detection limit
+        measurable = (reps > 0).all(axis=1)
+        gm = np.full(len(x), np.nan)
+        gsd = np.full(len(x), np.nan)
+        log_reps = np.log(reps[measurable])
+        gm[measurable] = np.exp(log_reps.mean(axis=1))
+        gsd[measurable] = np.exp(log_reps.std(axis=1, ddof=1))
+
+        detected = measurable & (gm >= floor)
+        # multiplicative whiskers: GM / GSD  to  GM * GSD
+        yerr = np.vstack([gm[detected] * (1 - 1 / gsd[detected]),
+                          gm[detected] * (gsd[detected] - 1)])
+        ax.errorbar(x[detected], gm[detected], yerr=yerr, fmt='o-', markersize=4,
+                    capsize=2, linewidth=1, color=color, label=label)
+
+        censored = ~detected
+        if censored.any():
+            # below the detection limit: label only, so the curve ends at the last
+            # measurable point instead of being drawn down onto the axis cut-off
+            ax.text(x[censored].min(), floor, r'$<10^{-5}$', fontsize=fsize - 2,
+                    color=color, ha='center', va='bottom')
+
+    ax.set_yscale('log')
+    #ax.set_ylim(floor * 0.6, 4)
+    #ax.set_yticks([1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1])
+    ax.set_xlim(-1, 50)
+    ax.set_xticks([0, 24, 48])
+    ax.set_xlabel('Time in Ampicillin (h)', fontsize=fsize - 2, labelpad=0)
+    ax.set_ylabel('Survival fraction', fontsize=fsize - 2, labelpad=0)
+    ax.tick_params(axis='both', labelsize=fsize - 2)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.legend(fontsize=fsize - 3, frameon=False, loc='upper right', handlelength=1.2,
+              borderpad=0.1, labelspacing=0.2, handletextpad=0.4)
+
+
+def panel_C(ax):
     data = pd.read_csv(os.path.join(root_dir, 'scanpy', 'umap_coordinates_vapc.csv'), index_col=0,
                        header=0)
 
@@ -137,7 +215,7 @@ def panel_B(ax):
     ax.set_xticks([])
     ax.set_yticks([])
 
-def panel_C(ax):
+def panel_D(ax):
     # UMAP panel:
     # Load data
     # project directory
@@ -159,14 +237,14 @@ def panel_C(ax):
     ax.set_xticks([])
     ax.set_yticks([])
 
-def panel_D(ax):
+def panel_E(ax):
     _plot_ccdf(ax, 'VapC_biorep_t2A_filtered.npy', 'Early VapC (2h)', signal_color=REG_COLOR)
 
 
-def panel_E(ax):
+def panel_F(ax):
     _plot_ccdf(ax, 'VapC_biorep_tONA_filtered.npy', 'Late VapC (24h)', signal_color=DIS_COLOR)
 
-def panel_F(ax):
+def panel_G(ax):
     data = pd.read_csv(os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv'), index_col=0)
     sample_map = [
         ('Expira_biorep_t0A_filtered.csv', 'Exponential', '#4393c3'),
@@ -194,7 +272,7 @@ def panel_F(ax):
     ax.set_xlim([positions[0] - gap_between_bars/2, positions[-1] + gap_between_bars/2])
 
 
-def panel_G(ax):
+def panel_H(ax):
     path = os.path.join(root_dir,'scripts','figures','figure5','normalizedOD_at_20h.csv')
     data = pd.read_csv(path, header=0,
                        index_col=0)
@@ -273,7 +351,7 @@ def panel_G(ax):
 
 
 
-def panel_H(ax):
+def panel_I(ax):
     # vapc lag time distribution
     # Load the data
     conditions = ['CTRLt0', 'CTRLt1400', 'VAPCt240', 'VAPCt1400']
@@ -314,14 +392,15 @@ REG_COLOR = 'steelblue'
 DIS_COLOR = '#E07B54'
 pf = PanelFigure(figsize=(7, 6), label_offset=(0, 0.03))
 panel_pos = [
-    [0.075, 0.7, 0.5, 0.24],  # A
-    [0.075, 0.45, 0.24, 0.2],  # B
-    [0.4, 0.45, 0.24, 0.2],  # C
-    [0.075, 0.08, 0.24, 0.28],  # D
-    [0.4, 0.08, 0.24, 0.28],  # E
-    [0.7, 0.72, 0.275, 0.22],  # F
-    [0.7, 0.41, 0.275, 0.22],  # G
-    [0.7, 0.08, 0.275, 0.22],  # H
+    [0.01, 0.7, 0.34, 0.24],  # A
+    [0.42, 0.74, 0.21, 0.2],  # B
+    [0.075, 0.45, 0.24, 0.2],  # C
+    [0.4, 0.45, 0.24, 0.2],  # D
+    [0.075, 0.08, 0.24, 0.28],  # E
+    [0.4, 0.08, 0.24, 0.28],  # F
+    [0.7, 0.72, 0.275, 0.22],  # G
+    [0.7, 0.41, 0.275, 0.22],  # H
+    [0.7, 0.08, 0.275, 0.22],  # I
 ]
 # panel A:
 pf.add_panel(panel_pos[0], draw_func=panel_A)
@@ -329,15 +408,17 @@ pf.add_panel(panel_pos[0], draw_func=panel_A)
 pf.add_panel(panel_pos[1], draw_func=panel_B)
 # panel C:
 pf.add_panel(panel_pos[2], draw_func=panel_C)
-# panel C:
-pf.add_panel(panel_pos[3], draw_func=panel_D)
 # panel D:
-pf.add_panel(panel_pos[4], draw_func=panel_E)
+pf.add_panel(panel_pos[3], draw_func=panel_D)
 # panel E:
-pf.add_panel(panel_pos[5], draw_func=panel_F)
+pf.add_panel(panel_pos[4], draw_func=panel_E)
 # panel F:
-pf.add_panel(panel_pos[6], draw_func=panel_G)
+pf.add_panel(panel_pos[5], draw_func=panel_F)
 # panel G:
+pf.add_panel(panel_pos[6], draw_func=panel_G)
+# panel H:
 pf.add_panel(panel_pos[7], draw_func=panel_H)
+# panel I:
+pf.add_panel(panel_pos[8], draw_func=panel_I)
 pf.save("figure5.pdf", dpi=300)
 plt.show()

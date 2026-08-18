@@ -336,8 +336,8 @@ def panel_C(ax):
 
 def panel_D(ax):
     data_dir = os.path.join(root_dir, 'scanlag_data', 'bulk time in shx')
-    x_min = 50
-    x_max = 3000
+    x_min = 0
+    x_max = 2000
     cmap = plt.get_cmap('Reds')
     v_min = -400
     v_max = 2200
@@ -372,7 +372,7 @@ def panel_D(ax):
 
     ax.set_xlabel('Lag time(min)', fontsize=fsize - 2)
     ax.set_ylabel('Survival Function', fontsize=fsize, labelpad=0)
-    ax.set_xscale('log')
+    #ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(x_min, x_max)
     #ax.set_xticks([1000, 2000, 3000])

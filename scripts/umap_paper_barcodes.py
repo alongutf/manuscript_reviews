@@ -29,6 +29,7 @@ identical to the unfiltered matrix.  Both modes therefore see the same gene
 space, and differ only in which cells are included.
 
 Outputs (timestamped, <src> = paper_barcodes | umap_barcodes):
+  scanpy/adata_shx_<src>_<ts>.h5ad
   scanpy/umap_coordinates_shx_<src>_<ts>.csv
   scanpy/umap_shx_<src>_<ts>.svg / .png
   scanpy/marker_genes_shx_<src>_<ts>.xlsx
@@ -186,6 +187,8 @@ def main():
 
     sc.pp.normalize_total(adata, target_sum=target_sum)
     sc.pp.log1p(adata)
+    adata.layers['lognorm'] = adata.X.copy()  # normalised + log1p, all genes
+    adata.raw = adata                          # full gene space, lognorm values
     if n_top_genes:
         sc.pp.highly_variable_genes(adata, n_top_genes=n_top_genes, subset=True)
     sc.pp.scale(adata)
@@ -204,6 +207,11 @@ def main():
                                 adata.obs['leiden'].value_counts().items()}
 
     # ---- outputs ---------------------------------------------------------
+    # X = scaled (z-scored) values; layers['counts'] = raw integer counts;
+    # layers['lognorm'] = normalised + log1p; .raw = lognorm over all genes.
+    h5ad_path = os.path.join(OUT_DIR, f'adata_shx_{src}_{TS}.h5ad')
+    adata.write_h5ad(h5ad_path)
+
     umap_df = pd.DataFrame(adata.obsm['X_umap'], columns=['UMAP_1', 'UMAP_2'],
                            index=adata.obs_names)
     umap_df['batch'] = adata.obs['batch'].values
@@ -232,7 +240,7 @@ def main():
             sc.get.rank_genes_groups_df(adata, group=cl).to_excel(
                 writer, sheet_name=f'cluster_{cl}', index=False)
 
-    log['outputs'] = {'coordinates': coord_path, 'figure_svg': svg_path,
+    log['outputs'] = {'adata': h5ad_path, 'coordinates': coord_path, 'figure_svg': svg_path,
                       'figure_png': png_path, 'markers': markers_path}
     log_path = os.path.join(LOG_DIR, f'umap_{src}_{TS}.json')
     with open(log_path, 'w') as fh:
@@ -240,6 +248,7 @@ def main():
 
     print(f'\n{adata.n_obs} cells, {adata.n_vars} HVGs, '
           f'{len(adata.obs["leiden"].cat.categories)} clusters')
+    print('adata       ->', h5ad_path)
     print('coordinates ->', coord_path)
     print('figure      ->', svg_path)
     print('markers     ->', markers_path)

@@ -1,0 +1,17 @@
+contrast,alpha,genes_tested,regulon_tested,sig,up,down,median_l2fc_regulon,median_l2fc_background,mannwhitney_p
+from counts/deseq2_results_disrupted.csv,0.05,4333,301,230,130,100,0.352,0.157,0.29197539511430015
+from counts/deseq2_results_regulated.csv,0.05,4333,301,224,126,98,0.133,-0.102,0.0018615177594932465
+exp0224/deseq2_results_casp-t0_vs_exp-t0.csv,0.05,4481,341,266,176,90,0.858,-0.106,8.212161637363193e-14
+exp0224/deseq2_results_casp-t1_vs_casp-t0.csv,0.05,1382,136,8,0,8,-0.139,-0.039,1.672829196605123e-07
+exp0224/deseq2_results_casp-t1_vs_exp-t0.csv,0.05,4570,341,268,176,92,0.768,-0.049,6.316207452667711e-13
+exp0224/deseq2_results_casp-t2_vs_casp-t0.csv,0.05,2975,259,17,1,16,-0.083,0.005,4.674646763535103e-05
+exp0224/deseq2_results_casp-t2_vs_exp-t0.csv,0.05,4570,341,268,176,92,0.742,-0.042,1.81028993836048e-11
+exp0224/deseq2_results_vapc-t0_vs_exp-t0.csv,0.05,3240,279,23,10,13,-0.047,0.027,6.488754246733601e-06
+exp0224/deseq2_results_vapc-t2_vs_exp-t0.csv,0.05,4570,341,258,92,166,-0.438,0.293,2.0709117028936918e-16
+exp0224/deseq2_results_vapc-t2_vs_vapc-t0.csv,0.05,4570,341,264,101,163,-0.372,0.306,2.885577215016027e-13
+exp0224/deseq2_results_vapc-t3_vs_exp-t0.csv,0.05,4570,341,266,95,171,-0.466,0.237,2.134350508676397e-12
+exp0224/deseq2_results_vapc-t3_vs_vapc-t0.csv,0.05,4570,341,261,100,161,-0.308,0.234,1.728909640439454e-09
+aggregated_sc/deseq2_results_vapc-early2_vs_exp.csv,0.01,3717,263,110,49,61,0.465,0.5,0.5193284559182313
+aggregated_sc/deseq2_results_vapc-early2b_vs_exp.csv,0.01,3791,265,127,58,69,0.596,0.556,0.8404870600629714
+aggregated_sc/deseq2_results_vapc-early_vs_exp.csv,0.01,3202,230,65,22,43,0.205,0.468,0.042558624279708364
+aggregated_sc/deseq2_results_vapc-late_vs_exp.csv,0.01,3716,263,130,62,68,0.611,0.618,0.9779766148686808

@@ -6,6 +6,11 @@ Panels:
      when SHX was added.
   B. Histogram of cell growth-halt times (frames → minutes), with dashed line
      at frame 18 (SHX addition).
+  C. Histogram of division event times (frames → minutes), sharing panel B's
+     x-axis.
+
+Both histograms are taken from microscopy/true_events.csv (manually validated
+events); halt events with no recorded frame are dropped.
 
 Run from this directory:
     cd scripts/supplementary_figures
@@ -38,14 +43,26 @@ MICR_DIR  = os.path.join(_REPO, 'microscopy')
 IMG_DIR   = os.path.join(MICR_DIR, 'images')
 
 DIS_COLOR = '#E07B54'
+DIV_COLOR = '#4C86A8'
 
-FRAMES_PER_MIN = 1 / 10   # 1 frame = 10 minutes
+MIN_PER_FRAME = 10        # 1 frame = 10 minutes
 SHX_FRAME = 18
 
+BIN_WIDTH_MIN = 1 * MIN_PER_FRAME   # 2 frames per bin
+
 # ------------------------------------------------------------------
-# Load data
+# Load data — manually validated events
 # ------------------------------------------------------------------
-halt = pd.read_csv(os.path.join(MICR_DIR, 'halt_times_all.csv'))
+events = pd.read_csv(os.path.join(MICR_DIR, 'true_events.csv'))
+events = events.dropna(subset=['frame'])        # drop events with no frame
+
+halt_min = events.loc[events['event_type'] == 'halt', 'frame'].values * MIN_PER_FRAME
+div_min  = events.loc[events['event_type'] == 'division', 'frame'].values * MIN_PER_FRAME
+
+# Shared x-axis for both histograms
+_max_min = max(halt_min.max(), div_min.max())
+BINS = np.arange(0, _max_min + BIN_WIDTH_MIN, BIN_WIDTH_MIN)
+XLIM = (0, 500)
 
 
 # ==================================================================
@@ -74,38 +91,46 @@ def panel_A(ax):
     )
 
 
-def panel_B(ax):
-    halt_min = halt['halt_frame'].values * 10   # frames → minutes
-
-    bin_width = 2 * 10   # 2 frames in minutes
-    bins = np.arange(0, halt_min.max() + bin_width, bin_width)
-
-    ax.hist(halt_min, bins=bins, color=DIS_COLOR, edgecolor='0.3',
+def _event_hist(ax, values, color, xlabel, title):
+    ax.hist(values, bins=BINS, color=color, edgecolor='0.3',
             linewidth=0.6, alpha=0.85)
 
-    shx_min = SHX_FRAME * 10
-    ax.axvline(shx_min, color='red', linestyle='--', linewidth=1.5,
-               label='SHX added')
+    ax.axvline(SHX_FRAME * MIN_PER_FRAME, color='red', linestyle='--',
+               linewidth=1.5, label='SHX added')
 
-    ax.set_xlabel('Halt time (minutes)', fontsize=fsize - 1)
+    ax.set_xlim(*XLIM)
+    ax.set_xlabel(xlabel, fontsize=fsize - 1)
     ax.set_ylabel('Number of cells', fontsize=fsize - 1)
-    ax.set_title('Distribution of halt times', fontsize=fsize)
+    ax.set_title(title, fontsize=fsize)
     ax.tick_params(labelsize=fsize - 2)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.legend(fontsize=fsize - 2, frameon=False)
 
 
+def panel_B(ax):
+    _event_hist(ax, halt_min, DIS_COLOR,
+                'Halt time (minutes)', 'Elongation arrest times')
+
+
+def panel_C(ax):
+    _event_hist(ax, div_min, DIV_COLOR,
+                'Division time (minutes)', 'Division times')
+
+
 # ------------------------------------------------------------------
 # Assemble
 # ------------------------------------------------------------------
-pf = PanelFigure(figsize=(7, 6), label_offset=(-0.02, 0.04))
+pf = PanelFigure(figsize=(7, 7), label_offset=(-0.02, 0.04))
 
 # Panel A: kymograph image (top, wide)
-pf.add_panel([0.05, 0.50, 0.88, 0.44], draw_func=panel_A, label='A')
+pf.add_panel([0.05, 0.60, 0.88, 0.36], draw_func=panel_A, label='A')
 
-# Panel B: halt-time histogram (bottom, centred)
-pf.add_panel([0.22, 0.08, 0.56, 0.34], draw_func=panel_B, label='B')
+# Panel B: halt-time histogram (middle) — short and wide
+pf.add_panel([0.10, 0.37, 0.85, 0.18], draw_func=panel_B, label='B')
+
+# Panel C: division-time histogram (bottom), matched x-axis with B
+pf.add_panel([0.10, 0.06, 0.85, 0.18], draw_func=panel_C, label='C')
 
 pf.save("figure_s7.pdf", dpi=300, transparent=True)
 pf.fig.savefig("figure_s7_preview.png", dpi=200)

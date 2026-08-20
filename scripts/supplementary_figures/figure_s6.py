@@ -4,8 +4,9 @@ Supplementary Figure S6 — Microscopy characterisation of Dis-Arrest vs Reg-Arr
 Panels:
   A. Violin plot of cell area distributions for the four conditions
      (SHX⁺, SHX⁻, VapC⁺ 24h, VapC⁻). Mean, n and CV annotated per condition.
-  B. Histogram of constitutive mCherry expression in VapC⁺ 24h cells,
-     annotated with mean, n and CV.
+  B. Violin plot of constitutive mCherry expression, VapC⁺ 24h vs VapC⁻,
+     in the same format and colours as panel A. Mean, n and CV annotated
+     per condition.
   D. Single row of representative phase/fluorescence images, one per condition
      in the same order (and with the same labels) as panel A.
 
@@ -66,6 +67,11 @@ vapc_filt['label'] = vapc_filt['condition'].map({'VapC': 'VapC 24h', 'Reg-Arrest
 PANEL_A_ORDER = ['Dis-Arrest (SHX)', 'Reg-Arrest (SHX)', 'VapC 24h', 'Reg-Arrest (VapC)']
 PANEL_A_LABELS = ['SHX$^+$', 'SHX$^-$', 'VapC$^+$ 24h', 'VapC$^-$']
 PANEL_A_COLORS = [DIS_COLOR, REG_COLOR, DIS_COLOR, REG_COLOR]
+
+# Panel B keeps the VapC pair in the same order, labels and colours as in panel A
+PANEL_B_ORDER = ['VapC 24h', 'Reg-Arrest (VapC)']
+PANEL_B_LABELS = ['VapC$^+$ 24h', 'VapC$^-$']
+PANEL_B_COLORS = [DIS_COLOR, REG_COLOR]
 
 area_data = {
     'Dis-Arrest (SHX)':  shx_filt.loc[shx_filt['label'] == 'Dis-Arrest (SHX)',  'area_px'].values,
@@ -174,24 +180,10 @@ def panel_A(ax):
 
 
 def panel_B(ax):
-    """Histogram of constitutive mCherry expression in VapC⁺ 24h cells."""
-    vals = mcherry_data['VapC 24h']
-    ax.hist(vals, bins=30, color=DIS_COLOR, alpha=0.8, edgecolor='0.3', linewidth=0.4, density=True)
-
-    mean_val = vals.mean()
-    cv_val   = vals.std() / mean_val if mean_val != 0 else float('nan')
-    ax.text(0.95, 0.95,
-            f'n={len(vals)}\nmean={mean_val:.0f}\nCV={cv_val:.2f}',
-            transform=ax.transAxes, ha='right', va='top', fontsize=fsize - 3,
-            bbox=dict(boxstyle='round,pad=0.35', facecolor='none', edgecolor='0.6',
-                      linewidth=0.6))
-
-    ax.set_xlabel('mCherry (arbitrary units)', fontsize=fsize - 1, labelpad=2)
-    ax.set_ylabel('Density', fontsize=fsize - 1, labelpad=2)
-    ax.set_title('VapC expression', fontsize=fsize, pad=2)
-    ax.tick_params(labelsize=fsize - 2)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    """Violin plot of constitutive mCherry expression, VapC⁺ 24h vs VapC⁻."""
+    _violin_with_stats(ax, mcherry_data, PANEL_B_ORDER, PANEL_B_COLORS,
+                       'mCherry (arbitrary units)', 'Promoter activity',
+                       xlabels=PANEL_B_LABELS)
 
 
 def panel_D(ax):

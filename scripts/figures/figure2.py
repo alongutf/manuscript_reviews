@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Patch
 import seaborn as sns
 from figure_functions import PanelFigure
+import permutation_pvalues as pv
 import numpy as np
 import os
 import importlib
@@ -180,7 +181,7 @@ def panel_D(axes):
                   loc='upper right', framealpha=1)
 
 
-def _draw_ccdf(ax, data1, data2, show_legend=True, markersize=3):
+def _draw_ccdf(ax, data1, data2, dataset=None, show_legend=True, markersize=3):
     """Draw the loglog CCDF of original (data1) vs scrambled (data2) eigenvalues.
 
     Shared color scheme across all CCDF plots:
@@ -207,7 +208,8 @@ def _draw_ccdf(ax, data1, data2, show_legend=True, markersize=3):
     ax.set_xlim([0.1, np.max(d1s) * 1.5])
     ax.axvline(x2, color='k', linestyle='--', alpha=0.6)
     if show_legend:
-        ax.legend(fontsize=fsize - 2)
+        # p-value rides in the legend box, under the three series keys
+        pv.legend_with_p(ax, dataset, fontsize=fsize - 2)
 
 
 def panel_E(ax):
@@ -219,7 +221,7 @@ def _plot_ccdf(ax, npy_file, title):
     arr = np.load(os.path.join(ev_data_dir, npy_file))
     data1 = arr[0, :];  data1 = data1[data1 > 0]
     data2 = arr[1, :];  data2 = data2[data2 > 0]
-    _draw_ccdf(ax, data1, data2)
+    _draw_ccdf(ax, data1, data2, dataset=npy_file)
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
     ax.set_title(title, fontsize=fsize - 2, pad=0)
@@ -273,4 +275,5 @@ pf.add_panel(panel_pos[5], draw_func=panel_F)
 pf.add_panel(panel_pos[6], draw_func=panel_G)
 
 pf.save("figure2.svg", dpi=300)
+pf.save("figure2_preview.png", dpi=200)
 plt.show()

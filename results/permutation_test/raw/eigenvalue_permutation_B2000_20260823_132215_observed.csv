@@ -1,0 +1,901 @@
+sample,title,category,rank,lambda_observed
+Expira_biorep_t0A_filtered,Exponential 1,r,1,17.158692868731162
+Expira_biorep_t0A_filtered,Exponential 1,r,2,15.484193035274536
+Expira_biorep_t0A_filtered,Exponential 1,r,3,11.740295140828152
+Expira_biorep_t0A_filtered,Exponential 1,r,4,11.129941786626476
+Expira_biorep_t0A_filtered,Exponential 1,r,5,7.985501195949871
+Expira_biorep_t0A_filtered,Exponential 1,r,6,7.840568735906933
+Expira_biorep_t0A_filtered,Exponential 1,r,7,7.7326645749140255
+Expira_biorep_t0A_filtered,Exponential 1,r,8,7.709940742023806
+Expira_biorep_t0A_filtered,Exponential 1,r,9,7.371608636691643
+Expira_biorep_t0A_filtered,Exponential 1,r,10,6.71627641464975
+Expira_biorep_t0A_filtered,Exponential 1,r,11,6.502823706842762
+Expira_biorep_t0A_filtered,Exponential 1,r,12,6.4134708752879765
+Expira_biorep_t0A_filtered,Exponential 1,r,13,6.120671996835691
+Expira_biorep_t0A_filtered,Exponential 1,r,14,6.071086914059227
+Expira_biorep_t0A_filtered,Exponential 1,r,15,6.057254234062904
+Expira_biorep_t0A_filtered,Exponential 1,r,16,6.005048815829337
+Expira_biorep_t0A_filtered,Exponential 1,r,17,5.994470619133405
+Expira_biorep_t0A_filtered,Exponential 1,r,18,5.831993883974244
+Expira_biorep_t0A_filtered,Exponential 1,r,19,5.790959105893846
+Expira_biorep_t0A_filtered,Exponential 1,r,20,5.712770483632543
+Expira_biorep_t0A_filtered,Exponential 1,r,21,5.647492806255148
+Expira_biorep_t0A_filtered,Exponential 1,r,22,5.576891141660028
+Expira_biorep_t0A_filtered,Exponential 1,r,23,5.514390988917162
+Expira_biorep_t0A_filtered,Exponential 1,r,24,5.476907993860404
+Expira_biorep_t0A_filtered,Exponential 1,r,25,5.40055311816041
+Expira_biorep_t0A_filtered,Exponential 1,r,26,5.379996233541748
+Expira_biorep_t0A_filtered,Exponential 1,r,27,5.320297822921531
+Expira_biorep_t0A_filtered,Exponential 1,r,28,5.308806727739373
+Expira_biorep_t0A_filtered,Exponential 1,r,29,5.280227173732258
+Expira_biorep_t0A_filtered,Exponential 1,r,30,5.242534163529409
+Expira_biorep_t0A_filtered,Exponential 1,r,31,5.204171104204221
+Expira_biorep_t0A_filtered,Exponential 1,r,32,5.140345219273125
+Expira_biorep_t0A_filtered,Exponential 1,r,33,5.112438541143648
+Expira_biorep_t0A_filtered,Exponential 1,r,34,5.064332830946165
+Expira_biorep_t0A_filtered,Exponential 1,r,35,5.036013410905426
+Expira_biorep_t0A_filtered,Exponential 1,r,36,5.023357546509163
+Expira_biorep_t0A_filtered,Exponential 1,r,37,5.002647780739725
+Expira_biorep_t0A_filtered,Exponential 1,r,38,4.981559489919095
+Expira_biorep_t0A_filtered,Exponential 1,r,39,4.956903675363547
+Expira_biorep_t0A_filtered,Exponential 1,r,40,4.934195949735621
+Expira_biorep_t0A_filtered,Exponential 1,r,41,4.906329664104052
+Expira_biorep_t0A_filtered,Exponential 1,r,42,4.891389665043723
+Expira_biorep_t0A_filtered,Exponential 1,r,43,4.871738982187407
+Expira_biorep_t0A_filtered,Exponential 1,r,44,4.845140930612765
+Expira_biorep_t0A_filtered,Exponential 1,r,45,4.826769897608903
+Expira_biorep_t0A_filtered,Exponential 1,r,46,4.820603500399984
+Expira_biorep_t0A_filtered,Exponential 1,r,47,4.796384951363431
+Expira_biorep_t0A_filtered,Exponential 1,r,48,4.790505438981545
+Expira_biorep_t0A_filtered,Exponential 1,r,49,4.784284102565856
+Expira_biorep_t0A_filtered,Exponential 1,r,50,4.762667787516704
+SHX_biorep2A,Dis-Arrest 1A,d,1,9.502630943003783
+SHX_biorep2A,Dis-Arrest 1A,d,2,7.944494820824785
+SHX_biorep2A,Dis-Arrest 1A,d,3,7.776426532557274
+SHX_biorep2A,Dis-Arrest 1A,d,4,7.534699079732261
+SHX_biorep2A,Dis-Arrest 1A,d,5,7.112045015721423
+SHX_biorep2A,Dis-Arrest 1A,d,6,7.037866671419907
+SHX_biorep2A,Dis-Arrest 1A,d,7,6.982298535790379
+SHX_biorep2A,Dis-Arrest 1A,d,8,6.954909836319336
+SHX_biorep2A,Dis-Arrest 1A,d,9,6.850534245726802
+SHX_biorep2A,Dis-Arrest 1A,d,10,6.785122662621951
+SHX_biorep2A,Dis-Arrest 1A,d,11,6.682468543643914
+SHX_biorep2A,Dis-Arrest 1A,d,12,6.5937484472181005
+SHX_biorep2A,Dis-Arrest 1A,d,13,6.501806436899737
+SHX_biorep2A,Dis-Arrest 1A,d,14,6.47457579626224
+SHX_biorep2A,Dis-Arrest 1A,d,15,6.455253185415964
+SHX_biorep2A,Dis-Arrest 1A,d,16,6.411614884285622
+SHX_biorep2A,Dis-Arrest 1A,d,17,6.3644095756113765
+SHX_biorep2A,Dis-Arrest 1A,d,18,6.329545949459331
+SHX_biorep2A,Dis-Arrest 1A,d,19,6.258955039785177
+SHX_biorep2A,Dis-Arrest 1A,d,20,6.228432206910725
+SHX_biorep2A,Dis-Arrest 1A,d,21,6.166799084166911
+SHX_biorep2A,Dis-Arrest 1A,d,22,6.1389513386842
+SHX_biorep2A,Dis-Arrest 1A,d,23,6.0563397058445565
+SHX_biorep2A,Dis-Arrest 1A,d,24,6.0280558970968565
+SHX_biorep2A,Dis-Arrest 1A,d,25,5.993636283244269
+SHX_biorep2A,Dis-Arrest 1A,d,26,5.967069260346548
+SHX_biorep2A,Dis-Arrest 1A,d,27,5.913433668881885
+SHX_biorep2A,Dis-Arrest 1A,d,28,5.887118210761524
+SHX_biorep2A,Dis-Arrest 1A,d,29,5.866480504273568
+SHX_biorep2A,Dis-Arrest 1A,d,30,5.83986494092544
+SHX_biorep2A,Dis-Arrest 1A,d,31,5.815323559504532
+SHX_biorep2A,Dis-Arrest 1A,d,32,5.7693771425857205
+SHX_biorep2A,Dis-Arrest 1A,d,33,5.719600901945511
+SHX_biorep2A,Dis-Arrest 1A,d,34,5.69525763214208
+SHX_biorep2A,Dis-Arrest 1A,d,35,5.685122523581101
+SHX_biorep2A,Dis-Arrest 1A,d,36,5.649528067966389
+SHX_biorep2A,Dis-Arrest 1A,d,37,5.624703169987336
+SHX_biorep2A,Dis-Arrest 1A,d,38,5.613103495161407
+SHX_biorep2A,Dis-Arrest 1A,d,39,5.543752980440868
+SHX_biorep2A,Dis-Arrest 1A,d,40,5.531606334571066
+SHX_biorep2A,Dis-Arrest 1A,d,41,5.514730117496133
+SHX_biorep2A,Dis-Arrest 1A,d,42,5.475783392959995
+SHX_biorep2A,Dis-Arrest 1A,d,43,5.444494648540711
+SHX_biorep2A,Dis-Arrest 1A,d,44,5.416754178276371
+SHX_biorep2A,Dis-Arrest 1A,d,45,5.410430555485572
+SHX_biorep2A,Dis-Arrest 1A,d,46,5.382355220192315
+SHX_biorep2A,Dis-Arrest 1A,d,47,5.354445721947935
+SHX_biorep2A,Dis-Arrest 1A,d,48,5.313740900194541
+SHX_biorep2A,Dis-Arrest 1A,d,49,5.29209639771025
+SHX_biorep2A,Dis-Arrest 1A,d,50,5.279816987089426
+SHX_biorep2B,Dis-Arrest 1B,d,1,7.606416771475606
+SHX_biorep2B,Dis-Arrest 1B,d,2,6.586383270856686
+SHX_biorep2B,Dis-Arrest 1B,d,3,6.375344075636674
+SHX_biorep2B,Dis-Arrest 1B,d,4,6.236922952183262
+SHX_biorep2B,Dis-Arrest 1B,d,5,6.19184161143615
+SHX_biorep2B,Dis-Arrest 1B,d,6,6.177660349324626
+SHX_biorep2B,Dis-Arrest 1B,d,7,6.118317978782058
+SHX_biorep2B,Dis-Arrest 1B,d,8,6.071884421493998
+SHX_biorep2B,Dis-Arrest 1B,d,9,6.005043730343199
+SHX_biorep2B,Dis-Arrest 1B,d,10,5.990112447658677
+SHX_biorep2B,Dis-Arrest 1B,d,11,5.930651705876135
+SHX_biorep2B,Dis-Arrest 1B,d,12,5.905224628773016
+SHX_biorep2B,Dis-Arrest 1B,d,13,5.877286314678116
+SHX_biorep2B,Dis-Arrest 1B,d,14,5.823915609922559
+SHX_biorep2B,Dis-Arrest 1B,d,15,5.8013773925969305
+SHX_biorep2B,Dis-Arrest 1B,d,16,5.785746041452361
+SHX_biorep2B,Dis-Arrest 1B,d,17,5.782187447317837
+SHX_biorep2B,Dis-Arrest 1B,d,18,5.74978210037431
+SHX_biorep2B,Dis-Arrest 1B,d,19,5.723536610361919
+SHX_biorep2B,Dis-Arrest 1B,d,20,5.7162435696868
+SHX_biorep2B,Dis-Arrest 1B,d,21,5.669605896900214
+SHX_biorep2B,Dis-Arrest 1B,d,22,5.612583525796246
+SHX_biorep2B,Dis-Arrest 1B,d,23,5.600655392075383
+SHX_biorep2B,Dis-Arrest 1B,d,24,5.584936411388264
+SHX_biorep2B,Dis-Arrest 1B,d,25,5.554854129518748
+SHX_biorep2B,Dis-Arrest 1B,d,26,5.542395753841324
+SHX_biorep2B,Dis-Arrest 1B,d,27,5.537620890050623
+SHX_biorep2B,Dis-Arrest 1B,d,28,5.515262972970277
+SHX_biorep2B,Dis-Arrest 1B,d,29,5.503681984194214
+SHX_biorep2B,Dis-Arrest 1B,d,30,5.49279106012704
+SHX_biorep2B,Dis-Arrest 1B,d,31,5.469478064307759
+SHX_biorep2B,Dis-Arrest 1B,d,32,5.431971184574569
+SHX_biorep2B,Dis-Arrest 1B,d,33,5.421082054783808
+SHX_biorep2B,Dis-Arrest 1B,d,34,5.407688445178668
+SHX_biorep2B,Dis-Arrest 1B,d,35,5.380480263114559
+SHX_biorep2B,Dis-Arrest 1B,d,36,5.362801518537432
+SHX_biorep2B,Dis-Arrest 1B,d,37,5.346032399893156
+SHX_biorep2B,Dis-Arrest 1B,d,38,5.329081641785217
+SHX_biorep2B,Dis-Arrest 1B,d,39,5.298411844534534
+SHX_biorep2B,Dis-Arrest 1B,d,40,5.279310216097704
+SHX_biorep2B,Dis-Arrest 1B,d,41,5.248597945785896
+SHX_biorep2B,Dis-Arrest 1B,d,42,5.233949211863674
+SHX_biorep2B,Dis-Arrest 1B,d,43,5.216449136687741
+SHX_biorep2B,Dis-Arrest 1B,d,44,5.1985305514384255
+SHX_biorep2B,Dis-Arrest 1B,d,45,5.190951365158291
+SHX_biorep2B,Dis-Arrest 1B,d,46,5.178845311974637
+SHX_biorep2B,Dis-Arrest 1B,d,47,5.151371485586819
+SHX_biorep2B,Dis-Arrest 1B,d,48,5.145702775670703
+SHX_biorep2B,Dis-Arrest 1B,d,49,5.132351665546423
+SHX_biorep2B,Dis-Arrest 1B,d,50,5.109145255945915
+SHX_biorep4A,Dis-Arrest 2,d,1,8.332470332179259
+SHX_biorep4A,Dis-Arrest 2,d,2,6.654225310061203
+SHX_biorep4A,Dis-Arrest 2,d,3,5.954358222671655
+SHX_biorep4A,Dis-Arrest 2,d,4,5.83517117671981
+SHX_biorep4A,Dis-Arrest 2,d,5,5.8060942997839735
+SHX_biorep4A,Dis-Arrest 2,d,6,5.750557228915479
+SHX_biorep4A,Dis-Arrest 2,d,7,5.698380435201979
+SHX_biorep4A,Dis-Arrest 2,d,8,5.688290112439251
+SHX_biorep4A,Dis-Arrest 2,d,9,5.634620225078353
+SHX_biorep4A,Dis-Arrest 2,d,10,5.611695499143559
+SHX_biorep4A,Dis-Arrest 2,d,11,5.602212599197983
+SHX_biorep4A,Dis-Arrest 2,d,12,5.565421598682269
+SHX_biorep4A,Dis-Arrest 2,d,13,5.534100774254871
+SHX_biorep4A,Dis-Arrest 2,d,14,5.507908629224485
+SHX_biorep4A,Dis-Arrest 2,d,15,5.466401040317499
+SHX_biorep4A,Dis-Arrest 2,d,16,5.439493164473362
+SHX_biorep4A,Dis-Arrest 2,d,17,5.422979812954238
+SHX_biorep4A,Dis-Arrest 2,d,18,5.397976581497503
+SHX_biorep4A,Dis-Arrest 2,d,19,5.377994203628831
+SHX_biorep4A,Dis-Arrest 2,d,20,5.376481320301047
+SHX_biorep4A,Dis-Arrest 2,d,21,5.351664400966371
+SHX_biorep4A,Dis-Arrest 2,d,22,5.326616993324054
+SHX_biorep4A,Dis-Arrest 2,d,23,5.323526337709758
+SHX_biorep4A,Dis-Arrest 2,d,24,5.276397174906757
+SHX_biorep4A,Dis-Arrest 2,d,25,5.265544309918138
+SHX_biorep4A,Dis-Arrest 2,d,26,5.237613688016029
+SHX_biorep4A,Dis-Arrest 2,d,27,5.22359974280506
+SHX_biorep4A,Dis-Arrest 2,d,28,5.212984741164865
+SHX_biorep4A,Dis-Arrest 2,d,29,5.180436915506557
+SHX_biorep4A,Dis-Arrest 2,d,30,5.177413802398247
+SHX_biorep4A,Dis-Arrest 2,d,31,5.149610463199693
+SHX_biorep4A,Dis-Arrest 2,d,32,5.140024057814362
+SHX_biorep4A,Dis-Arrest 2,d,33,5.109366679718306
+SHX_biorep4A,Dis-Arrest 2,d,34,5.08833440128507
+SHX_biorep4A,Dis-Arrest 2,d,35,5.080866364060041
+SHX_biorep4A,Dis-Arrest 2,d,36,5.046098010916249
+SHX_biorep4A,Dis-Arrest 2,d,37,5.029140023243627
+SHX_biorep4A,Dis-Arrest 2,d,38,5.009385545089483
+SHX_biorep4A,Dis-Arrest 2,d,39,4.994821294338622
+SHX_biorep4A,Dis-Arrest 2,d,40,4.977676525883017
+SHX_biorep4A,Dis-Arrest 2,d,41,4.96660462982174
+SHX_biorep4A,Dis-Arrest 2,d,42,4.956413460341463
+SHX_biorep4A,Dis-Arrest 2,d,43,4.9384996969059705
+SHX_biorep4A,Dis-Arrest 2,d,44,4.9299017166156105
+SHX_biorep4A,Dis-Arrest 2,d,45,4.914348544687926
+SHX_biorep4A,Dis-Arrest 2,d,46,4.895934785746144
+SHX_biorep4A,Dis-Arrest 2,d,47,4.891881544524161
+SHX_biorep4A,Dis-Arrest 2,d,48,4.873430057260071
+SHX_biorep4A,Dis-Arrest 2,d,49,4.8500197351943335
+SHX_biorep4A,Dis-Arrest 2,d,50,4.831964393152443
+SHX_biorep6A,Dis-Arrest 3,d,1,9.054606785308962
+SHX_biorep6A,Dis-Arrest 3,d,2,6.499075068610819
+SHX_biorep6A,Dis-Arrest 3,d,3,6.460442360506237
+SHX_biorep6A,Dis-Arrest 3,d,4,6.275706951293925
+SHX_biorep6A,Dis-Arrest 3,d,5,6.249639981660279
+SHX_biorep6A,Dis-Arrest 3,d,6,6.222416970389305
+SHX_biorep6A,Dis-Arrest 3,d,7,6.193530098253492
+SHX_biorep6A,Dis-Arrest 3,d,8,6.147464536705979
+SHX_biorep6A,Dis-Arrest 3,d,9,6.125343384269439
+SHX_biorep6A,Dis-Arrest 3,d,10,6.07116604995497
+SHX_biorep6A,Dis-Arrest 3,d,11,6.027976805596453
+SHX_biorep6A,Dis-Arrest 3,d,12,6.023420766666794
+SHX_biorep6A,Dis-Arrest 3,d,13,5.935160658258512
+SHX_biorep6A,Dis-Arrest 3,d,14,5.9148494723625
+SHX_biorep6A,Dis-Arrest 3,d,15,5.883762653907184
+SHX_biorep6A,Dis-Arrest 3,d,16,5.863880557860772
+SHX_biorep6A,Dis-Arrest 3,d,17,5.856462146309403
+SHX_biorep6A,Dis-Arrest 3,d,18,5.830474564634396
+SHX_biorep6A,Dis-Arrest 3,d,19,5.7930823067587705
+SHX_biorep6A,Dis-Arrest 3,d,20,5.749310248481774
+SHX_biorep6A,Dis-Arrest 3,d,21,5.72167347784095
+SHX_biorep6A,Dis-Arrest 3,d,22,5.709779641468868
+SHX_biorep6A,Dis-Arrest 3,d,23,5.70506888375052
+SHX_biorep6A,Dis-Arrest 3,d,24,5.685627452047514
+SHX_biorep6A,Dis-Arrest 3,d,25,5.648104957927956
+SHX_biorep6A,Dis-Arrest 3,d,26,5.628230176665872
+SHX_biorep6A,Dis-Arrest 3,d,27,5.582661228237416
+SHX_biorep6A,Dis-Arrest 3,d,28,5.571021179857974
+SHX_biorep6A,Dis-Arrest 3,d,29,5.563101609479943
+SHX_biorep6A,Dis-Arrest 3,d,30,5.522869124950177
+SHX_biorep6A,Dis-Arrest 3,d,31,5.509452095053392
+SHX_biorep6A,Dis-Arrest 3,d,32,5.498363058249975
+SHX_biorep6A,Dis-Arrest 3,d,33,5.465462333049623
+SHX_biorep6A,Dis-Arrest 3,d,34,5.434226674402114
+SHX_biorep6A,Dis-Arrest 3,d,35,5.4185892912137374
+SHX_biorep6A,Dis-Arrest 3,d,36,5.39146537828967
+SHX_biorep6A,Dis-Arrest 3,d,37,5.385133646961393
+SHX_biorep6A,Dis-Arrest 3,d,38,5.374804743490179
+SHX_biorep6A,Dis-Arrest 3,d,39,5.354896999069249
+SHX_biorep6A,Dis-Arrest 3,d,40,5.311798910850924
+SHX_biorep6A,Dis-Arrest 3,d,41,5.307761636515577
+SHX_biorep6A,Dis-Arrest 3,d,42,5.29290501799463
+SHX_biorep6A,Dis-Arrest 3,d,43,5.272554885560963
+SHX_biorep6A,Dis-Arrest 3,d,44,5.263604364581483
+SHX_biorep6A,Dis-Arrest 3,d,45,5.255488305593869
+SHX_biorep6A,Dis-Arrest 3,d,46,5.237900118262031
+SHX_biorep6A,Dis-Arrest 3,d,47,5.1962228561681725
+SHX_biorep6A,Dis-Arrest 3,d,48,5.183879770968388
+SHX_biorep6A,Dis-Arrest 3,d,49,5.169811027273438
+SHX_biorep6A,Dis-Arrest 3,d,50,5.160107378116225
+VapC_biorep_t2A_filtered,VapC 2h,r,1,14.62757256785638
+VapC_biorep_t2A_filtered,VapC 2h,r,2,9.94933937811189
+VapC_biorep_t2A_filtered,VapC 2h,r,3,9.55241630920159
+VapC_biorep_t2A_filtered,VapC 2h,r,4,8.243340261713271
+VapC_biorep_t2A_filtered,VapC 2h,r,5,8.147192109778342
+VapC_biorep_t2A_filtered,VapC 2h,r,6,7.6668719096961
+VapC_biorep_t2A_filtered,VapC 2h,r,7,7.279840939083726
+VapC_biorep_t2A_filtered,VapC 2h,r,8,7.117855246300175
+VapC_biorep_t2A_filtered,VapC 2h,r,9,7.05908491307658
+VapC_biorep_t2A_filtered,VapC 2h,r,10,6.968425810528821
+VapC_biorep_t2A_filtered,VapC 2h,r,11,6.596114636283094
+VapC_biorep_t2A_filtered,VapC 2h,r,12,6.391164412666603
+VapC_biorep_t2A_filtered,VapC 2h,r,13,6.229264524723176
+VapC_biorep_t2A_filtered,VapC 2h,r,14,6.148818098927098
+VapC_biorep_t2A_filtered,VapC 2h,r,15,6.117468018260808
+VapC_biorep_t2A_filtered,VapC 2h,r,16,6.0495986971475535
+VapC_biorep_t2A_filtered,VapC 2h,r,17,5.989221197899424
+VapC_biorep_t2A_filtered,VapC 2h,r,18,5.918382538465046
+VapC_biorep_t2A_filtered,VapC 2h,r,19,5.868003624293244
+VapC_biorep_t2A_filtered,VapC 2h,r,20,5.849732534309088
+VapC_biorep_t2A_filtered,VapC 2h,r,21,5.820523771892451
+VapC_biorep_t2A_filtered,VapC 2h,r,22,5.763587330376643
+VapC_biorep_t2A_filtered,VapC 2h,r,23,5.738502415065104
+VapC_biorep_t2A_filtered,VapC 2h,r,24,5.68297298653951
+VapC_biorep_t2A_filtered,VapC 2h,r,25,5.658794424886704
+VapC_biorep_t2A_filtered,VapC 2h,r,26,5.611662066582447
+VapC_biorep_t2A_filtered,VapC 2h,r,27,5.55393025968865
+VapC_biorep_t2A_filtered,VapC 2h,r,28,5.535985436687908
+VapC_biorep_t2A_filtered,VapC 2h,r,29,5.508056604093715
+VapC_biorep_t2A_filtered,VapC 2h,r,30,5.452874242235112
+VapC_biorep_t2A_filtered,VapC 2h,r,31,5.43916258223882
+VapC_biorep_t2A_filtered,VapC 2h,r,32,5.416102511252604
+VapC_biorep_t2A_filtered,VapC 2h,r,33,5.355973146769204
+VapC_biorep_t2A_filtered,VapC 2h,r,34,5.342798024080067
+VapC_biorep_t2A_filtered,VapC 2h,r,35,5.314264924198657
+VapC_biorep_t2A_filtered,VapC 2h,r,36,5.308290400403407
+VapC_biorep_t2A_filtered,VapC 2h,r,37,5.261642877834752
+VapC_biorep_t2A_filtered,VapC 2h,r,38,5.251326889280379
+VapC_biorep_t2A_filtered,VapC 2h,r,39,5.227217121451195
+VapC_biorep_t2A_filtered,VapC 2h,r,40,5.176416336042368
+VapC_biorep_t2A_filtered,VapC 2h,r,41,5.158560106183048
+VapC_biorep_t2A_filtered,VapC 2h,r,42,5.147725035936377
+VapC_biorep_t2A_filtered,VapC 2h,r,43,5.115694662385157
+VapC_biorep_t2A_filtered,VapC 2h,r,44,5.1013898753179525
+VapC_biorep_t2A_filtered,VapC 2h,r,45,5.08101719888748
+VapC_biorep_t2A_filtered,VapC 2h,r,46,5.064580409489399
+VapC_biorep_t2A_filtered,VapC 2h,r,47,5.049204428505251
+VapC_biorep_t2A_filtered,VapC 2h,r,48,5.031924472495685
+VapC_biorep_t2A_filtered,VapC 2h,r,49,5.02391072696154
+VapC_biorep_t2A_filtered,VapC 2h,r,50,4.9919505388772265
+VapC_biorep_t5A_filtered,VapC 5h A,r,1,12.060115369374117
+VapC_biorep_t5A_filtered,VapC 5h A,r,2,7.586208769939118
+VapC_biorep_t5A_filtered,VapC 5h A,r,3,6.8223530861620985
+VapC_biorep_t5A_filtered,VapC 5h A,r,4,6.6294104548241455
+VapC_biorep_t5A_filtered,VapC 5h A,r,5,6.561993240870438
+VapC_biorep_t5A_filtered,VapC 5h A,r,6,6.43735708433044
+VapC_biorep_t5A_filtered,VapC 5h A,r,7,6.353425849205976
+VapC_biorep_t5A_filtered,VapC 5h A,r,8,6.240333109896218
+VapC_biorep_t5A_filtered,VapC 5h A,r,9,6.190751083362612
+VapC_biorep_t5A_filtered,VapC 5h A,r,10,6.068904232653141
+VapC_biorep_t5A_filtered,VapC 5h A,r,11,6.045107501389027
+VapC_biorep_t5A_filtered,VapC 5h A,r,12,5.998734275673337
+VapC_biorep_t5A_filtered,VapC 5h A,r,13,5.956480214998623
+VapC_biorep_t5A_filtered,VapC 5h A,r,14,5.944076924919932
+VapC_biorep_t5A_filtered,VapC 5h A,r,15,5.894271358982631
+VapC_biorep_t5A_filtered,VapC 5h A,r,16,5.848209006094122
+VapC_biorep_t5A_filtered,VapC 5h A,r,17,5.837348603118896
+VapC_biorep_t5A_filtered,VapC 5h A,r,18,5.824627770658075
+VapC_biorep_t5A_filtered,VapC 5h A,r,19,5.700102953830748
+VapC_biorep_t5A_filtered,VapC 5h A,r,20,5.696881525320414
+VapC_biorep_t5A_filtered,VapC 5h A,r,21,5.673821058308004
+VapC_biorep_t5A_filtered,VapC 5h A,r,22,5.635324627815466
+VapC_biorep_t5A_filtered,VapC 5h A,r,23,5.624053137597407
+VapC_biorep_t5A_filtered,VapC 5h A,r,24,5.60136576012834
+VapC_biorep_t5A_filtered,VapC 5h A,r,25,5.590341510519469
+VapC_biorep_t5A_filtered,VapC 5h A,r,26,5.530037513272113
+VapC_biorep_t5A_filtered,VapC 5h A,r,27,5.522106372016864
+VapC_biorep_t5A_filtered,VapC 5h A,r,28,5.479834359385741
+VapC_biorep_t5A_filtered,VapC 5h A,r,29,5.455062997587726
+VapC_biorep_t5A_filtered,VapC 5h A,r,30,5.43111038678544
+VapC_biorep_t5A_filtered,VapC 5h A,r,31,5.400030343016552
+VapC_biorep_t5A_filtered,VapC 5h A,r,32,5.396918529391071
+VapC_biorep_t5A_filtered,VapC 5h A,r,33,5.370605030969625
+VapC_biorep_t5A_filtered,VapC 5h A,r,34,5.343317314163008
+VapC_biorep_t5A_filtered,VapC 5h A,r,35,5.324358290024684
+VapC_biorep_t5A_filtered,VapC 5h A,r,36,5.284813417402335
+VapC_biorep_t5A_filtered,VapC 5h A,r,37,5.267331151204462
+VapC_biorep_t5A_filtered,VapC 5h A,r,38,5.239118686410582
+VapC_biorep_t5A_filtered,VapC 5h A,r,39,5.226009808857653
+VapC_biorep_t5A_filtered,VapC 5h A,r,40,5.207276225255156
+VapC_biorep_t5A_filtered,VapC 5h A,r,41,5.182031617041745
+VapC_biorep_t5A_filtered,VapC 5h A,r,42,5.148809667763878
+VapC_biorep_t5A_filtered,VapC 5h A,r,43,5.129102746559491
+VapC_biorep_t5A_filtered,VapC 5h A,r,44,5.113389271448667
+VapC_biorep_t5A_filtered,VapC 5h A,r,45,5.084206856804984
+VapC_biorep_t5A_filtered,VapC 5h A,r,46,5.06379322754941
+VapC_biorep_t5A_filtered,VapC 5h A,r,47,5.057450725602243
+VapC_biorep_t5A_filtered,VapC 5h A,r,48,5.018799891269626
+VapC_biorep_t5A_filtered,VapC 5h A,r,49,5.014963517715298
+VapC_biorep_t5A_filtered,VapC 5h A,r,50,4.990617775480515
+VapC_biorep_t5B_filtered,VapC 5h B,r,1,30.001676480186752
+VapC_biorep_t5B_filtered,VapC 5h B,r,2,7.705575901047754
+VapC_biorep_t5B_filtered,VapC 5h B,r,3,6.425154777800726
+VapC_biorep_t5B_filtered,VapC 5h B,r,4,6.338158115995082
+VapC_biorep_t5B_filtered,VapC 5h B,r,5,6.242095850444782
+VapC_biorep_t5B_filtered,VapC 5h B,r,6,6.1981385984420125
+VapC_biorep_t5B_filtered,VapC 5h B,r,7,6.1288870820968935
+VapC_biorep_t5B_filtered,VapC 5h B,r,8,6.077641324712141
+VapC_biorep_t5B_filtered,VapC 5h B,r,9,6.040003395791024
+VapC_biorep_t5B_filtered,VapC 5h B,r,10,6.0268374889715775
+VapC_biorep_t5B_filtered,VapC 5h B,r,11,5.992765891659685
+VapC_biorep_t5B_filtered,VapC 5h B,r,12,5.966195978768944
+VapC_biorep_t5B_filtered,VapC 5h B,r,13,5.938546315522063
+VapC_biorep_t5B_filtered,VapC 5h B,r,14,5.904728283104535
+VapC_biorep_t5B_filtered,VapC 5h B,r,15,5.870494255422747
+VapC_biorep_t5B_filtered,VapC 5h B,r,16,5.839891548774545
+VapC_biorep_t5B_filtered,VapC 5h B,r,17,5.818679118263539
+VapC_biorep_t5B_filtered,VapC 5h B,r,18,5.79449365256267
+VapC_biorep_t5B_filtered,VapC 5h B,r,19,5.748098686705832
+VapC_biorep_t5B_filtered,VapC 5h B,r,20,5.731943769773264
+VapC_biorep_t5B_filtered,VapC 5h B,r,21,5.671170737484617
+VapC_biorep_t5B_filtered,VapC 5h B,r,22,5.666955938718136
+VapC_biorep_t5B_filtered,VapC 5h B,r,23,5.640726794557611
+VapC_biorep_t5B_filtered,VapC 5h B,r,24,5.596958654229744
+VapC_biorep_t5B_filtered,VapC 5h B,r,25,5.580817553205127
+VapC_biorep_t5B_filtered,VapC 5h B,r,26,5.552489026575404
+VapC_biorep_t5B_filtered,VapC 5h B,r,27,5.517561553350904
+VapC_biorep_t5B_filtered,VapC 5h B,r,28,5.498598977270485
+VapC_biorep_t5B_filtered,VapC 5h B,r,29,5.478844009244538
+VapC_biorep_t5B_filtered,VapC 5h B,r,30,5.477849893478998
+VapC_biorep_t5B_filtered,VapC 5h B,r,31,5.4338910229593695
+VapC_biorep_t5B_filtered,VapC 5h B,r,32,5.420348070373477
+VapC_biorep_t5B_filtered,VapC 5h B,r,33,5.383903682690408
+VapC_biorep_t5B_filtered,VapC 5h B,r,34,5.353216972227642
+VapC_biorep_t5B_filtered,VapC 5h B,r,35,5.347692795010639
+VapC_biorep_t5B_filtered,VapC 5h B,r,36,5.335545169529654
+VapC_biorep_t5B_filtered,VapC 5h B,r,37,5.322789929211436
+VapC_biorep_t5B_filtered,VapC 5h B,r,38,5.309769306562213
+VapC_biorep_t5B_filtered,VapC 5h B,r,39,5.2845763401033015
+VapC_biorep_t5B_filtered,VapC 5h B,r,40,5.264092828609775
+VapC_biorep_t5B_filtered,VapC 5h B,r,41,5.24527605916449
+VapC_biorep_t5B_filtered,VapC 5h B,r,42,5.212145098395565
+VapC_biorep_t5B_filtered,VapC 5h B,r,43,5.182433686697017
+VapC_biorep_t5B_filtered,VapC 5h B,r,44,5.163444616787071
+VapC_biorep_t5B_filtered,VapC 5h B,r,45,5.141363742019686
+VapC_biorep_t5B_filtered,VapC 5h B,r,46,5.107671920719684
+VapC_biorep_t5B_filtered,VapC 5h B,r,47,5.10272998287595
+VapC_biorep_t5B_filtered,VapC 5h B,r,48,5.081774322734248
+VapC_biorep_t5B_filtered,VapC 5h B,r,49,5.069504078009848
+VapC_biorep_t5B_filtered,VapC 5h B,r,50,5.055982850475671
+VapC_biorep_tONA_filtered,VapC 24h,d,1,10.24588775340326
+VapC_biorep_tONA_filtered,VapC 24h,d,2,5.975757744629377
+VapC_biorep_tONA_filtered,VapC 24h,d,3,5.925188035525842
+VapC_biorep_tONA_filtered,VapC 24h,d,4,5.857331747671747
+VapC_biorep_tONA_filtered,VapC 24h,d,5,5.815042684401003
+VapC_biorep_tONA_filtered,VapC 24h,d,6,5.770989546368705
+VapC_biorep_tONA_filtered,VapC 24h,d,7,5.745260767016396
+VapC_biorep_tONA_filtered,VapC 24h,d,8,5.727768725008235
+VapC_biorep_tONA_filtered,VapC 24h,d,9,5.689321542509583
+VapC_biorep_tONA_filtered,VapC 24h,d,10,5.663875478124909
+VapC_biorep_tONA_filtered,VapC 24h,d,11,5.6364275742515
+VapC_biorep_tONA_filtered,VapC 24h,d,12,5.620286887808906
+VapC_biorep_tONA_filtered,VapC 24h,d,13,5.581809291797589
+VapC_biorep_tONA_filtered,VapC 24h,d,14,5.548061370647607
+VapC_biorep_tONA_filtered,VapC 24h,d,15,5.524594182819942
+VapC_biorep_tONA_filtered,VapC 24h,d,16,5.471777625391447
+VapC_biorep_tONA_filtered,VapC 24h,d,17,5.45055769297844
+VapC_biorep_tONA_filtered,VapC 24h,d,18,5.433740865794712
+VapC_biorep_tONA_filtered,VapC 24h,d,19,5.403529052686806
+VapC_biorep_tONA_filtered,VapC 24h,d,20,5.369528980178576
+VapC_biorep_tONA_filtered,VapC 24h,d,21,5.362437999833
+VapC_biorep_tONA_filtered,VapC 24h,d,22,5.342866811602564
+VapC_biorep_tONA_filtered,VapC 24h,d,23,5.321842859503592
+VapC_biorep_tONA_filtered,VapC 24h,d,24,5.301021142102901
+VapC_biorep_tONA_filtered,VapC 24h,d,25,5.2831109866320025
+VapC_biorep_tONA_filtered,VapC 24h,d,26,5.273855410383363
+VapC_biorep_tONA_filtered,VapC 24h,d,27,5.265935614638827
+VapC_biorep_tONA_filtered,VapC 24h,d,28,5.251743385143391
+VapC_biorep_tONA_filtered,VapC 24h,d,29,5.226439317039716
+VapC_biorep_tONA_filtered,VapC 24h,d,30,5.189583377277759
+VapC_biorep_tONA_filtered,VapC 24h,d,31,5.168451565604372
+VapC_biorep_tONA_filtered,VapC 24h,d,32,5.1608812676600415
+VapC_biorep_tONA_filtered,VapC 24h,d,33,5.136943584274655
+VapC_biorep_tONA_filtered,VapC 24h,d,34,5.116748294514543
+VapC_biorep_tONA_filtered,VapC 24h,d,35,5.104688917989385
+VapC_biorep_tONA_filtered,VapC 24h,d,36,5.077710401522527
+VapC_biorep_tONA_filtered,VapC 24h,d,37,5.057017863768497
+VapC_biorep_tONA_filtered,VapC 24h,d,38,5.037533653824657
+VapC_biorep_tONA_filtered,VapC 24h,d,39,5.025383833017534
+VapC_biorep_tONA_filtered,VapC 24h,d,40,4.996551290894439
+VapC_biorep_tONA_filtered,VapC 24h,d,41,4.9882614606215006
+VapC_biorep_tONA_filtered,VapC 24h,d,42,4.974228573823292
+VapC_biorep_tONA_filtered,VapC 24h,d,43,4.953993497385174
+VapC_biorep_tONA_filtered,VapC 24h,d,44,4.940648841870813
+VapC_biorep_tONA_filtered,VapC 24h,d,45,4.925863219928285
+VapC_biorep_tONA_filtered,VapC 24h,d,46,4.899179028032778
+VapC_biorep_tONA_filtered,VapC 24h,d,47,4.878964915836413
+VapC_biorep_tONA_filtered,VapC 24h,d,48,4.8683315734220045
+VapC_biorep_tONA_filtered,VapC 24h,d,49,4.849933882459663
+VapC_biorep_tONA_filtered,VapC 24h,d,50,4.833744334950524
+adam_matrix_filtered,adam_matrix_filtered,?,1,11.24961778616106
+adam_matrix_filtered,adam_matrix_filtered,?,2,9.825475916793074
+adam_matrix_filtered,adam_matrix_filtered,?,3,7.645277183405845
+adam_matrix_filtered,adam_matrix_filtered,?,4,7.389608990351453
+adam_matrix_filtered,adam_matrix_filtered,?,5,7.216860584152234
+adam_matrix_filtered,adam_matrix_filtered,?,6,7.16173294008735
+adam_matrix_filtered,adam_matrix_filtered,?,7,6.874848215301485
+adam_matrix_filtered,adam_matrix_filtered,?,8,6.801378057947419
+adam_matrix_filtered,adam_matrix_filtered,?,9,6.736034415187573
+adam_matrix_filtered,adam_matrix_filtered,?,10,6.6549837321384375
+adam_matrix_filtered,adam_matrix_filtered,?,11,6.40365051199638
+adam_matrix_filtered,adam_matrix_filtered,?,12,6.371182144622225
+adam_matrix_filtered,adam_matrix_filtered,?,13,6.352988215219672
+adam_matrix_filtered,adam_matrix_filtered,?,14,6.299950100119256
+adam_matrix_filtered,adam_matrix_filtered,?,15,6.27142622308018
+adam_matrix_filtered,adam_matrix_filtered,?,16,6.231508773311967
+adam_matrix_filtered,adam_matrix_filtered,?,17,6.224241601135744
+adam_matrix_filtered,adam_matrix_filtered,?,18,6.202339560579523
+adam_matrix_filtered,adam_matrix_filtered,?,19,6.168969067135841
+adam_matrix_filtered,adam_matrix_filtered,?,20,6.135883552842393
+adam_matrix_filtered,adam_matrix_filtered,?,21,6.1182110362264766
+adam_matrix_filtered,adam_matrix_filtered,?,22,6.071143429214077
+adam_matrix_filtered,adam_matrix_filtered,?,23,6.068458753884697
+adam_matrix_filtered,adam_matrix_filtered,?,24,6.0203339955989
+adam_matrix_filtered,adam_matrix_filtered,?,25,6.0151788533704185
+adam_matrix_filtered,adam_matrix_filtered,?,26,6.002033357888411
+adam_matrix_filtered,adam_matrix_filtered,?,27,5.976159984693511
+adam_matrix_filtered,adam_matrix_filtered,?,28,5.968491604187011
+adam_matrix_filtered,adam_matrix_filtered,?,29,5.9600917543182685
+adam_matrix_filtered,adam_matrix_filtered,?,30,5.948893746569197
+adam_matrix_filtered,adam_matrix_filtered,?,31,5.92687311574842
+adam_matrix_filtered,adam_matrix_filtered,?,32,5.915927914760191
+adam_matrix_filtered,adam_matrix_filtered,?,33,5.8740296761368365
+adam_matrix_filtered,adam_matrix_filtered,?,34,5.8573603210045375
+adam_matrix_filtered,adam_matrix_filtered,?,35,5.847619956682276
+adam_matrix_filtered,adam_matrix_filtered,?,36,5.830230377778015
+adam_matrix_filtered,adam_matrix_filtered,?,37,5.820163620976508
+adam_matrix_filtered,adam_matrix_filtered,?,38,5.8036936714161245
+adam_matrix_filtered,adam_matrix_filtered,?,39,5.800958474720575
+adam_matrix_filtered,adam_matrix_filtered,?,40,5.77140903607397
+adam_matrix_filtered,adam_matrix_filtered,?,41,5.767957439029957
+adam_matrix_filtered,adam_matrix_filtered,?,42,5.745487088120471
+adam_matrix_filtered,adam_matrix_filtered,?,43,5.73667144066005
+adam_matrix_filtered,adam_matrix_filtered,?,44,5.716879840713546
+adam_matrix_filtered,adam_matrix_filtered,?,45,5.707847258061998
+adam_matrix_filtered,adam_matrix_filtered,?,46,5.701423536602244
+adam_matrix_filtered,adam_matrix_filtered,?,47,5.675146746460289
+adam_matrix_filtered,adam_matrix_filtered,?,48,5.663386573004543
+adam_matrix_filtered,adam_matrix_filtered,?,49,5.659659299881633
+adam_matrix_filtered,adam_matrix_filtered,?,50,5.6451427427416725
+sample_13a_filtered,Dis-Arrest 4A,d,1,8.242494324391714
+sample_13a_filtered,Dis-Arrest 4A,d,2,7.091701380862534
+sample_13a_filtered,Dis-Arrest 4A,d,3,6.922955734674468
+sample_13a_filtered,Dis-Arrest 4A,d,4,6.681553637150192
+sample_13a_filtered,Dis-Arrest 4A,d,5,6.567240580776335
+sample_13a_filtered,Dis-Arrest 4A,d,6,6.471047802791713
+sample_13a_filtered,Dis-Arrest 4A,d,7,6.271233385903634
+sample_13a_filtered,Dis-Arrest 4A,d,8,6.207876362334108
+sample_13a_filtered,Dis-Arrest 4A,d,9,6.153499676366249
+sample_13a_filtered,Dis-Arrest 4A,d,10,6.029552071736733
+sample_13a_filtered,Dis-Arrest 4A,d,11,6.01611368635549
+sample_13a_filtered,Dis-Arrest 4A,d,12,5.974623704170574
+sample_13a_filtered,Dis-Arrest 4A,d,13,5.91601620200858
+sample_13a_filtered,Dis-Arrest 4A,d,14,5.852535384043315
+sample_13a_filtered,Dis-Arrest 4A,d,15,5.825100909658163
+sample_13a_filtered,Dis-Arrest 4A,d,16,5.787780393285091
+sample_13a_filtered,Dis-Arrest 4A,d,17,5.74220676175792
+sample_13a_filtered,Dis-Arrest 4A,d,18,5.724772048633088
+sample_13a_filtered,Dis-Arrest 4A,d,19,5.704070359753312
+sample_13a_filtered,Dis-Arrest 4A,d,20,5.641302977250474
+sample_13a_filtered,Dis-Arrest 4A,d,21,5.606244325258023
+sample_13a_filtered,Dis-Arrest 4A,d,22,5.60320168461107
+sample_13a_filtered,Dis-Arrest 4A,d,23,5.548756046462862
+sample_13a_filtered,Dis-Arrest 4A,d,24,5.526429881797573
+sample_13a_filtered,Dis-Arrest 4A,d,25,5.486902238658925
+sample_13a_filtered,Dis-Arrest 4A,d,26,5.469244995801508
+sample_13a_filtered,Dis-Arrest 4A,d,27,5.426562204912569
+sample_13a_filtered,Dis-Arrest 4A,d,28,5.40451991085042
+sample_13a_filtered,Dis-Arrest 4A,d,29,5.394458335955377
+sample_13a_filtered,Dis-Arrest 4A,d,30,5.357694830820822
+sample_13a_filtered,Dis-Arrest 4A,d,31,5.321108722364065
+sample_13a_filtered,Dis-Arrest 4A,d,32,5.282487591244879
+sample_13a_filtered,Dis-Arrest 4A,d,33,5.279201934039738
+sample_13a_filtered,Dis-Arrest 4A,d,34,5.256366889021414
+sample_13a_filtered,Dis-Arrest 4A,d,35,5.235432452528768
+sample_13a_filtered,Dis-Arrest 4A,d,36,5.203465715528325
+sample_13a_filtered,Dis-Arrest 4A,d,37,5.193471722583866
+sample_13a_filtered,Dis-Arrest 4A,d,38,5.1726993574587175
+sample_13a_filtered,Dis-Arrest 4A,d,39,5.147159815934701
+sample_13a_filtered,Dis-Arrest 4A,d,40,5.133523228277926
+sample_13a_filtered,Dis-Arrest 4A,d,41,5.123748118158234
+sample_13a_filtered,Dis-Arrest 4A,d,42,5.112463360816021
+sample_13a_filtered,Dis-Arrest 4A,d,43,5.107102589303661
+sample_13a_filtered,Dis-Arrest 4A,d,44,5.093057272405304
+sample_13a_filtered,Dis-Arrest 4A,d,45,5.049540197048266
+sample_13a_filtered,Dis-Arrest 4A,d,46,5.036389244130052
+sample_13a_filtered,Dis-Arrest 4A,d,47,5.019553579555238
+sample_13a_filtered,Dis-Arrest 4A,d,48,5.011077662504739
+sample_13a_filtered,Dis-Arrest 4A,d,49,4.976711109209023
+sample_13a_filtered,Dis-Arrest 4A,d,50,4.968775884846049
+sample_13b_filtered,Reg-Arrest A,r,1,14.185923032070484
+sample_13b_filtered,Reg-Arrest A,r,2,12.034185152931196
+sample_13b_filtered,Reg-Arrest A,r,3,8.832025940184547
+sample_13b_filtered,Reg-Arrest A,r,4,8.219355861637059
+sample_13b_filtered,Reg-Arrest A,r,5,7.839797362082949
+sample_13b_filtered,Reg-Arrest A,r,6,7.514243130231175
+sample_13b_filtered,Reg-Arrest A,r,7,7.356930943176593
+sample_13b_filtered,Reg-Arrest A,r,8,7.07765621190888
+sample_13b_filtered,Reg-Arrest A,r,9,6.918679622294306
+sample_13b_filtered,Reg-Arrest A,r,10,6.865765968649463
+sample_13b_filtered,Reg-Arrest A,r,11,6.81635739620298
+sample_13b_filtered,Reg-Arrest A,r,12,6.703039624294684
+sample_13b_filtered,Reg-Arrest A,r,13,6.565426613311045
+sample_13b_filtered,Reg-Arrest A,r,14,6.487381119883612
+sample_13b_filtered,Reg-Arrest A,r,15,6.444372005116244
+sample_13b_filtered,Reg-Arrest A,r,16,6.386080631750409
+sample_13b_filtered,Reg-Arrest A,r,17,6.363223164356167
+sample_13b_filtered,Reg-Arrest A,r,18,6.31023207020854
+sample_13b_filtered,Reg-Arrest A,r,19,6.237327554775297
+sample_13b_filtered,Reg-Arrest A,r,20,6.227883477283521
+sample_13b_filtered,Reg-Arrest A,r,21,6.166196931017493
+sample_13b_filtered,Reg-Arrest A,r,22,6.143771797697229
+sample_13b_filtered,Reg-Arrest A,r,23,6.030427831278736
+sample_13b_filtered,Reg-Arrest A,r,24,6.003696737337845
+sample_13b_filtered,Reg-Arrest A,r,25,5.967954767667842
+sample_13b_filtered,Reg-Arrest A,r,26,5.894978501659487
+sample_13b_filtered,Reg-Arrest A,r,27,5.882654849677161
+sample_13b_filtered,Reg-Arrest A,r,28,5.843200127050037
+sample_13b_filtered,Reg-Arrest A,r,29,5.824407801550254
+sample_13b_filtered,Reg-Arrest A,r,30,5.796765606690621
+sample_13b_filtered,Reg-Arrest A,r,31,5.769061814900747
+sample_13b_filtered,Reg-Arrest A,r,32,5.7200838092535085
+sample_13b_filtered,Reg-Arrest A,r,33,5.685427579025503
+sample_13b_filtered,Reg-Arrest A,r,34,5.651856947074741
+sample_13b_filtered,Reg-Arrest A,r,35,5.640819968569764
+sample_13b_filtered,Reg-Arrest A,r,36,5.599689946795095
+sample_13b_filtered,Reg-Arrest A,r,37,5.586584836766849
+sample_13b_filtered,Reg-Arrest A,r,38,5.579880826287031
+sample_13b_filtered,Reg-Arrest A,r,39,5.570746117967381
+sample_13b_filtered,Reg-Arrest A,r,40,5.537002064755677
+sample_13b_filtered,Reg-Arrest A,r,41,5.514644346939373
+sample_13b_filtered,Reg-Arrest A,r,42,5.499849266123453
+sample_13b_filtered,Reg-Arrest A,r,43,5.449884892549518
+sample_13b_filtered,Reg-Arrest A,r,44,5.425365803578441
+sample_13b_filtered,Reg-Arrest A,r,45,5.385744898945896
+sample_13b_filtered,Reg-Arrest A,r,46,5.366291410764854
+sample_13b_filtered,Reg-Arrest A,r,47,5.324306757568508
+sample_13b_filtered,Reg-Arrest A,r,48,5.3190278099284045
+sample_13b_filtered,Reg-Arrest A,r,49,5.308087391953969
+sample_13b_filtered,Reg-Arrest A,r,50,5.28233362234373
+sample_15a_filtered,Dis-Arrest 4B,d,1,6.094979017903903
+sample_15a_filtered,Dis-Arrest 4B,d,2,5.956931377497044
+sample_15a_filtered,Dis-Arrest 4B,d,3,5.842413627417045
+sample_15a_filtered,Dis-Arrest 4B,d,4,5.680795426570623
+sample_15a_filtered,Dis-Arrest 4B,d,5,5.644900313460812
+sample_15a_filtered,Dis-Arrest 4B,d,6,5.620761329495804
+sample_15a_filtered,Dis-Arrest 4B,d,7,5.570009604034501
+sample_15a_filtered,Dis-Arrest 4B,d,8,5.475377511121081
+sample_15a_filtered,Dis-Arrest 4B,d,9,5.458074136630487
+sample_15a_filtered,Dis-Arrest 4B,d,10,5.415796404811263
+sample_15a_filtered,Dis-Arrest 4B,d,11,5.407375351768002
+sample_15a_filtered,Dis-Arrest 4B,d,12,5.377994186178446
+sample_15a_filtered,Dis-Arrest 4B,d,13,5.35441943338987
+sample_15a_filtered,Dis-Arrest 4B,d,14,5.340269086687423
+sample_15a_filtered,Dis-Arrest 4B,d,15,5.306026637596839
+sample_15a_filtered,Dis-Arrest 4B,d,16,5.271304171453985
+sample_15a_filtered,Dis-Arrest 4B,d,17,5.253916939090555
+sample_15a_filtered,Dis-Arrest 4B,d,18,5.207213600734541
+sample_15a_filtered,Dis-Arrest 4B,d,19,5.193103721887553
+sample_15a_filtered,Dis-Arrest 4B,d,20,5.172850221760077
+sample_15a_filtered,Dis-Arrest 4B,d,21,5.158922381353659
+sample_15a_filtered,Dis-Arrest 4B,d,22,5.13418040554002
+sample_15a_filtered,Dis-Arrest 4B,d,23,5.120164555522397
+sample_15a_filtered,Dis-Arrest 4B,d,24,5.079769387529091
+sample_15a_filtered,Dis-Arrest 4B,d,25,5.059773370137658
+sample_15a_filtered,Dis-Arrest 4B,d,26,5.048415267738336
+sample_15a_filtered,Dis-Arrest 4B,d,27,5.034804145491917
+sample_15a_filtered,Dis-Arrest 4B,d,28,5.014775799516271
+sample_15a_filtered,Dis-Arrest 4B,d,29,4.9945242394450124
+sample_15a_filtered,Dis-Arrest 4B,d,30,4.985363747673399
+sample_15a_filtered,Dis-Arrest 4B,d,31,4.969560269890395
+sample_15a_filtered,Dis-Arrest 4B,d,32,4.939912236537912
+sample_15a_filtered,Dis-Arrest 4B,d,33,4.910658072533576
+sample_15a_filtered,Dis-Arrest 4B,d,34,4.903654407787565
+sample_15a_filtered,Dis-Arrest 4B,d,35,4.897307092240045
+sample_15a_filtered,Dis-Arrest 4B,d,36,4.87957657436712
+sample_15a_filtered,Dis-Arrest 4B,d,37,4.855697276103183
+sample_15a_filtered,Dis-Arrest 4B,d,38,4.847604653112625
+sample_15a_filtered,Dis-Arrest 4B,d,39,4.837377754067569
+sample_15a_filtered,Dis-Arrest 4B,d,40,4.811425776462607
+sample_15a_filtered,Dis-Arrest 4B,d,41,4.797325286276874
+sample_15a_filtered,Dis-Arrest 4B,d,42,4.782940977351152
+sample_15a_filtered,Dis-Arrest 4B,d,43,4.774386504945795
+sample_15a_filtered,Dis-Arrest 4B,d,44,4.744092877459984
+sample_15a_filtered,Dis-Arrest 4B,d,45,4.733003880230221
+sample_15a_filtered,Dis-Arrest 4B,d,46,4.721400805985083
+sample_15a_filtered,Dis-Arrest 4B,d,47,4.707904616413577
+sample_15a_filtered,Dis-Arrest 4B,d,48,4.695723340820631
+sample_15a_filtered,Dis-Arrest 4B,d,49,4.678920816495243
+sample_15a_filtered,Dis-Arrest 4B,d,50,4.673394885499548
+sample_15b_filtered,Reg-Arrest B,r,1,17.144052134528273
+sample_15b_filtered,Reg-Arrest B,r,2,11.130813875753583
+sample_15b_filtered,Reg-Arrest B,r,3,8.848951402859011
+sample_15b_filtered,Reg-Arrest B,r,4,8.162749912006245
+sample_15b_filtered,Reg-Arrest B,r,5,7.912280989221603
+sample_15b_filtered,Reg-Arrest B,r,6,7.521939147455363
+sample_15b_filtered,Reg-Arrest B,r,7,7.384464444706518
+sample_15b_filtered,Reg-Arrest B,r,8,7.278623105107168
+sample_15b_filtered,Reg-Arrest B,r,9,7.160703643718416
+sample_15b_filtered,Reg-Arrest B,r,10,7.115419641221871
+sample_15b_filtered,Reg-Arrest B,r,11,7.006917176420998
+sample_15b_filtered,Reg-Arrest B,r,12,6.827958791085017
+sample_15b_filtered,Reg-Arrest B,r,13,6.767410311073283
+sample_15b_filtered,Reg-Arrest B,r,14,6.653479401250717
+sample_15b_filtered,Reg-Arrest B,r,15,6.607246442488991
+sample_15b_filtered,Reg-Arrest B,r,16,6.543020813968634
+sample_15b_filtered,Reg-Arrest B,r,17,6.488554443818009
+sample_15b_filtered,Reg-Arrest B,r,18,6.447051989693359
+sample_15b_filtered,Reg-Arrest B,r,19,6.351115845762644
+sample_15b_filtered,Reg-Arrest B,r,20,6.31081744581721
+sample_15b_filtered,Reg-Arrest B,r,21,6.273654557584898
+sample_15b_filtered,Reg-Arrest B,r,22,6.222365967424958
+sample_15b_filtered,Reg-Arrest B,r,23,6.187057647092396
+sample_15b_filtered,Reg-Arrest B,r,24,6.141797755167135
+sample_15b_filtered,Reg-Arrest B,r,25,6.103087465048349
+sample_15b_filtered,Reg-Arrest B,r,26,6.063053645768662
+sample_15b_filtered,Reg-Arrest B,r,27,6.023628678043286
+sample_15b_filtered,Reg-Arrest B,r,28,5.962196698006096
+sample_15b_filtered,Reg-Arrest B,r,29,5.959012408156661
+sample_15b_filtered,Reg-Arrest B,r,30,5.922009614519895
+sample_15b_filtered,Reg-Arrest B,r,31,5.915220075109865
+sample_15b_filtered,Reg-Arrest B,r,32,5.8894586419178205
+sample_15b_filtered,Reg-Arrest B,r,33,5.801507927654181
+sample_15b_filtered,Reg-Arrest B,r,34,5.770002154226683
+sample_15b_filtered,Reg-Arrest B,r,35,5.750890533803372
+sample_15b_filtered,Reg-Arrest B,r,36,5.729795890017358
+sample_15b_filtered,Reg-Arrest B,r,37,5.668910828660194
+sample_15b_filtered,Reg-Arrest B,r,38,5.649067077615932
+sample_15b_filtered,Reg-Arrest B,r,39,5.616563662408089
+sample_15b_filtered,Reg-Arrest B,r,40,5.602230741877631
+sample_15b_filtered,Reg-Arrest B,r,41,5.586017541390438
+sample_15b_filtered,Reg-Arrest B,r,42,5.557119986174121
+sample_15b_filtered,Reg-Arrest B,r,43,5.536448543441442
+sample_15b_filtered,Reg-Arrest B,r,44,5.526818075182795
+sample_15b_filtered,Reg-Arrest B,r,45,5.48754461922558
+sample_15b_filtered,Reg-Arrest B,r,46,5.467527324734645
+sample_15b_filtered,Reg-Arrest B,r,47,5.437447709067477
+sample_15b_filtered,Reg-Arrest B,r,48,5.424828334896822
+sample_15b_filtered,Reg-Arrest B,r,49,5.408291934956392
+sample_15b_filtered,Reg-Arrest B,r,50,5.401383367810984
+sample_2b_filtered,Exponential 2,r,1,19.238441740284948
+sample_2b_filtered,Exponential 2,r,2,9.482304468215451
+sample_2b_filtered,Exponential 2,r,3,8.532111073211736
+sample_2b_filtered,Exponential 2,r,4,8.2620508637726
+sample_2b_filtered,Exponential 2,r,5,7.676931444891246
+sample_2b_filtered,Exponential 2,r,6,7.564563728442145
+sample_2b_filtered,Exponential 2,r,7,7.3103968685167295
+sample_2b_filtered,Exponential 2,r,8,7.06657574680373
+sample_2b_filtered,Exponential 2,r,9,6.944145616401217
+sample_2b_filtered,Exponential 2,r,10,6.873413090272467
+sample_2b_filtered,Exponential 2,r,11,6.848259037494418
+sample_2b_filtered,Exponential 2,r,12,6.7829090079695895
+sample_2b_filtered,Exponential 2,r,13,6.71533681155562
+sample_2b_filtered,Exponential 2,r,14,6.600538284881903
+sample_2b_filtered,Exponential 2,r,15,6.572123527820294
+sample_2b_filtered,Exponential 2,r,16,6.517876164766981
+sample_2b_filtered,Exponential 2,r,17,6.421637393912472
+sample_2b_filtered,Exponential 2,r,18,6.394002305116122
+sample_2b_filtered,Exponential 2,r,19,6.376656658179686
+sample_2b_filtered,Exponential 2,r,20,6.336125621863029
+sample_2b_filtered,Exponential 2,r,21,6.257916005693218
+sample_2b_filtered,Exponential 2,r,22,6.206493576970269
+sample_2b_filtered,Exponential 2,r,23,6.173792542666913
+sample_2b_filtered,Exponential 2,r,24,6.125556255714601
+sample_2b_filtered,Exponential 2,r,25,6.076482880485711
+sample_2b_filtered,Exponential 2,r,26,6.029106034634031
+sample_2b_filtered,Exponential 2,r,27,6.010341274328609
+sample_2b_filtered,Exponential 2,r,28,5.992581378914767
+sample_2b_filtered,Exponential 2,r,29,5.946934703333901
+sample_2b_filtered,Exponential 2,r,30,5.911090830531666
+sample_2b_filtered,Exponential 2,r,31,5.894399193790082
+sample_2b_filtered,Exponential 2,r,32,5.863947081556469
+sample_2b_filtered,Exponential 2,r,33,5.76870827442185
+sample_2b_filtered,Exponential 2,r,34,5.755838232294938
+sample_2b_filtered,Exponential 2,r,35,5.728792580888988
+sample_2b_filtered,Exponential 2,r,36,5.708309841721491
+sample_2b_filtered,Exponential 2,r,37,5.6804885025905385
+sample_2b_filtered,Exponential 2,r,38,5.627881932870402
+sample_2b_filtered,Exponential 2,r,39,5.587618475517065
+sample_2b_filtered,Exponential 2,r,40,5.570412179361986
+sample_2b_filtered,Exponential 2,r,41,5.55701959520549
+sample_2b_filtered,Exponential 2,r,42,5.5433059578570925
+sample_2b_filtered,Exponential 2,r,43,5.51730825048977
+sample_2b_filtered,Exponential 2,r,44,5.483914137738936
+sample_2b_filtered,Exponential 2,r,45,5.4784468237117805
+sample_2b_filtered,Exponential 2,r,46,5.435714171763776
+sample_2b_filtered,Exponential 2,r,47,5.421713647363691
+sample_2b_filtered,Exponential 2,r,48,5.402619825392656
+sample_2b_filtered,Exponential 2,r,49,5.380849924536873
+sample_2b_filtered,Exponential 2,r,50,5.362683860995419
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,1,12.94590296742841
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,2,8.816310509390043
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,3,7.211746708904052
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,4,7.0793278320761
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,5,6.2409850748670435
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,6,6.067692230929887
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,7,6.052623013390059
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,8,6.010718680377017
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,9,5.911140825640707
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,10,5.882475401660663
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,11,5.862452680628719
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,12,5.828324006840008
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,13,5.782555059202543
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,14,5.7438624227611434
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,15,5.738596622112344
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,16,5.714164790030604
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,17,5.674411705351962
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,18,5.63393918267148
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,19,5.6115271608088415
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,20,5.576047646024201
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,21,5.562479166037944
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,22,5.543353297207135
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,23,5.523141078186794
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,24,5.498879787898445
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,25,5.47214310695579
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,26,5.453858580133425
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,27,5.4404366774846995
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,28,5.411020091163217
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,29,5.3908007707181325
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,30,5.369022881879937
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,31,5.3480900861214495
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,32,5.322303332366605
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,33,5.301948269346614
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,34,5.271400169587107
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,35,5.264785165044566
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,36,5.247525573522641
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,37,5.222377453160839
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,38,5.20811672526443
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,39,5.1826514588819625
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,40,5.179029130026331
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,41,5.145773846815712
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,42,5.128274081195705
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,43,5.117864987815725
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,44,5.113708812969708
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,45,5.0864514777221785
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,46,5.072148049952674
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,47,5.042373786947075
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,48,5.0192573423444635
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,49,5.016269581605436
+adam_matrix_filtered2,Exponential E. coli (McNulty et al),r,50,5.002609109431829
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,1,19.184687926295865
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,2,15.08796654466082
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,3,14.832121984522589
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,4,14.809641781559124
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,5,14.695920028554236
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,6,13.516920824918785
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,7,13.325404500074187
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,8,12.560276922434928
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,9,12.45328572711067
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,10,11.975449561124915
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,11,11.701521121957315
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,12,11.0673801193918
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,13,10.983482809276218
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,14,10.38321301400525
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,15,10.253039049565682
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,16,10.109388294193593
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,17,9.753247576880284
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,18,9.252079272251544
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,19,9.19240384354708
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,20,9.158409550545649
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,21,9.074629060021142
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,22,8.970474942060287
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,23,8.943673107438954
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,24,8.933961468434388
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,25,8.74060196703354
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,26,8.671624483213373
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,27,8.483385684295857
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,28,8.44017566133725
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,29,8.417860148093474
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,30,8.351467149439337
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,31,8.287654475951701
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,32,8.158035098783502
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,33,8.131376872257462
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,34,8.036822212790966
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,35,7.971851989841644
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,36,7.89829518609897
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,37,7.813225917399946
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,38,7.7870077522549455
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,39,7.763539470305796
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,40,7.6561024039475996
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,41,7.5582672169934275
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,42,7.527762751253437
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,43,7.431786551222423
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,44,7.419909169478624
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,45,7.3822892981274375
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,46,7.310668775066262
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,47,7.282258144880137
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,48,7.255411760093014
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,49,7.2133814245193095
+deb_Ec_CDS_untreated,Exponential E. coli (Ma et al),r,50,7.196355269436257
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,1,63.70707057997612
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,2,23.185911314228694
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,3,16.995533382570258
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,4,12.522511530229334
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,5,12.016744380689463
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,6,11.35613700988601
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,7,11.24164336690161
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,8,9.985295284404518
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,9,9.51129737509857
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,10,8.885359059554073
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,11,8.695376769427963
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,12,8.432953685800289
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,13,8.188805762957013
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,14,8.107622133853233
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,15,7.990279440088746
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,16,7.897291835830462
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,17,7.818227157280466
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,18,7.743775108033015
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,19,7.716732177865597
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,20,7.580036121364374
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,21,7.401904443498681
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,22,7.275308908376015
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,23,7.219196188796992
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,24,7.121022385458943
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,25,7.043777704269019
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,26,7.0009651777750594
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,27,6.968517933896651
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,28,6.921101248577532
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,29,6.850440447390666
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,30,6.816791118817224
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,31,6.793336340401486
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,32,6.710985733644073
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,33,6.664280726715462
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,34,6.628791950104977
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,35,6.597172419010944
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,36,6.5510727092230985
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,37,6.523967367153937
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,38,6.504750426544474
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,39,6.475370295711945
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,40,6.439006529938582
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,41,6.433096769993789
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,42,6.3505455692213
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,43,6.311817205101218
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,44,6.287401269770431
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,45,6.282755480555243
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,46,6.214444683519938
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,47,6.188061177397625
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,48,6.180463454000039
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,49,6.110101291376924
+deb_KP_CDS_untreated,Exponential K. pneumonia (Ma et al),r,50,6.090823202188243

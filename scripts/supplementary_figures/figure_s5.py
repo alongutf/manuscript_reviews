@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from figure_functions import PanelFigure
+import permutation_pvalues as pv
 
 # ------------------------------------------------------------------
 # Global style
@@ -93,8 +94,15 @@ def _plot_ccdf(ax, npy_path, title, gmp_cor, signal_color='skyblue',
     # GMP-Cor annotation (the new metric: sum_denoised_ev), on a rounded,
     # semi-transparent box tinted by category (salmon = dis-arrest,
     # steelblue = regulated) via the panel's signal_color.
-    ax.text(0.04, 0.05, f'GMP-Cor: {gmp_cor:.2f}', transform=ax.transAxes,
+    # GMP-Cor with its sqrt(N)*sigma uncertainty, and the empirical permutation
+    # p-value underneath, in one box.
+    label = pv.gmp_cor_label(npy_path, gmp_cor, decimals=1)
+    p_txt = pv.p_label(pv.perm_p(npy_path))
+    if p_txt is not None:
+        label += '\n' + p_txt
+    ax.text(0.04, 0.05, label, transform=ax.transAxes,
             fontsize=fsize - 3, weight='bold', va='bottom', ha='left',
+            linespacing=1.4,
             bbox=dict(boxstyle='round,pad=0.3', facecolor=signal_color,
                       alpha=0.5, edgecolor='none'))
 

@@ -1,0 +1,48 @@
+Permutation test, all datasets, B=2000
+==============================================================================
+run: eigenvalue_permutation_B2000_20260823_132215   K_STORE=50   K_REPORT=20
+samples: 18
+
+p_empirical_1 = (1 + #{lambda_1^perm >= lambda_1^obs}) / (B + 1).
+No distributional assumption. Censored at 1/(B+1) = 0.000500.
+p_ci_lo_1 / p_ci_hi_1 are the exact (Clopper-Pearson) 95% interval for
+the underlying exceedance probability given n_exceed_1 out of B.
+
+Preprocessing asserted identical to ev_data/*.npy for every sample.
+
+                    sample                               title cat    n    p    B  lambda_1  null_mean   null_sd       z_1  n_exceed_1  p_empirical_1   p_ci_lo_1  p_ci_hi_1  null_max_1  topK_mass  p_topK_mass      maxT     p_maxT  k_hat  runtime_sec
+Expira_biorep_t0A_filtered                       Exponential 1   r  994 1997 2000   17.1587    6.89072  0.530927   19.3397           0     0.00049975 1.26588e-05 0.00184274      9.8093     161.37   0.00049975   27.2061 0.00049975     33        486.9
+              SHX_biorep2A                       Dis-Arrest 1A   d  967 1997 2000   9.50263    6.42953  0.357736   8.59043           0     0.00049975 1.26588e-05 0.00184274     8.49389    138.782   0.00049975   21.8043 0.00049975    211          297
+              SHX_biorep2B                       Dis-Arrest 1B   d  948 1997 2000   7.60642     6.3729  0.289075   4.26712          11       0.005997  0.00310402 0.00981966     8.22803    121.456   0.00049975   8.22505 0.00049975    335        294.1
+              SHX_biorep4A                        Dis-Arrest 2   d 1000 1997 2000   8.33247    5.95044  0.179325   13.2833           0     0.00049975 1.26588e-05 0.00184274     7.45134    115.657   0.00049975   13.2833 0.00049975    247        311.8
+              SHX_biorep6A                        Dis-Arrest 3   d 1001 1998 2000   9.05461    5.93638  0.144086   21.6414           0     0.00049975 1.26588e-05 0.00184274     7.19988    124.178   0.00049975   21.6414 0.00049975    333        313.4
+  VapC_biorep_t2A_filtered                             VapC 2h   r  900 1797 2000   14.6276    6.05312  0.229595    37.346           0     0.00049975 1.26588e-05 0.00184274       7.912     147.77   0.00049975   47.1959 0.00049975    167        466.5
+  VapC_biorep_t5A_filtered                           VapC 5h A   r  898 1797 2000   12.0601    5.85396 0.0977103   63.5159           0     0.00049975 1.26588e-05 0.00184274     6.77064    129.697   0.00049975   63.5159 0.00049975    205        466.6
+  VapC_biorep_t5B_filtered                           VapC 5h B   r  895 1798 2000   30.0017    5.80876 0.0445602   542.927           0     0.00049975 1.26588e-05 0.00184274     6.15509     145.79   0.00049975   542.927 0.00049975    231        470.1
+ VapC_biorep_tONA_filtered                            VapC 24h   d  898 1797 2000   10.2459    5.79589 0.0435697   102.135           0     0.00049975 1.26588e-05 0.00184274     6.06645    117.457   0.00049975   102.135 0.00049975    224        465.3
+      adam_matrix_filtered                adam_matrix_filtered   ? 1994 3973 2000   11.2496    5.97247  0.152023   34.7128           0     0.00049975 1.26588e-05 0.00184274     7.22566    140.218   0.00049975   56.7353 0.00049975    487       1730.8
+     adam_matrix_filtered2 Exponential E. coli (McNulty et al)   r  998 2007 2000   12.9459    5.82711 0.0469269     151.7           0     0.00049975 1.26588e-05 0.00184274     6.12476    129.385   0.00049975     151.7 0.00049975    209        433.3
+      deb_Ec_CDS_untreated      Exponential E. coli (Ma et al)   r 1181 2273 2000   19.1847    7.13135  0.611439   19.7131           0     0.00049975 1.26588e-05 0.00184274     9.88522    244.296   0.00049975   43.1949 0.00049975    279        675.2
+      deb_KP_CDS_untreated Exponential K. pneumonia (Ma et al)   r 1352 2725 2000   63.7071    6.83025  0.516857   110.044           0     0.00049975 1.26588e-05 0.00184274     10.4595    259.579   0.00049975   110.044 0.00049975    302        914.4
+       sample_13a_filtered                       Dis-Arrest 4A   d 1000 2037 2000   8.24249    6.62801  0.436072   3.70233          14     0.00749625  0.00420359  0.0117169     9.45449    124.824   0.00049975   6.19672  0.0009995    204        496.8
+       sample_13b_filtered                        Reg-Arrest A   r 1000 2022 2000   14.1859    6.46863  0.377903   20.4214           0     0.00049975 1.26588e-05 0.00184274     8.55445    151.386   0.00049975   26.1726 0.00049975    236        311.3
+       sample_15a_filtered                       Dis-Arrest 4B   d 1000 2004 2000   6.09498    6.45256  0.384529 -0.929923        1681        0.84058    0.824226   0.856289     8.72247    109.645     0.976512 -0.867626   0.975512      0          486
+       sample_15b_filtered                        Reg-Arrest B   r 1000 2022 2000   17.1441    6.31911  0.319381   33.8935           0     0.00049975 1.26588e-05 0.00184274     8.83231    155.664   0.00049975   33.8935 0.00049975    240        489.6
+        sample_2b_filtered                       Exponential 2   r 1041 2070 2000   19.2384    6.04979   0.21644   60.9345           0     0.00049975 1.26588e-05 0.00184274     7.28793    154.516   0.00049975   60.9345 0.00049975    254          526
+
+Group comparison (Mann-Whitney U on z_1, dysregulated < regulated):
+  statistic: z_1
+  n_regulated: 10
+  n_dysregulated: 7
+  median_z1_regulated: 49.14028814283323
+  median_z1_dysregulated: 8.590426945577375
+  mannwhitney_U: 10.0
+  p_value: 0.006787330316742082
+  alternative: dysregulated < regulated (one-sided)
+
+
+Saved for reuse (no recomputation needed to fit any distribution):
+  eigenvalue_permutation_B2000_20260823_132215_null_draws.npz    per-sample (2000, 50) scrambled eigenvalues
+  eigenvalue_permutation_B2000_20260823_132215_rank1.csv         18 x 2000 = 36000 rank-1 datapoints, tidy long form
+  eigenvalue_permutation_B2000_20260823_132215_observed.csv      observed eigenvalues, ranks 1..50
+  eigenvalue_permutation_B2000_20260823_132215_null_moments.csv  per-rank null mean/sd/min/max over the FULL spectrum

@@ -1,0 +1,13 @@
+High-B permutation run for boundary samples
+==============================================================================
+run: 20260823_122257   B=2000   K=20   seed=20260824
+
+p_empirical is the exceedance count, (1+#{null>=obs})/(B+1); it needs no
+distributional assumption. p_emp_ci_lo/hi is its exact (Clopper-Pearson)
+95% Monte Carlo interval. Compare against p_parametric and gpd_log10_p:
+agreement means the fitted tail is trustworthy in this range.
+
+             sample         title cat    n    p  lambda_1  null_mean  null_sd      z_1  n_exceed    B  p_empirical  p_emp_ci_lo  p_emp_ci_hi  p_parametric  log10_p_parametric  log10_p_lo  log10_p_hi best_family   gpd_xi  gpd_log10_p  gpd_beyond_endpoint  pit_ks_p
+       SHX_biorep2B Dis-Arrest 1B   d  948 1997   7.60642    6.37068  0.28298  4.36680         6 2000      0.00350      0.00141      0.00652       0.00446            -2.35062    -5.20039    -0.85384  genextreme -0.00698     -2.51157                False   0.66181
+sample_13a_filtered Dis-Arrest 4A   d 1000 2037   8.24249    6.59697  0.41809  3.93579        11 2000      0.00600      0.00310      0.00982       0.00433            -2.36338    -4.38235    -2.26945     lognorm -0.06631     -2.38495                False   0.92955
+sample_15a_filtered Dis-Arrest 4B   d 1000 2004   6.09498    6.45359  0.37788 -0.94902      1704 2000      0.85207      0.83619      0.86729       0.85322            -0.06894    -0.08161    -0.06615     lognorm -0.06631     -0.60206                False   0.28055

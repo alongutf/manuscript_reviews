@@ -93,8 +93,23 @@ Same construction as the CCDF helpers in `figure2.py` / `figure3.py`:
    - `data2` → **black** (α 0.5) = scrambled
 5. Dashed vertical line at `x2` (`λ_max^scr`).
 6. `set_xlim([0.1, 30])`, title = the display `title` from `titles.xlsx`.
-7. **GMP-Cor annotation**: `ax.text(0.04, 0.05, f'GMP-Cor: {gmp_cor:.2f}', weight='bold')` — the
-   value is `sum_denoised_ev` from `data_metrics.csv`.
+7. **GMP-Cor + p-value annotation**: one bold text box at `(0.04, 0.05)`, tinted by the
+   panel's `signal_color`, holding two lines:
+
+   ```
+   GMP-Cor: 13.8 ± 0.2
+   p < 5×10⁻⁴
+   ```
+
+   - Line 1 is `pv.gmp_cor_label(npy_path, gmp_cor, decimals=1)` — `sum_denoised_ev` from
+     `data_metrics.csv` to **one decimal**, followed by `± gmp_cor_ci`, the
+     `sqrt(N) * sigma` uncertainty (also one decimal).
+   - Line 2 is `pv.p_label(pv.perm_p(npy_path))` — the empirical permutation p-value,
+     shown as `p < 5×10⁻⁴` when censored at the B=2000 floor.
+   - `linespacing=1.4` keeps the two lines legible inside the rounded box.
+
+   Unlike figure2/3/5, S5 puts the p-value in this box rather than the legend, because the
+   legend is shared across the whole grid rather than drawn per panel.
 
 ## Shared legend
 
@@ -114,7 +129,10 @@ signal (regulated), signal (dis-arrest), scrambled, and the `λ_max^scr` dashed 
 | Tune panel spacing | `wspace` / `hspace` in `add_grid_panel` |
 | Recolor regulated / dis-arrest signal | `REG_COLOR` / `DIS_COLOR` |
 | Change all font sizes | `fsize` at top |
-| Move the GMP-Cor annotation | the `ax.text(0.04, 0.05, ...)` call in `_plot_ccdf` |
+| Move the GMP-Cor / p-value box | the `ax.text(0.04, 0.05, ...)` call in `_plot_ccdf` |
+| Change GMP-Cor decimals or drop the ±CI | `gmp_cor_label()` in `scripts/figures/permutation_pvalues.py` |
+| Reword the p-value | `p_label()` in `scripts/figures/permutation_pvalues.py` |
+| Refresh GMP-Cor CI / p-values | rerun `scripts/add_permutation_metrics.py` |
 | Save as SVG | change `pf.save("figure_s5.pdf", ...)` to `.svg` |
 
 ---

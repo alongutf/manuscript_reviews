@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from figure_functions import PanelFigure
+import permutation_pvalues as pv
 import numpy as np
 import pandas as pd
 import os
@@ -73,7 +74,8 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
     ax.set_title(title, fontsize=fsize)
-    ax.legend(fontsize=fsize - 2)
+    # p-value rides in the legend box, under the three series keys
+    pv.legend_with_p(ax, npy_file, fontsize=fsize - 2)
     ax.tick_params(labelsize=fsize - 2)
 
 
@@ -245,25 +247,32 @@ def panel_F(ax):
     _plot_ccdf(ax, 'VapC_biorep_tONA_filtered.npy', 'Late VapC (24h)', signal_color=DIS_COLOR)
 
 def panel_G(ax):
-    data = pd.read_csv(os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv'), index_col=0)
+    # data_metrics.csv is the current metrics table (18 datasets, and the source of
+    # the GMP-Cor CI); test8.csv is an older 15-dataset scramble realisation
+    data = pd.read_csv(os.path.join(root_dir, 'results', 'data_metrics',
+                                    'data_metrics.csv'), index_col=0)
     sample_map = [
         ('Expira_biorep_t0A_filtered.csv', 'Exponential', '#4393c3'),
         ('VapC_biorep_t2A_filtered.csv',   'VapC\n2h',   '#f4a582'),
         ('VapC_biorep_t5A_filtered.csv',   'VapC\n5h',   '#d6604d'),
         ('VapC_biorep_tONA_filtered.csv',  'VapC\n24h',  '#b2182b'),
     ]
-    labels, values, colors = [], [], []
+    labels, values, colors, errs = [], [], [], []
     for fname, lbl, col in sample_map:
         row = data[data['file_name'] == fname]
         if len(row) > 0:
             labels.append(lbl)
             values.append(row['sum_denoised_ev'].iloc[0])
             colors.append(col)
+            # GMP-Cor uncertainty sqrt(N)*sigma, propagated from the noise in the
+            # scrambled threshold (see scripts/add_permutation_metrics.py)
+            errs.append(pv.gmp_cor_ci(fname) or 0.0)
 
     bar_width = 0.25
     gap_between_bars = 0.4
     positions = [i * (bar_width + gap_between_bars) for i in range(len(values))]
-    ax.bar(positions, values, color=colors, edgecolor='black', alpha=0.7, width=bar_width)
+    ax.bar(positions, values, color=colors, edgecolor='black', alpha=0.7, width=bar_width,
+           yerr=errs, capsize=3, error_kw=dict(ecolor='black', elinewidth=1, capthick=1))
     ax.set_xticks(positions)
     ax.set_xticklabels(labels, rotation=0, fontsize=fsize-2, ha='center')
     ax.set_ylabel('GMP-Cor', fontsize=fsize, labelpad=0)
@@ -421,4 +430,5 @@ pf.add_panel(panel_pos[7], draw_func=panel_H)
 # panel I:
 pf.add_panel(panel_pos[8], draw_func=panel_I)
 pf.save("figure5.pdf", dpi=300)
+pf.save("figure5_preview.png", dpi=200)
 plt.show()

@@ -2,6 +2,7 @@ import src.analysis_functions as af
 import src.data_functions as df
 import matplotlib.pyplot as plt
 from figure_functions import PanelFigure
+import permutation_pvalues as pv
 from matplotlib.colors import to_rgba
 import numpy as np
 import pandas as pd
@@ -66,7 +67,9 @@ def _plot_ccdf(ax, npy_file, title, signal_color='skyblue'):
     ax.set_xlabel(r'$\lambda$', fontsize=fsize - 2, labelpad=0)
     ax.set_ylabel('CCDF', fontsize=fsize - 2, labelpad=0)
     ax.set_title(title, fontsize=fsize-2, pad=0)
-    ax.legend(fontsize=fsize - 2)
+    # p-value rides in the legend box, under the three series keys; a no-op for
+    # the simulated spectra, which have no permutation test
+    pv.legend_with_p(ax, npy_file, fontsize=fsize - 2)
     ax.tick_params(labelsize=fsize - 2)
 
 

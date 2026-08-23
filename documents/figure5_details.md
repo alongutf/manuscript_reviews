@@ -217,15 +217,21 @@ Colors 5 clusters by `cluster` column (0–4). Cluster index annotated as text a
 ## Panel G — GMP-Cor bar plot (VapC time course)
 
 **Function:** `panel_G(ax)`  
-**Data file:** `results/data_metrics/test8.csv` (index_col=0)  
-**Metric:** `sum_denoised_ev` column
+**Data file:** `results/data_metrics/data_metrics.csv` (index_col=0)  
+**Metric:** `sum_denoised_ev` column, with `gmp_cor_ci` as the error bar
 
-| `file_name` in test8.csv | Label | Color | Value |
-|---|---|---|---|
-| `Expira_biorep_t0A_filtered.csv` | Exponential | `#4393c3` | ~31.9 |
-| `VapC_biorep_t2A_filtered.csv` | VapC 2h | `#f4a582` | ~27.5 |
-| `VapC_biorep_t5A_filtered.csv` | VapC 5h | `#d6604d` | ~13.2 |
-| `VapC_biorep_tONA_filtered.csv` | VapC 24h | `#b2182b` | ~4.9 |
+> Switched from `test8.csv` to `data_metrics.csv`: the latter is the current table
+> (18 datasets, and the only one carrying `permutation_p` / `gmp_cor_ci`). `test8.csv`
+> is an older 15-dataset scramble realisation whose `sum_denoised_ev` differs by up to
+> 4.1 for some samples, because the GMP-Cor threshold is the max of a random scramble.
+> Bar heights shifted slightly as a result (Exponential 31.9 -> 32.7).
+
+| `file_name` in data_metrics.csv | Label | Color | Value | ±CI |
+|---|---|---|---|---|
+| `Expira_biorep_t0A_filtered.csv` | Exponential | `#4393c3` | ~32.7 | 1.6 |
+| `VapC_biorep_t2A_filtered.csv` | VapC 2h | `#f4a582` | ~27.8 | 0.9 |
+| `VapC_biorep_t5A_filtered.csv` | VapC 5h | `#d6604d` | ~13.1 | 0.4 |
+| `VapC_biorep_tONA_filtered.csv` | VapC 24h | `#b2182b` | ~4.7 | 0.1 |
 
 | Parameter | Value |
 |---|---|
@@ -233,9 +239,14 @@ Colors 5 clusters by `cluster` column (0–4). Cluster index annotated as text a
 | Gap between bars | `0.4` |
 | y limits | `[0, 45]` |
 | y label | `'GMP-Cor'` |
-| Error bars | none (single samples) |
+| Error bars | `yerr = gmp_cor_ci`, `capsize=3` (black, 1pt) |
 
-Samples are matched from test8.csv by the `file_name` column. The order (Exp → 2h → 5h → 24h) reflects increasing dysregulation over VapC induction time.
+**Error bars** are the GMP-Cor uncertainty `sqrt(N) * sigma`, where `sigma` is the SD of
+`lambda_max^scr` over the B=2000 permutations and `N` is the number of observed eigenvalues
+above the mean scrambled threshold. Computed by `scripts/add_permutation_metrics.py` into
+the `gmp_cor_ci` column and read here via `pv.gmp_cor_ci(file_name)`.
+
+Samples are matched from data_metrics.csv by the `file_name` column. The order (Exp → 2h → 5h → 24h) reflects increasing dysregulation over VapC induction time.
 
 ---
 
@@ -266,7 +277,7 @@ Overlapping histograms of single-cell lag times for 3 conditions (Reg-Arrest, Ea
 | `scanpy/umap_coordinates_vapc.csv` | Panels C, D | UMAP coordinates + batch/cluster labels |
 | `ev_data/VapC_biorep_t2A_filtered.npy` | Panel E | Eigenvalues: Early VapC (2h) |
 | `ev_data/VapC_biorep_tONA_filtered.npy` | Panel F | Eigenvalues: Late VapC (24h) |
-| `results/data_metrics/test8.csv` | Panel G | GMP-Cor (`sum_denoised_ev`) per sample |
+| `results/data_metrics/data_metrics.csv` | Panel G | GMP-Cor (`sum_denoised_ev`) + `gmp_cor_ci` error bars; `permutation_p` for panels E/F |
 | `scripts/figures/figure5/normalizedOD_at_20h.csv` | Panel H | SDS growth assay OD data |
 | `scripts/figures/figure5/CTRLt0.csv` | Panel I | Control lag times |
 | `scripts/figures/figure5/VAPCt240.csv` | Panel I | Early VapC lag times |
@@ -291,3 +302,37 @@ Overlapping histograms of single-cell lag times for 3 conditions (Reg-Arrest, Ea
 | Plot other kill-curve conditions | edit the `series` list in `panel_B` — entries are MPN block labels, not column names |
 | Add error bars to panel F | add `yerr=` to `ax.bar(...)` and supply per-sample SD/SE |
 | Save as SVG | uncomment `pf.save("figure5.svg", dpi=300)` at bottom |
+
+---
+
+## Permutation p-value indicator
+
+Every CCDF panel carries the empirical permutation p-value that the observed signal
+exceeds the scrambled null, as the last entry inside the legend box:
+
+    p = (1 + #{lambda_1^perm >= lambda_1^obs}) / (B + 1),   B = 2000
+
+Rendered `p < 5x10^-4` when no permutation reached the observed lambda_1 (the value
+is censored at the 1/(B+1) resolution floor and is not resolved further), otherwise
+`p = 0.006` style.
+
+**Source:** `results/data_metrics/data_metrics.csv`, column `permutation_p`, written by
+`scripts/add_permutation_metrics.py` from the B=2000 run
+(`scripts/eigenvalue_permutation_full_B2000.py`).
+
+**Implementation:** `scripts/figures/permutation_pvalues.py`, shared by figure2/3/5 and
+figure_s5. `pv.legend_with_p(ax, npy_file, fontsize=...)` replaces the plain
+`ax.legend(...)` call. The entry uses a zero-width legend handler (`_ZeroWidthHandle`) so
+the text sits flush with the left edge of the box rather than indented into the label
+column, and its font is set two points smaller than the series labels.
+
+Datasets with no permutation test (the simulated spectra, `simulated_pcs_*.npy`) get an
+ordinary three-entry legend -- the helper is a no-op for them.
+
+| Goal | What to change |
+|---|---|
+| Reword or reformat the p-value | `p_label()` in `scripts/figures/permutation_pvalues.py` |
+| Change its font size | `p_fontsize=` argument of `pv.legend_with_p` (default: legend size - 2) |
+| Refresh the values | rerun `scripts/add_permutation_metrics.py` |
+
+---

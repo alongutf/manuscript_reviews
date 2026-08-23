@@ -1,0 +1,71 @@
+Eigenvalue spectrum permutation test
+==============================================================================
+run: 20260823_121230   B=100   K=20   seed=20260823   alpha=0.05
+p_lambda_1 is PARAMETRIC: a distribution family is fitted by MLE to the B
+scrambled values of lambda_1 and p = SF_fitted(lambda_obs_1). Family chosen
+by AIC. log10_p_lo/hi bracket the answer across every fitted family: the
+lightest tail (normal) gives the smallest p, the heaviest (Gumbel/lognormal)
+the largest. Tracy-Widom, the theoretical law for the largest eigenvalue of
+a Wishart-type null, has right tail exp(-(2/3)s^1.5) and so lies BETWEEN the
+normal exp(-s^2/2) and the Gumbel exp(-s): the band contains the truth.
+extrapolated=True marks p < 1/B, where the value follows from the assumed
+tail shape rather than from the null sample -- read those as "below what
+B=100 draws can resolve", not as the numeral.
+p_lambda_1_empirical is the exceedance count, censored at 1/(B+1) = 0.0099.
+pit_ks_p is a held-out calibration check of the fit over its OBSERVABLE
+range (fit on half the draws, PIT the other half); large = no misfit
+detected where data exist. It cannot validate the far tail.
+
+Preprocessing validated against ev_data/*.npy: exact (max abs diff 0.0 vs.
+the repo's own af.get_eig_dist; <1e-13 for the Gram-matrix route).
+
+                    sample                title cat    n    p  lambda_1  null_mean  null_sd      z_1 best_family  fit_ks_p  p_lambda_1  log10_p_lambda_1  log10_p_lo  log10_p_hi  family_spread_orders  extrapolated  p_lambda_1_empirical  topK_mass  p_topK_mass     maxT  p_maxT  k_hat  k_hat_censored  pit_ks_p
+Expira_biorep_t0A_filtered        Exponential 1   r  994 1997   17.1587     6.8416   0.4502  22.9154    gumbel_r    0.9912      0.0000          -12.2405   -115.7872    -12.2405              103.5466          True                0.0099   161.3702       0.0099  28.5627  0.0099     33           False    0.6798
+              SHX_biorep2A        Dis-Arrest 1A   d  967 1997    9.5026     6.4128   0.2799  11.0393    gumbel_r    0.7654      0.0000           -5.9353    -27.9084     -5.9353               21.9732          True                0.0099   138.7818       0.0099  21.9049  0.0099    211           False    0.0833
+              SHX_biorep2B        Dis-Arrest 1B   d  948 1997    7.6064     6.4271   0.3121   3.7790     lognorm    0.9730      0.0075           -2.1257     -4.1039     -0.9302                3.1736          True                0.0099   121.4559       0.0099   7.7787  0.0099    335           False    0.1091
+              SHX_biorep4A         Dis-Arrest 2   d 1000 1997    8.3325     5.9363   0.1336  17.9401    gumbel_r    0.9944      0.0000          -10.6334    -71.5423     -6.9305               64.6118          True                0.0099   115.6568       0.0099  17.9401  0.0099    241           False    0.7917
+              SHX_biorep6A         Dis-Arrest 3   d 1001 1998    9.0546     5.9318   0.1473  21.2017    gumbel_r    0.9786      0.0000          -12.9139    -99.3366     -3.9922               95.3444          True                0.0099   124.1778       0.0099  22.5247  0.0099    333           False    0.1072
+  VapC_biorep_t2A_filtered              VapC 2h   r  900 1797   14.6276     6.0500   0.2102  40.8076    gumbel_r    0.9742      0.0000          -24.8656   -363.6166     -4.6752              358.9414          True                0.0099   147.7697       0.0099  44.3369  0.0099    164           False    0.5770
+  VapC_biorep_t5A_filtered            VapC 5h A   r  898 1797   12.0601     5.8422   0.0868  71.6418    gumbel_r    0.8899      0.0000          -44.4572  -1116.7742     -3.2129             1113.5613          True                0.0099   129.6967       0.0099  71.6418  0.0099    204           False    0.1324
+  VapC_biorep_t5B_filtered            VapC 5h B   r  895 1798   30.0017     5.8076   0.0457 528.8906     lognorm    0.9500      0.0000         -220.8774 -60744.6968   -220.8774            60523.8193          True                0.0099   145.7900       0.0099 528.8906  0.0099    233           False    0.1563
+ VapC_biorep_tONA_filtered             VapC 24h   d  898 1797   10.2459     5.7948   0.0414 107.5307        norm    0.9610      0.0000        -2513.2720  -2513.2720    -49.9018             2463.3702          True                0.0099   117.4567       0.0099 107.5307  0.0099    225           False    0.2580
+      adam_matrix_filtered adam_matrix_filtered   ? 1994 3973   11.2496     5.9694   0.1519  34.7658  genextreme    0.7908      0.0000           -5.8220   -264.3980     -5.8220              258.5760          True                0.0099   140.2180       0.0099  65.9581  0.0099    486           False    0.2277
+       sample_13a_filtered        Dis-Arrest 4A   d 1000 2037    8.2425     6.5897   0.4087   4.0445    skewnorm    0.6592      0.0015           -2.8239     -4.5814     -2.2180                2.3634          True                0.0099   124.8237       0.0099   6.1510  0.0099    204           False    0.3709
+       sample_13b_filtered         Reg-Arrest A   r 1000 2022   14.1859     6.4398   0.3274  23.6572       gamma    0.9963      0.0000          -25.5209   -123.3030    -12.1725              111.1304          True                0.0099   151.3859       0.0099  29.0268  0.0099    236           False    0.9516
+       sample_15a_filtered        Dis-Arrest 4B   d 1000 2004    6.0950     6.4264   0.3332  -0.9946    gumbel_r    0.7348      0.8623           -0.0644     -0.0757     -0.0643                0.0114         False                0.8416   109.6445       0.9703  -0.8911  0.9703      0           False    0.3327
+       sample_15b_filtered         Reg-Arrest B   r 1000 2022   17.1441     6.2898   0.2680  40.4983    gumbel_r    0.9254      0.0000          -23.6491   -358.1528    -13.7766              344.3762          True                0.0099   155.6636       0.0099  40.4983  0.0099    240           False    0.0084
+        sample_2b_filtered        Exponential 2   r 1041 2070   19.2384     6.0263   0.1906  69.3082     lognorm    0.8653      0.0000          -12.0097  -1045.3332     -7.3450             1037.9882          True                0.0099   154.5164       0.0099  69.3082  0.0099    254           False    0.0541
+
+log10(p) for lambda_1 under every fitted family (lightest tail first -> smallest p):
+  sample                             norm    skewnorm       gamma  genextreme    gumbel_r     lognorm
+  Exponential 1                    -115.8       -51.6       -19.6        -inf       -12.2       -12.8
+  Dis-Arrest 1A                     -27.9       -13.7        -8.8        -inf        -5.9        -7.3
+  Dis-Arrest 1B                      -4.1        -2.9        -0.9        -2.0        -2.7        -2.1
+  Dis-Arrest 2                      -71.5       -32.3       -12.5        -6.9       -10.6        -7.4
+  Dis-Arrest 3                      -99.3       -46.8        -4.0        -7.2       -12.9        -8.3
+  VapC 2h                          -363.6      -161.2        -4.7        -9.8       -24.9       -12.0
+  VapC 5h A                       -1116.8        -inf        -3.2       -12.7       -44.5       -17.3
+  VapC 5h B                      -60744.7        -inf        -inf        -inf      -252.5      -220.9
+  VapC 24h                        -2513.3        -inf        -inf        -inf       -49.9      -179.9
+  adam_matrix_filtered             -264.4      -139.2        -7.8        -5.8       -26.3        -9.3
+  Dis-Arrest 4A                      -4.6        -2.8        -2.3        -2.3        -2.5        -2.2
+  Reg-Arrest A                     -123.3       -61.7       -25.5        -inf       -12.2       -17.7
+  Dis-Arrest 4B                      -0.1        -0.1        -0.1        -0.1        -0.1        -0.1
+  Reg-Arrest B                     -358.2      -162.7       -33.6       -13.8       -23.6       -14.4
+  Exponential 2                   -1045.3        -inf       -46.0        -7.3       -43.5       -12.0
+
+
+Group comparison (Mann-Whitney U on z_1, dysregulated < regulated):
+  statistic: z_1
+  n_regulated: 7
+  n_dysregulated: 7
+  median_z1_regulated: 40.807589597570754
+  median_z1_dysregulated: 11.039305477163536
+  mannwhitney_U: 6.0
+  p_value: 0.00874125874125874
+  alternative: dysregulated < regulated (one-sided)
+
+Datasets in ev_data/ with no source matrix in data_for_paper/ (not testable):
+  adam_matrix_filtered2
+  deb_Ec_CDS_untreated
+  deb_KP_CDS_untreated

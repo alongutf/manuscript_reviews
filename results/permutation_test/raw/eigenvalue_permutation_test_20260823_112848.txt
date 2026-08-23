@@ -1,0 +1,39 @@
+Eigenvalue spectrum permutation test
+==============================================================================
+run: 20260823_112848   B=100   K=20   seed=20260823   alpha=0.05
+minimum attainable p-value = 1/(B+1) = 0.0099
+
+Preprocessing validated against ev_data/*.npy: exact (max abs diff 0.0 vs.
+the repo's own af.get_eig_dist; <1e-13 for the Gram-matrix route).
+
+                    sample                title cat    n    p  lambda_1  null_mean  null_sd      z_1  p_lambda_1  topK_mass  p_topK_mass     maxT  p_maxT  k_hat  k_hat_censored
+Expira_biorep_t0A_filtered        Exponential 1   r  994 1997   17.1587     6.8416   0.4502  22.9154      0.0099   161.3702       0.0099  28.5627  0.0099     33           False
+              SHX_biorep2A        Dis-Arrest 1A   d  967 1997    9.5026     6.4128   0.2799  11.0393      0.0099   138.7818       0.0099  21.9049  0.0099    211           False
+              SHX_biorep2B        Dis-Arrest 1B   d  948 1997    7.6064     6.4271   0.3121   3.7790      0.0099   121.4559       0.0099   7.7787  0.0099    335           False
+              SHX_biorep4A         Dis-Arrest 2   d 1000 1997    8.3325     5.9363   0.1336  17.9401      0.0099   115.6568       0.0099  17.9401  0.0099    241           False
+              SHX_biorep6A         Dis-Arrest 3   d 1001 1998    9.0546     5.9318   0.1473  21.2017      0.0099   124.1778       0.0099  22.5247  0.0099    333           False
+  VapC_biorep_t2A_filtered              VapC 2h   r  900 1797   14.6276     6.0500   0.2102  40.8076      0.0099   147.7697       0.0099  44.3369  0.0099    164           False
+  VapC_biorep_t5A_filtered            VapC 5h A   r  898 1797   12.0601     5.8422   0.0868  71.6418      0.0099   129.6967       0.0099  71.6418  0.0099    204           False
+  VapC_biorep_t5B_filtered            VapC 5h B   r  895 1798   30.0017     5.8076   0.0457 528.8906      0.0099   145.7900       0.0099 528.8906  0.0099    233           False
+ VapC_biorep_tONA_filtered             VapC 24h   d  898 1797   10.2459     5.7948   0.0414 107.5307      0.0099   117.4567       0.0099 107.5307  0.0099    225           False
+      adam_matrix_filtered adam_matrix_filtered   ? 1994 3973   11.2496     5.9694   0.1519  34.7658      0.0099   140.2180       0.0099  65.9581  0.0099    486           False
+       sample_13a_filtered        Dis-Arrest 4A   d 1000 2037    8.2425     6.5897   0.4087   4.0445      0.0099   124.8237       0.0099   6.1510  0.0099    204           False
+       sample_13b_filtered         Reg-Arrest A   r 1000 2022   14.1859     6.4398   0.3274  23.6572      0.0099   151.3859       0.0099  29.0268  0.0099    236           False
+       sample_15a_filtered        Dis-Arrest 4B   d 1000 2004    6.0950     6.4264   0.3332  -0.9946      0.8416   109.6445       0.9703  -0.8911  0.9703      0           False
+       sample_15b_filtered         Reg-Arrest B   r 1000 2022   17.1441     6.2898   0.2680  40.4983      0.0099   155.6636       0.0099  40.4983  0.0099    240           False
+        sample_2b_filtered        Exponential 2   r 1041 2070   19.2384     6.0263   0.1906  69.3082      0.0099   154.5164       0.0099  69.3082  0.0099    254           False
+
+Group comparison (Mann-Whitney U on z_1, dysregulated < regulated):
+  statistic: z_1
+  n_regulated: 7
+  n_dysregulated: 7
+  median_z1_regulated: 40.807589597570754
+  median_z1_dysregulated: 11.039305477163536
+  mannwhitney_U: 6.0
+  p_value: 0.00874125874125874
+  alternative: dysregulated < regulated (one-sided)
+
+Datasets in ev_data/ with no source matrix in data_for_paper/ (not testable):
+  adam_matrix_filtered2
+  deb_Ec_CDS_untreated
+  deb_KP_CDS_untreated

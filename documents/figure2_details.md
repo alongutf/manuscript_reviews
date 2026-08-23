@@ -246,3 +246,37 @@ All files: shape `(2, N)` — row 0 = original eigenvalues, row 1 = scrambled ei
 | Adjust panel D CCDF inset position | `ax_top.inset_axes([left, bottom, width, height])` in `panel_D` |
 | Adjust CCDF x-range / colors / labels | edit `_draw_ccdf` — applies to E, F, G and the D inset |
 | Save as SVG | uncomment `pf.save("figure2.svg", dpi=300)` and comment out `plt.show()` |
+
+---
+
+## Permutation p-value indicator
+
+Every CCDF panel carries the empirical permutation p-value that the observed signal
+exceeds the scrambled null, as the last entry inside the legend box:
+
+    p = (1 + #{lambda_1^perm >= lambda_1^obs}) / (B + 1),   B = 2000
+
+Rendered `p < 5x10^-4` when no permutation reached the observed lambda_1 (the value
+is censored at the 1/(B+1) resolution floor and is not resolved further), otherwise
+`p = 0.006` style.
+
+**Source:** `results/data_metrics/data_metrics.csv`, column `permutation_p`, written by
+`scripts/add_permutation_metrics.py` from the B=2000 run
+(`scripts/eigenvalue_permutation_full_B2000.py`).
+
+**Implementation:** `scripts/figures/permutation_pvalues.py`, shared by figure2/3/5 and
+figure_s5. `pv.legend_with_p(ax, npy_file, fontsize=...)` replaces the plain
+`ax.legend(...)` call. The entry uses a zero-width legend handler (`_ZeroWidthHandle`) so
+the text sits flush with the left edge of the box rather than indented into the label
+column, and its font is set two points smaller than the series labels.
+
+Datasets with no permutation test (the simulated spectra, `simulated_pcs_*.npy`) get an
+ordinary three-entry legend -- the helper is a no-op for them.
+
+| Goal | What to change |
+|---|---|
+| Reword or reformat the p-value | `p_label()` in `scripts/figures/permutation_pvalues.py` |
+| Change its font size | `p_fontsize=` argument of `pv.legend_with_p` (default: legend size - 2) |
+| Refresh the values | rerun `scripts/add_permutation_metrics.py` |
+
+---

@@ -1,11 +1,15 @@
 """
 Supplementary Figure S7 — Microfluidics analysis of the SHX experiment.
 
+Time in every panel is normalized to the moment SHX is added (frame 18 =
+180 min), so t = 0 is the drug-addition time and pre-drug times are negative.
+
 Panels:
   A. Kymograph image showing lineage trench over time, with annotation marking
-     when SHX was added.
+     when SHX was added. The image's baked-in time axis is cropped away and
+     redrawn in SHX-relative time.
   B. Histogram of cell growth-halt times (frames → minutes), with dashed line
-     at frame 18 (SHX addition).
+     at t = 0 (SHX addition).
   C. Histogram of division event times (frames → minutes), sharing panel B's
      x-axis.
 
@@ -47,8 +51,19 @@ DIV_COLOR = '#4C86A8'
 
 MIN_PER_FRAME = 10        # 1 frame = 10 minutes
 SHX_FRAME = 18
+SHX_MIN = SHX_FRAME * MIN_PER_FRAME   # 180 min — drug addition, defines t = 0
 
 BIN_WIDTH_MIN = 1 * MIN_PER_FRAME   # 2 frames per bin
+
+TIME_LABEL = 'Time from SHX addition (min)'
+
+# Geometry of the baked-in time axis in lineage_trench24_timeaxis.png, measured
+# from the tick labels: t = 0 min sits at pixel column 67.5 and one minute spans
+# 10.0125 px. Rows 18..1024 / columns 18..3723 are the kymograph box itself;
+# everything below is the original (now discarded) axis.
+IMG_T0_PX   = 67.5
+IMG_PX_PER_MIN = 10.0125
+IMG_BOX = dict(row0=18, row1=1025, col0=18, col1=3724)
 
 # ------------------------------------------------------------------
 # Load data — manually validated events
@@ -56,13 +71,14 @@ BIN_WIDTH_MIN = 1 * MIN_PER_FRAME   # 2 frames per bin
 events = pd.read_csv(os.path.join(MICR_DIR, 'true_events.csv'))
 events = events.dropna(subset=['frame'])        # drop events with no frame
 
-halt_min = events.loc[events['event_type'] == 'halt', 'frame'].values * MIN_PER_FRAME
-div_min  = events.loc[events['event_type'] == 'division', 'frame'].values * MIN_PER_FRAME
+# Times are expressed relative to SHX addition (t = 0 at 180 min)
+halt_min = events.loc[events['event_type'] == 'halt', 'frame'].values * MIN_PER_FRAME - SHX_MIN
+div_min  = events.loc[events['event_type'] == 'division', 'frame'].values * MIN_PER_FRAME - SHX_MIN
 
 # Shared x-axis for both histograms
 _max_min = max(halt_min.max(), div_min.max())
-BINS = np.arange(0, _max_min + BIN_WIDTH_MIN, BIN_WIDTH_MIN)
-XLIM = (0, 500)
+BINS = np.arange(-SHX_MIN, _max_min + BIN_WIDTH_MIN, BIN_WIDTH_MIN)
+XLIM = (-SHX_MIN, 500 - SHX_MIN)
 
 
 # ==================================================================
@@ -70,20 +86,42 @@ XLIM = (0, 500)
 # ==================================================================
 def panel_A(ax):
     img = mpimg.imread(os.path.join(IMG_DIR, 'lineage_trench24_timeaxis.png'))
-    ax.imshow(img, aspect='auto')
-    ax.set_axis_off()
 
-    # Find the x-position of the red dashed line in image pixel coordinates.
-    # We add the arrow + label in axes fraction coordinates so it is independent
-    # of the exact pixel position: place at the fraction corresponding to the
-    # dashed line's location visually (roughly 18/total_frames along the time axis).
-    # The image already has the dashed line drawn; we just annotate it.
+    # Crop away the image's own time axis and re-draw it in SHX-relative time.
+    box = img[IMG_BOX['row0']:IMG_BOX['row1'], IMG_BOX['col0']:IMG_BOX['col1']].copy()
+    left  = (IMG_BOX['col0'] - IMG_T0_PX) / IMG_PX_PER_MIN - SHX_MIN
+    right = (IMG_BOX['col1'] - IMG_T0_PX) / IMG_PX_PER_MIN - SHX_MIN
+
+    # The image has a red dashed line baked in at 175 min -- the frame *boundary*
+    # before the first post-SHX frame, so it renders half a frame early (t = -5).
+    # It sits on the black separator between frames, so erasing it is just a matter
+    # of copying a neighbouring separator column over it; the marker is redrawn
+    # below at t = 0, centred on the first post-SHX frame itself.
+    red = (box[..., 0] > 0.6) & (box[..., 1] < 0.4) & (box[..., 2] < 0.4)
+    red_cols = np.where(red.any(axis=0))[0]
+    if red_cols.size:
+        c0, c1 = red_cols.min(), red_cols.max()
+        box[:, c0:c1 + 1] = box[:, c0 - 3][:, None, :]
+
+    ax.imshow(box, aspect='auto', extent=(left, right, 0, 1))
+    ax.set_xlim(left, right)
+    ax.set_ylim(0, 1)
+    ax.set_yticks([])
+    ax.set_xticks(np.arange(-180, 181, 60))
+    ax.set_xlabel(TIME_LABEL, fontsize=fsize - 1)
+    ax.tick_params(labelsize=fsize - 2)
+    for side in ('top', 'right', 'left'):
+        ax.spines[side].set_visible(False)
+
+    # SHX marker, drawn over the middle of the first post-SHX frame (t = 0).
+    ax.axvline(0, color='red', linestyle='--', linewidth=1.5)
+
     ax.annotate(
         'SHX added',
-        xy=(0.485, 0.97),          # tip of arrow — near the red dashed line
-        xytext=(0.485, 1.06),      # text sits above
-        xycoords='axes fraction',
-        textcoords='axes fraction',
+        xy=(0, 1.0),
+        xytext=(0, 1.10),
+        xycoords=('data', 'axes fraction'),
+        textcoords=('data', 'axes fraction'),
         ha='center', va='bottom',
         fontsize=fsize - 1,
         color='red',
@@ -95,7 +133,7 @@ def _event_hist(ax, values, color, xlabel, title):
     ax.hist(values, bins=BINS, color=color, edgecolor='0.3',
             linewidth=0.6, alpha=0.85)
 
-    ax.axvline(SHX_FRAME * MIN_PER_FRAME, color='red', linestyle='--',
+    ax.axvline(0, color='red', linestyle='--',
                linewidth=1.5, label='SHX added')
 
     ax.set_xlim(*XLIM)
@@ -110,12 +148,12 @@ def _event_hist(ax, values, color, xlabel, title):
 
 def panel_B(ax):
     _event_hist(ax, halt_min, DIS_COLOR,
-                'Halt time (minutes)', 'Elongation arrest times')
+                TIME_LABEL, 'Elongation arrest times')
 
 
 def panel_C(ax):
     _event_hist(ax, div_min, DIV_COLOR,
-                'Division time (minutes)', 'Division times')
+                TIME_LABEL, 'Division times')
 
 
 # ------------------------------------------------------------------
@@ -124,7 +162,7 @@ def panel_C(ax):
 pf = PanelFigure(figsize=(7, 7), label_offset=(-0.02, 0.04))
 
 # Panel A: kymograph image (top, wide)
-pf.add_panel([0.05, 0.60, 0.88, 0.36], draw_func=panel_A, label='A')
+pf.add_panel([0.05, 0.64, 0.88, 0.30], draw_func=panel_A, label='A')
 
 # Panel B: halt-time histogram (middle) — short and wide
 pf.add_panel([0.10, 0.37, 0.85, 0.18], draw_func=panel_B, label='B')

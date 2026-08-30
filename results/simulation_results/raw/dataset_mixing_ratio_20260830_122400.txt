@@ -1,0 +1,65 @@
+======================================================================
+EXPERIMENTAL DATASET MIXING SERIES -- GMP-Cor with repeats
+Run timestamp : 2026-08-30T12:28:06.319235
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\dataset_mixing_ratio_run.py
+======================================================================
+
+DATA
+----------------------------------------------------------------------
+  dataset 1 (ratio 1.0) : EXP_biorep_t0A_filtered.csv   [Exponential]
+  dataset 2 (ratio 0.0) : VAPC_biorep_t2A_filtered.csv   [VapC: 2h]
+  data_dir              : data_for_umap
+  shared genes          : 3792 (excluded ['ampr', 'gfp', 'laci'])
+  cell pools            : 979 + 999 (highest total counts)
+  fixed gene panel      : 2000 genes, top Fano on the combined pool
+
+SAMPLING
+----------------------------------------------------------------------
+  n_total per point : 900   (same at EVERY ratio)
+  ratios            : [0.0, 0.25, 0.5, 0.75, 1.0]
+  repeats           : 5, uniform without replacement, seeded
+  GMP-Cor           : get_eig_dist(norm=True, norm_method="sum", norm_sum=50)
+
+RESULTS (mean +/- SD over repeats)
+----------------------------------------------------------------------
+   ratio           GMP-Cor          centered    dGMP    AUC      p  lam*_scr
+    0.00    29.22 +/- 4.20                  -       -      -   1978      6.44
+    0.25    41.61 +/- 4.17     25.48 +/- 5.35    0.393  1.000   1975      6.48
+    0.50    40.00 +/- 4.41     19.04 +/- 3.60    0.527  1.000   1958      6.48
+    0.75    40.78 +/- 1.73     23.29 +/- 4.19    0.431  1.000   1941      6.62
+    1.00    18.66 +/- 1.38                  -       -      -   1872      6.75
+
+KEY COMPARISON
+----------------------------------------------------------------------
+  pure VapC: 2h                :   29.22 +/- 4.20
+  pure Exponential             :   18.66 +/- 1.38
+  mixture 25%/75%              :   41.61 +/- 4.17   (1.42x the larger pure population)
+  mixture 50%/50%              :   40.00 +/- 4.41   (1.37x the larger pure population)
+  mixture 75%/25%              :   40.78 +/- 1.73   (1.40x the larger pure population)
+
+  Every mixture exceeds both pure populations: True
+
+INTERPRETATION
+----------------------------------------------------------------------
+  Mixing two experimentally distinct populations RAISES GMP-Cor above both
+  of the populations being mixed, and group-mean centering removes most of
+  the excess -- i.e. the elevation is the between-population mode, not new
+  within-cell coordination. Population heterogeneity therefore cannot
+  produce a LOW GMP-Cor, which is what the Dis-Arrest interpretation
+  requires. This is the experimental counterpart of the simulated
+  inverted-sub-population scenario in
+  simulations/inverted_subpopulation_mixing_run.py.
+
+  dGMP is the diagnostic to quote: it is the fraction of a mixture GMP-Cor
+  that disappears when each population is centered on its own gene means,
+  i.e. the fraction that is between-population structure rather than
+  within-cell coordination.
+
+FILES
+----------------------------------------------------------------------
+  json : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\dataset_mixing_ratio_20260830_122400.json
+  txt  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_122400.txt
+  csv  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_122400.csv
+  svg  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_122400.svg
+  png  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_122400.png
+======================================================================

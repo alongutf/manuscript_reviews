@@ -37,12 +37,67 @@ transcriptome-wide dysregulation."
 **Suggested replacement:**
 > `Quantifying Transcriptome-Wide Dysregulation in Disrupted Bacterial Growth-Arrest`
 
-Alternatives, if you want tolerance to remain visible:
-> `A Correlation-Spectrum Metric Quantifies Transcriptome-Wide Dysregulation in Growth-Arrested Bacteria`
->
-> `Quantifying Genome-Wide Dysregulation Distinguishes Regulated from Disrupted Growth-Arrest`
+The key change the reviewer asked for is that "persistence" should not be the head noun —
+the quantification has to be the subject of the title, with tolerance/persistence retained as
+the motivation (a trailing prepositional phrase or a colon clause), not as the claim.
 
-The key change the reviewer asked for is that "persistence" should not be the head noun.
+**Alternatives — quantification-led, persistence retained as motivation:**
+
+*Metric-forward (the noun is the measurement):*
+> `A Correlation-Spectrum Metric Quantifies Transcriptome-Wide Dysregulation in Antibiotic-Tolerant Bacteria`
+>
+> `A Single-Cell Metric for Transcriptome-Wide Dysregulation in Bacterial Growth-Arrest and Antibiotic Tolerance`
+>
+> `Quantifying Genome-Wide Loss of Gene–Gene Coordination in Bacteria: A Signature of Disrupted Growth-Arrest and Antibiotic Tolerance`
+
+*Discrimination-forward (the claim is that the metric separates two states):*
+> `Quantifying Genome-Wide Dysregulation Distinguishes Regulated from Disrupted Growth-Arrest`
+>
+> `Quantifying Transcriptome-Wide Dysregulation Separates Regulated from Disrupted Growth-Arrest in Antibiotic-Tolerant Bacteria`
+
+*Result-forward (quantification in the verb, tolerance as the payoff):*
+> `Transcriptome-Wide Dysregulation, Quantified from Single-Cell Correlation Spectra, Marks Antibiotic-Tolerant Bacteria`
+>
+> `Measuring the Loss of Transcriptome-Wide Coordination in Bacterial Growth-Arrest and Antibiotic Persistence`
+
+**Variants on the preferred shape** — `Quantifying Genome-Wide Dysregulation Distinguishes
+Regulated from a Disrupted, Tolerance-Enhanced Growth-Arrest`. This is the strongest of the
+families above: the quantification is the subject, the discrimination is the verb, and tolerance
+rides along as a modifier of the state rather than as the claim. Two mechanical fixes to apply to
+any variant: hyphenate `tolerance-enhanced` (compound modifier), and keep the two arms parallel —
+either `Regulated from Disrupted` (both bare) or `a Regulated from a Disrupted` (both articled),
+not one of each.
+
+*Closest to your phrasing:*
+> `Quantifying Genome-Wide Dysregulation Distinguishes Regulated from Disrupted, Tolerance-Enhanced Growth-Arrest`
+>
+> `Quantifying Genome-Wide Dysregulation Distinguishes Regulated Growth-Arrest from a Disrupted, Tolerance-Enhanced State`
+
+*Naming the state as the discovery (the disrupted arrest becomes the object of the sentence):*
+> `Quantifying Genome-Wide Dysregulation Identifies a Disrupted, Tolerance-Enhanced Growth-Arrest`
+>
+> `Quantifying Genome-Wide Dysregulation Reveals a Disrupted, Tolerance-Enhanced Mode of Bacterial Growth-Arrest`
+
+*Two-modes framing (symmetric, avoids "regulated vs. disrupted" reading as a value judgement):*
+> `Quantifying Genome-Wide Dysregulation Distinguishes Two Modes of Bacterial Growth-Arrest, One Tolerance-Enhanced`
+>
+> `Genome-Wide Dysregulation Separates a Regulated from a Disrupted, Tolerance-Enhanced Growth-Arrest`
+
+*Tighter (if the journal caps the title length):*
+> `Quantifying Dysregulation Distinguishes Regulated from Tolerance-Enhanced Growth-Arrest`
+>
+> `A Dysregulation Index Distinguishes Regulated from Disrupted, Tolerance-Enhanced Growth-Arrest`
+
+On the modifier itself: `tolerance-enhanced` is precise but reads as coined. `antibiotic-tolerant`
+is plainer and will be searched for more often (`…from a Disrupted, Antibiotic-Tolerant
+Growth-Arrest`); `tolerance-prone` is a middle option. If the killing curves now in Fig. 1C/5B are
+the support for this word, `tolerance-enhanced` is the honest one — it asserts a *change* in
+tolerance, which is what the biphasic curves show, rather than a category label.
+Our pick, if you want one line: **`A Correlation-Spectrum Metric Quantifies Transcriptome-Wide
+Dysregulation in Antibiotic-Tolerant Bacteria`** — "metric… quantifies" satisfies the rebuttal
+commitment verbatim, and "antibiotic-tolerant" keeps the phenotype in the title without making it
+the thesis. Note that whichever you pick, "genome-wide" vs. "transcriptome-wide" must then be used
+consistently throughout (see Section G).
 
 ### A2. Abstract — Reviewer #3 comments 9 and minor 4
 **Current (l. 51).** Leads with stress-response biology, presents dysregulation as the finding,
@@ -54,30 +109,78 @@ application, not the thesis); (iii) Reviewer #3 asked for the cancer sentence to
 the abstract. Since you *now* have the PC9 analysis, you may keep a single, hedged clause, but it
 must be clearly marked as a demonstration on external data, not a claim about this system.
 
-**Suggested rewrite (drop-in for l. 51):**
-> When cells are exposed to unfavorable conditions, they activate stress-response pathways and
-> enter a regulated growth-arrest. When the stress overwhelms these pathways, cells instead enter a
-> *disrupted growth-arrest* — a poorly adapted, abrupt cessation of growth \cite{Kaplan2021}. Whether
-> these two archetypes of growth-arrest can be distinguished at the molecular level has remained an
-> open question, because the distinguishing feature is expected to be global rather than
-> pathway-specific. Here we develop GMP-Cor, a metric that quantifies the genome-wide strength of
-> gene–gene coordination from a single snapshot of single-cell RNA-seq data. GMP-Cor is derived from
-> the eigenvalue spectrum of the gene–gene correlation matrix, measured against a scrambled null that
-> absorbs the spurious correlations arising from sparsity and finite sample size, and is calibrated
-> against synthetic data with a known ground-truth correlation strength. Applying GMP-Cor to
-> *E. coli* scRNA-seq, we find that cells in disrupted growth-arrest — induced either by serine
-> hydroxamate or by prolonged expression of the toxin VapC — show a significant loss of gene–gene
-> correlation relative to exponentially growing or regulated growth-arrested cells, while a mixture of
-> distinct regulated subpopulations does not. Loss of coordination is corroborated at the bulk level by
-> a loss of coherence in gene-ontology enrichment. Both disrupted conditions display biphasic killing
-> under ampicillin, linking transcriptome-wide dysregulation to antibiotic tolerance and persistence,
-> and both are simultaneously more sensitive to membrane-targeting stress — indicating a trade-off
-> rather than uniform robustness. GMP-Cor requires no external reference, time series, or prior
-> pathway knowledge, and we show it also separates proliferating from arrested cells in human cancer
-> single-cell data, suggesting it is applicable wherever single-cell resolution is available.
+**What the abstract must carry (ranked).** The previous draft read as a linear summary and let the
+two genuinely novel items — the *theory* the metric rests on, and the *trade-off* result — fall to
+subordinate clauses. In order of what should survive any cut:
 
-If the editor pushes back on abstract length, the sentence beginning "GMP-Cor requires no external
-reference…" is the one to cut, keeping the final clause.
+1. **A quantitative theory, not just a scramble.** The correlation spectrum is compared to an
+   analytically solved generalized Marchenko–Pastur (GMP) distribution; the fitted correlation
+   strength *is* the metric. This is the reason the method needs no external reference, no time
+   course and no pathway annotation, and it is the sentence a physics-literate editor will read
+   first. The earlier draft described only "a scrambled null", which sounds like a permutation
+   heuristic and undersells the work.
+2. **The metric is calibrated against ground truth.** Synthetic data with a known coupling strength
+   $\chi$ turn GMP-Cor from a rank statistic into a measurement with an interpretable scale — this
+   is also what Reviewer #1 asked for and it belongs in the abstract, not only in the Results.
+3. **The discriminating result, with its control.** Dis-Arrest loses correlation relative to *both*
+   exponential and regulated-arrested cells, in two independent perturbations (SHX, VapC); a mixture
+   of regulated subpopulations *raises* the signal, so the effect cannot be heterogeneity.
+4. **The phenotype, as application:** biphasic killing under ampicillin.
+5. **The trade-off:** the same cells are *more* sensitive to membrane stress. This is the most
+   biologically surprising claim in the paper and was previously the last clause of a long sentence.
+6. **Generality:** one hedged clause on the human cancer single-cell data.
+
+**Suggested rewrite (drop-in for l. 51):**
+> Under unfavorable conditions cells activate stress-response pathways and enter a regulated
+> growth-arrest; when the stress overwhelms these pathways, they instead enter a *disrupted
+> growth-arrest* — an abrupt, poorly adapted cessation of growth that underlies antibiotic
+> tolerance and persistence during recovery \cite{Kaplan2021}. Because the defining feature of such
+> a state is expected to be global rather than pathway-specific, it has resisted the differential-
+> expression logic normally applied to transcriptomes. Here we quantify it directly. We show that
+> the eigenvalue spectrum of the gene–gene correlation matrix of single-cell RNA-seq data is
+> described by a generalized Marchenko–Pastur distribution, an analytically solvable random-matrix
+> model whose single parameter is the genome-wide strength of gene–gene coordination. Fitting this
+> model yields GMP-Cor, a dysregulation index obtained from one snapshot of a population, without an
+> external reference, a time course, or prior pathway knowledge, and calibrated against synthetic
+> data of known ground-truth correlation strength. Applying GMP-Cor to *E. coli* scRNA-seq, we find
+> that disrupted growth-arrest — induced independently by serine hydroxamate or by prolonged
+> expression of the toxin VapC — carries a significant genome-wide loss of gene–gene correlation
+> relative to both exponentially growing and regulated growth-arrested cells, mirrored at the bulk
+> level by a loss of coherence in gene-ontology enrichment. The loss is not an artifact of
+> population heterogeneity: a mixture of distinct regulated subpopulations *increases* the measured
+> correlation. Both disrupted populations show biphasic killing under ampicillin, tying
+> transcriptome-wide dysregulation to tolerance and persistence, yet both are simultaneously *more*
+> sensitive to membrane-targeting stress — arguing that this state is a collapse of coordination
+> rather than a protective program. GMP-Cor applies wherever single-cell resolution is available: in
+> published human cancer single-cell data it likewise separates proliferating from drug-arrested
+> cells.
+
+**Notes on the rewrite.**
+- The persistence framing is kept, but demoted to the *motivation* clause of sentence 1 and to an
+  *application* at the end; the head claim is now the measurement. This is exactly what Reviewer #3
+  asked for, and it matches whichever title you choose above.
+- "collapse of coordination rather than a protective program" is doing the work the old closing
+  sentence did — it states the conceptual claim of the paper in seven words, and it is supported by
+  the SDS data. Keep it even under length pressure.
+- The cancer sentence is now one clause, explicitly on *published* external data, with no claim of
+  mechanism — this satisfies Reviewer #3's request without discarding the PC9 analysis.
+
+**Shorter variant (~150 words), if the journal caps abstract length:**
+> Cells that fail to mount a coherent stress response enter a *disrupted growth-arrest*, an abrupt
+> cessation of growth that underlies antibiotic tolerance and persistence \cite{Kaplan2021}. Such a
+> state is defined by what is lost globally rather than by what is induced, and is therefore
+> invisible to differential-expression analysis. We show that the eigenvalue spectrum of the
+> gene–gene correlation matrix from single-cell RNA-seq follows a generalized Marchenko–Pastur
+> distribution whose single parameter measures genome-wide gene–gene coordination, and we use it to
+> define GMP-Cor: a calibrated dysregulation index computed from one snapshot, with no external
+> reference or pathway annotation. In *E. coli*, two independent disrupted arrests lose coordination
+> relative to growing and to regulated-arrested cells — an effect that population heterogeneity
+> would produce in the opposite direction. These cells are tolerant to ampicillin yet hypersensitive
+> to membrane stress, indicating a collapse of regulation rather than a protective program.
+
+If the editor pushes back on the length of the full version, cut the calibration clause
+("and calibrated against synthetic data…") before cutting anything else; it is defensible to leave
+that in the Results.
 
 ---
 

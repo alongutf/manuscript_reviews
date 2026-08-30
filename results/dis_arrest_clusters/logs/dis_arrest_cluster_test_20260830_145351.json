@@ -1,0 +1,755 @@
+{
+  "generated": "20260830_145351",
+  "script": "dis_arrest_cluster_test.py",
+  "parameters": {
+    "stem": "dis_arrest_cluster_test",
+    "target_sum": 3507,
+    "min_cells": 3,
+    "n_hvg": 2000,
+    "n_comps": 50,
+    "n_neighbors": 40,
+    "n_pcs": 40,
+    "min_dist": 0.3,
+    "umap_seed": 0,
+    "leiden_seed": 0,
+    "res_lo": 0.01,
+    "res_hi": 2.0,
+    "max_res_steps": 30,
+    "permutations": 200,
+    "repeats": 5,
+    "seed": 0,
+    "norm_sum": 1.0
+  },
+  "inputs": {
+    "dis1": "data_for_paper\\sample_13a_filtered.csv",
+    "dis2": "data_for_paper\\sample_15a_filtered.csv"
+  },
+  "matrix": {
+    "n_cells": 2000,
+    "n_genes_panel": 2042,
+    "n_genes_hvg_embedding": 2000
+  },
+  "leiden": {
+    "resolution": 0.5075,
+    "trace": [
+      {
+        "resolution": 1.005,
+        "n_clusters": 6
+      },
+      {
+        "resolution": 0.5075,
+        "n_clusters": 2
+      }
+    ],
+    "cluster_sizes": {
+      "low-depth": 1243,
+      "high-depth": 757
+    }
+  },
+  "q1_depth": {
+    "tests": {
+      "total_counts": {
+        "median_high_depth_cluster": 78.0,
+        "median_low_depth_cluster": 27.0,
+        "fold_change": 2.888888888888889,
+        "auc": 0.9537382924296802,
+        "cohens_d": 0.8796846013837806,
+        "mannwhitney_p": 1.0546245141069337e-254
+      },
+      "n_detected": {
+        "median_high_depth_cluster": 62.0,
+        "median_low_depth_cluster": 21.0,
+        "fold_change": 2.9523809523809526,
+        "auc": 0.9635746175943274,
+        "cohens_d": 1.121143626753457,
+        "mannwhitney_p": 8.393244743450167e-266
+      }
+    },
+    "depth_only_classifier": {
+      "cv_auc_logdepth_predicts_cluster": 0.9528078507807527,
+      "cv_accuracy": 0.8775
+    },
+    "embedding_vs_depth": {
+      "spearman_UMAP_1_vs_log_total_counts": -0.8317840619871092,
+      "spearman_UMAP_2_vs_log_total_counts": 0.6780352231353403,
+      "spearman_PC_1_vs_log_total_counts": 0.9655632988056134,
+      "spearman_PC_2_vs_log_total_counts": -0.4509320584288111
+    },
+    "batch_by_cluster": {
+      "high-depth": {
+        "dis1": 490,
+        "dis2": 267
+      },
+      "low-depth": {
+        "dis1": 510,
+        "dis2": 733
+      }
+    },
+    "auc_cluster_predicts_batch": 0.3885
+  },
+  "q2_gmp_cor": {
+    "matched_n": 757,
+    "per_group": {
+      "all cells": {
+        "label": "all cells",
+        "n_cells": 757,
+        "n_pool": 2000,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 9.472584057917908,
+          "null_mean": 7.70250269360864,
+          "null_sd": 0.4501378660698421,
+          "p_empirical": 0.004975124378109453,
+          "n_above_threshold": 3,
+          "gmp_cor": 2.950177014378122,
+          "gmp_cor_ci": 0.779661654443601
+        },
+        "gmp_cor_mean": 3.73209900910805,
+        "gmp_cor_std": 4.395142629986559,
+        "lambda_max_mean": 10.61625728210445,
+        "lambda_max_scrambled_mean": 7.7522264275724595,
+        "detected_per_cell": 51.1795,
+        "total_counts_per_cell": 70.274,
+        "reps": [
+          {
+            "gmp_cor": 3.0323306787000375,
+            "lambda_max": 9.472584057917906,
+            "lambda_max_scrambled": 7.675118138834674,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.024489279848696973,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 3.613857173239455,
+            "lambda_max": 10.460777208246014,
+            "lambda_max_scrambled": 7.754697106462456,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.025018735076145406,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.32049842409379625,
+            "lambda_max": 7.938766999711615,
+            "lambda_max_scrambled": 7.618268575617819,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.024176354029062087,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 11.146981553923844,
+            "lambda_max": 16.806393429998728,
+            "lambda_max_scrambled": 7.857110817882493,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.02737761171863397,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.5468272155831198,
+            "lambda_max": 8.40276471464798,
+            "lambda_max_scrambled": 7.85593749906486,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.02594646222526435,
+            "rep": 4
+          }
+        ]
+      },
+      "high-depth cluster": {
+        "label": "high-depth cluster",
+        "n_cells": 757,
+        "n_pool": 757,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 12.228081407007314,
+          "null_mean": 7.336542735046668,
+          "null_sd": 0.3047284755420849,
+          "p_empirical": 0.004975124378109453,
+          "n_above_threshold": 5,
+          "gmp_cor": 10.226447029498004,
+          "gmp_cor_ci": 0.6813935859919839
+        },
+        "gmp_cor_mean": 10.239803885406769,
+        "gmp_cor_std": 0.5080429964343239,
+        "lambda_max_mean": 12.228081407007279,
+        "lambda_max_scrambled_mean": 7.340458598280767,
+        "detected_per_cell": 95.12681638044914,
+        "total_counts_per_cell": 132.49273447820343,
+        "reps": [
+          {
+            "gmp_cor": 10.578748366233555,
+            "lambda_max": 12.2280814070073,
+            "lambda_max_scrambled": 7.266082467699562,
+            "n_modes_above_threshold": 5,
+            "fraction_non_zero": 0.04672240490198877,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 10.726316845493333,
+            "lambda_max": 12.228081407007307,
+            "lambda_max_scrambled": 7.236568771847608,
+            "n_modes_above_threshold": 5,
+            "fraction_non_zero": 0.04672240490198877,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 9.415695237514974,
+            "lambda_max": 12.2280814070073,
+            "lambda_max_scrambled": 7.531629265522544,
+            "n_modes_above_threshold": 4,
+            "fraction_non_zero": 0.04672240490198877,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 10.26825465273576,
+            "lambda_max": 12.228081407007247,
+            "lambda_max_scrambled": 7.328181210399104,
+            "n_modes_above_threshold": 5,
+            "fraction_non_zero": 0.04672240490198877,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 10.210004325056225,
+            "lambda_max": 12.228081407007245,
+            "lambda_max_scrambled": 7.339831275935016,
+            "n_modes_above_threshold": 5,
+            "fraction_non_zero": 0.04672240490198877,
+            "rep": 4
+          }
+        ]
+      },
+      "low-depth cluster": {
+        "label": "low-depth cluster",
+        "n_cells": 757,
+        "n_pool": 1243,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 7.791040863838864,
+          "null_mean": 7.528567431240326,
+          "null_sd": 0.5281893704586272,
+          "p_empirical": 0.2736318407960199,
+          "n_above_threshold": 1,
+          "gmp_cor": 0.2624734325985383,
+          "gmp_cor_ci": 0.5281893704586272
+        },
+        "gmp_cor_mean": 3.341476926143616,
+        "gmp_cor_std": 3.484947123565386,
+        "lambda_max_mean": 10.097678789838891,
+        "lambda_max_scrambled_mean": 7.509481471789266,
+        "detected_per_cell": 24.41512469831054,
+        "total_counts_per_cell": 32.382139983909894,
+        "reps": [
+          {
+            "gmp_cor": 0.13222577024200977,
+            "lambda_max": 7.791040863838897,
+            "lambda_max_scrambled": 7.658815093596887,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.012523061830788869,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 2.9956492619251227,
+            "lambda_max": 10.352171137723525,
+            "lambda_max_scrambled": 7.628251069728085,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.012906416206159614,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 8.734068468180176,
+            "lambda_max": 14.14470370331982,
+            "lambda_max_scrambled": 7.454811935944221,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.013006172490884522,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.5001875979328929,
+            "lambda_max": 7.760674556655199,
+            "lambda_max_scrambled": 7.260486958722306,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.012702123077160522,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 4.34525353243788,
+            "lambda_max": 10.43980368765703,
+            "lambda_max_scrambled": 7.54504230095483,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.012726223654115059,
+            "rep": 4
+          }
+        ]
+      },
+      "depth split: upper half": {
+        "label": "depth split: upper half",
+        "n_cells": 757,
+        "n_pool": 996,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 11.161085874416756,
+          "null_mean": 7.4205327217317585,
+          "null_sd": 0.3502627003105779,
+          "p_empirical": 0.004975124378109453,
+          "n_above_threshold": 10,
+          "gmp_cor": 10.519535629159906,
+          "gmp_cor_ci": 1.1076279123823927
+        },
+        "gmp_cor_mean": 9.348949517163051,
+        "gmp_cor_std": 2.48595608411836,
+        "lambda_max_mean": 10.510023055202144,
+        "lambda_max_scrambled_mean": 7.391088779211638,
+        "detected_per_cell": 82.91265060240964,
+        "total_counts_per_cell": 116.36244979919678,
+        "reps": [
+          {
+            "gmp_cor": 10.704864597310387,
+            "lambda_max": 11.161085874416752,
+            "lambda_max_scrambled": 7.40199982491672,
+            "n_modes_above_threshold": 10,
+            "fraction_non_zero": 0.040293542010847165,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 11.590016157828149,
+            "lambda_max": 10.950593272766536,
+            "lambda_max_scrambled": 7.385809378209996,
+            "n_modes_above_threshold": 10,
+            "fraction_non_zero": 0.04057582290509384,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 6.895306392894356,
+            "lambda_max": 10.037882807466971,
+            "lambda_max_scrambled": 7.474082637505774,
+            "n_modes_above_threshold": 7,
+            "fraction_non_zero": 0.041132055649480644,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 11.142132123529516,
+            "lambda_max": 10.688641044413904,
+            "lambda_max_scrambled": 7.360743447293672,
+            "n_modes_above_threshold": 10,
+            "fraction_non_zero": 0.04162005125858361,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 6.412428314252847,
+            "lambda_max": 9.711912276946558,
+            "lambda_max_scrambled": 7.332808608132031,
+            "n_modes_above_threshold": 9,
+            "fraction_non_zero": 0.040848061209541826,
+            "rep": 4
+          }
+        ]
+      },
+      "depth split: lower half": {
+        "label": "depth split: lower half",
+        "n_cells": 757,
+        "n_pool": 1004,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 6.647268927752178,
+          "null_mean": 7.340824367015891,
+          "null_sd": 0.5386216160400913,
+          "p_empirical": 0.9601990049751243,
+          "n_above_threshold": 0,
+          "gmp_cor": 0.0,
+          "gmp_cor_ci": 0.0
+        },
+        "gmp_cor_mean": 0.0,
+        "gmp_cor_std": 0.0,
+        "lambda_max_mean": 6.533867180318509,
+        "lambda_max_scrambled_mean": 7.239266423414717,
+        "detected_per_cell": 19.699203187250998,
+        "total_counts_per_cell": 24.552788844621514,
+        "reps": [
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.647268927752173,
+            "lambda_max_scrambled": 6.954051469916327,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.011021115468691618,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.601049343587979,
+            "lambda_max_scrambled": 7.433335021981978,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.011035520328783209,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.849450228044908,
+            "lambda_max_scrambled": 7.33146564728869,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.01098550140988223,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.4502487949690135,
+            "lambda_max_scrambled": 7.498465278267133,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.010956344739135001,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.121318607238471,
+            "lambda_max_scrambled": 6.97901469961946,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.011022173044122716,
+            "rep": 4
+          }
+        ]
+      },
+      "random half A": {
+        "label": "random half A",
+        "n_cells": 757,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 9.264846220969673,
+          "null_mean": 7.774233736665769,
+          "null_sd": 0.5232392787857916,
+          "p_empirical": 0.009950248756218905,
+          "n_above_threshold": 3,
+          "gmp_cor": 2.7867745711556324,
+          "gmp_cor_ci": 0.9062770153726871
+        },
+        "gmp_cor_mean": 2.4433971615140018,
+        "gmp_cor_std": 1.0494226278080725,
+        "lambda_max_mean": 9.12899276463867,
+        "lambda_max_scrambled_mean": 7.674578306269309,
+        "detected_per_cell": 50.12,
+        "total_counts_per_cell": 68.745,
+        "reps": [
+          {
+            "gmp_cor": 3.890102975627471,
+            "lambda_max": 9.264846220969682,
+            "lambda_max_scrambled": 7.4671434318789265,
+            "n_modes_above_threshold": 4,
+            "fraction_non_zero": 0.02505095489338364,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 1.2497563846387267,
+            "lambda_max": 8.426576130038859,
+            "lambda_max_scrambled": 7.542972151890373,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.02521437489499501,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 1.655696307012482,
+            "lambda_max": 9.084481365410419,
+            "lambda_max_scrambled": 7.8102626839206435,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.02562629506974008,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 2.95973818702484,
+            "lambda_max": 9.598842657904704,
+            "lambda_max_scrambled": 7.689115777928606,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.025519245298402892,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 2.461691953266489,
+            "lambda_max": 9.270217448869685,
+            "lambda_max_scrambled": 7.8633974857279965,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.025312989740663292,
+            "rep": 4
+          }
+        ]
+      },
+      "random half B": {
+        "label": "random half B",
+        "n_cells": 757,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 19.47828895941299,
+          "null_mean": 7.75324964566855,
+          "null_sd": 0.4855148519351909,
+          "p_empirical": 0.004975124378109453,
+          "n_above_threshold": 2,
+          "gmp_cor": 14.414810373887912,
+          "gmp_cor_ci": 0.6866216883403121
+        },
+        "gmp_cor_mean": 8.920260610006759,
+        "gmp_cor_std": 4.5917341269888885,
+        "lambda_max_mean": 15.863968876345544,
+        "lambda_max_scrambled_mean": 7.699675942408516,
+        "detected_per_cell": 52.239,
+        "total_counts_per_cell": 71.803,
+        "reps": [
+          {
+            "gmp_cor": 14.678398195003236,
+            "lambda_max": 19.47828895941299,
+            "lambda_max_scrambled": 7.647697868739658,
+            "n_modes_above_threshold": 3,
+            "fraction_non_zero": 0.025216382013230895,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 10.586942543212757,
+            "lambda_max": 17.41597673919684,
+            "lambda_max_scrambled": 7.760744811467264,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.02547007789098392,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 10.001399272467927,
+            "lambda_max": 17.559526776429454,
+            "lambda_max_scrambled": 7.558448164497081,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.024252244298626796,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 2.315942649528231,
+            "lambda_max": 10.202637752309574,
+            "lambda_max_scrambled": 7.886695102781343,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.02605415199793667,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 7.018620389821638,
+            "lambda_max": 14.663414154378868,
+            "lambda_max_scrambled": 7.64479376455723,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.025722719637294715,
+            "rep": 4
+          }
+        ]
+      },
+      "dis1": {
+        "label": "dis1",
+        "n_cells": 757,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 11.729163244409301,
+          "null_mean": 7.806672743829967,
+          "null_sd": 0.47809876683234065,
+          "p_empirical": 0.004975124378109453,
+          "n_above_threshold": 6,
+          "gmp_cor": 8.296623992737608,
+          "gmp_cor_ci": 1.1710980253931047
+        },
+        "gmp_cor_mean": 10.184588096045482,
+        "gmp_cor_std": 2.508246873281681,
+        "lambda_max_mean": 13.845607319042525,
+        "lambda_max_scrambled_mean": 7.814957470156154,
+        "detected_per_cell": 63.164,
+        "total_counts_per_cell": 90.139,
+        "reps": [
+          {
+            "gmp_cor": 7.6606088366129335,
+            "lambda_max": 11.729163244409266,
+            "lambda_max_scrambled": 7.91267526985074,
+            "n_modes_above_threshold": 6,
+            "fraction_non_zero": 0.03136913784205726,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 7.455121033632194,
+            "lambda_max": 13.204070610868262,
+            "lambda_max_scrambled": 8.158947211131007,
+            "n_modes_above_threshold": 4,
+            "fraction_non_zero": 0.030947561546479613,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 11.159203447529405,
+            "lambda_max": 12.92110987267868,
+            "lambda_max_scrambled": 7.686044393057808,
+            "n_modes_above_threshold": 8,
+            "fraction_non_zero": 0.031043918341011546,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 11.536388369764538,
+            "lambda_max": 16.218261834390177,
+            "lambda_max_scrambled": 7.71813452823847,
+            "n_modes_above_threshold": 6,
+            "fraction_non_zero": 0.03162145102198853,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 13.11161879268834,
+            "lambda_max": 15.155431032866243,
+            "lambda_max_scrambled": 7.598985948502741,
+            "n_modes_above_threshold": 7,
+            "fraction_non_zero": 0.030851204431385598,
+            "rep": 4
+          }
+        ]
+      },
+      "dis2": {
+        "label": "dis2",
+        "n_cells": 757,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 200,
+          "lambda_max": 8.720116600368298,
+          "null_mean": 7.583392902066555,
+          "null_sd": 0.4761285478880014,
+          "p_empirical": 0.03980099502487562,
+          "n_above_threshold": 1,
+          "gmp_cor": 1.1367236983017435,
+          "gmp_cor_ci": 0.4761285478880014
+        },
+        "gmp_cor_mean": 1.1416238103325744,
+        "gmp_cor_std": 0.9930980729787794,
+        "lambda_max_mean": 8.792318098456212,
+        "lambda_max_scrambled_mean": 7.66668238452373,
+        "detected_per_cell": 39.195,
+        "total_counts_per_cell": 50.409,
+        "reps": [
+          {
+            "gmp_cor": 1.309462611919935,
+            "lambda_max": 8.720116600368307,
+            "lambda_max_scrambled": 7.410653988448372,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.020161497573931833,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 0.2740315410081413,
+            "lambda_max": 8.245986163769484,
+            "lambda_max_scrambled": 7.971954622761342,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.01979838852186925,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 1.7746939027705189,
+            "lambda_max": 9.448904892370468,
+            "lambda_max_scrambled": 7.6914248757616175,
+            "n_modes_above_threshold": 2,
+            "fraction_non_zero": 0.02011683190874081,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 7.687402208035593,
+            "lambda_max_scrambled": 7.750128803874387,
+            "n_modes_above_threshold": 0,
+            "fraction_non_zero": 0.019705476921185443,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 2.349930995964277,
+            "lambda_max": 9.859180627737208,
+            "lambda_max_scrambled": 7.509249631772931,
+            "n_modes_above_threshold": 1,
+            "fraction_non_zero": 0.019542852567951643,
+            "rep": 4
+          }
+        ]
+      }
+    },
+    "dGMP": {
+      "leiden (2 clusters)": {
+        "gmp_cor_raw": 0.6598129831242154,
+        "gmp_cor_group_centered": 0.3804017074300905,
+        "dGMP": 0.42347041182959466,
+        "group_axis_auc": 0.8764154562777445
+      },
+      "depth median split": {
+        "gmp_cor_raw": 0.6598129831242154,
+        "gmp_cor_group_centered": 0.650308180775605,
+        "dGMP": 0.014405297549019314,
+        "group_axis_auc": 0.8137310196963151
+      },
+      "batch (dis1 vs dis2)": {
+        "gmp_cor_raw": 0.6598129831242154,
+        "gmp_cor_group_centered": 0.803007255812731,
+        "dGMP": -0.2170225144865905,
+        "group_axis_auc": 0.69313
+      },
+      "random split": {
+        "gmp_cor_raw": 0.6598129831242154,
+        "gmp_cor_group_centered": 0.6266993423342155,
+        "dGMP": 0.050186403779456934,
+        "group_axis_auc": 0.5648
+      }
+    }
+  },
+  "markers": {
+    "n_top": 50,
+    "n_up_in_high_depth": 48,
+    "n_up_in_low_depth": 2,
+    "top_genes": [
+      {
+        "gene": "tmRNA",
+        "z": -26.903551188735253
+      },
+      {
+        "gene": "fusA",
+        "z": 15.185154096803595
+      },
+      {
+        "gene": "gapA",
+        "z": 13.303285829737533
+      },
+      {
+        "gene": "clpX",
+        "z": 13.108452888565628
+      },
+      {
+        "gene": "rplO",
+        "z": 12.060003383787663
+      },
+      {
+        "gene": "rpsA",
+        "z": 11.685505810734025
+      },
+      {
+        "gene": "crr",
+        "z": 11.56679383223674
+      },
+      {
+        "gene": "dnaK",
+        "z": 11.333082119357924
+      },
+      {
+        "gene": "osmY",
+        "z": 11.10308265059486
+      },
+      {
+        "gene": "zipA",
+        "z": 10.900785304588055
+      },
+      {
+        "gene": "ihfA",
+        "z": 10.893999482010873
+      },
+      {
+        "gene": "yqjC",
+        "z": 10.46497582871941
+      },
+      {
+        "gene": "rpoA",
+        "z": 10.378037466524693
+      },
+      {
+        "gene": "ynhG",
+        "z": 10.207274237200087
+      },
+      {
+        "gene": "ompA",
+        "z": 10.154704070528625
+      }
+    ]
+  }
+}

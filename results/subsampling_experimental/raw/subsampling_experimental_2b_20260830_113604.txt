@@ -1,0 +1,69 @@
+======================================================================
+CELL-SUBSAMPLING SCALING OF GMP-COR -- EXPERIMENTAL vs SIMULATED
+Run timestamp : 2026-08-30T11:39:08.244595
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\scripts\subsampling_experimental_2b.py
+======================================================================
+
+DATA
+----------------------------------------------------------------------
+  file            : C:\Users\owner\Documents\Projects\manuscript_reviews\data_for_paper\sample_2b_filtered.csv
+  matrix          : 1041 cells x 2071 genes (gene panel held fixed at every size)
+  cell sizes      : [500, 600, 700, 800, 900, 1000]
+  repeats         : 5, uniform without replacement, seeded
+  GMP-Cor         : get_eig_dist(norm=True, norm_method="sum", norm_sum=50)
+
+CALIBRATED SIMULATION ARM
+----------------------------------------------------------------------
+  rho=0.7, inv_gamma_scale=0.04, dropout=1.0, shape=1.5, hub_p=0.2
+  sigma_seed=20, count_seed=0, mu_seed=7
+  dimensions matched to the experimental matrix
+
+RESULTS
+----------------------------------------------------------------------
+
+  experimental (sample_2b)
+   cells            GMP-Cor     CV  frac of n=1000      p  lam*_scr  detected
+     500      25.26 +/- 2.84   0.112           0.766   2058      9.62      99.8
+     600      28.37 +/- 4.66   0.164           0.860   2063      8.52     101.7
+     700      28.18 +/- 2.47   0.088           0.855   2068      7.74     101.3
+     800      30.11 +/- 4.28   0.142           0.913   2068      7.15      99.8
+     900      30.97 +/- 2.62   0.085           0.939   2069      6.65     100.1
+    1000      32.97 +/- 0.98   0.030           1.000   2070      6.21     100.7
+
+  simulated (calibrated, rho=0.7)
+   cells            GMP-Cor     CV  frac of n=1000      p  lam*_scr  detected
+     500      35.08 +/- 1.99   0.057           0.780   2062      9.34      87.6
+     600      35.57 +/- 2.42   0.068           0.791   2066      8.25      86.1
+     700      39.71 +/- 1.47   0.037           0.883   2069      7.47      87.5
+     800      42.43 +/- 1.11   0.026           0.944   2069      6.87      87.4
+     900      43.43 +/- 1.42   0.033           0.966   2071      6.41      87.4
+    1000      44.96 +/- 1.10   0.024           1.000   2070      6.02      87.4
+
+  simulated (published, rho=0.9)
+   cells            GMP-Cor     CV  frac of n=1000      p  lam*_scr  detected
+     200      24.58 +/- 11.14  0.453           0.632   2000         -         -
+     400      25.61 +/- 7.47   0.292           0.658   2000         -         -
+     600      31.63 +/- 6.24   0.197           0.813   2000         -         -
+     800      34.55 +/- 6.24   0.181           0.888   2000         -         -
+    1000      38.90 +/- 1.72   0.044           1.000   2000         -         -
+
+SCALING COMPARISON -- GMP-Cor as a fraction of the same arm at n=1000
+----------------------------------------------------------------------
+  arm                                    n=600     n=800    n=1000
+  experimental (sample_2b)               0.860     0.913     1.000
+  simulated (calibrated, rho=0.7)        0.791     0.944     1.000
+  simulated (published, rho=0.9)         0.813     0.888     1.000
+
+  Each arm at its own smallest size:
+    experimental (sample_2b)           n=500   0.766
+    simulated (calibrated, rho=0.7)    n=500   0.780
+    simulated (published, rho=0.9)     n=200   0.632
+
+FILES
+----------------------------------------------------------------------
+  json : C:\Users\owner\Documents\Projects\manuscript_reviews\results\subsampling_experimental\logs\subsampling_experimental_2b_20260830_113604.json
+  txt  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\subsampling_experimental\raw\subsampling_experimental_2b_20260830_113604.txt
+  csv  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\subsampling_experimental\raw\subsampling_experimental_2b_20260830_113604.csv
+  svg  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\subsampling_experimental\figures\subsampling_experimental_2b_20260830_113604.svg
+  png  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\subsampling_experimental\figures\subsampling_experimental_2b_20260830_113604.png
+======================================================================

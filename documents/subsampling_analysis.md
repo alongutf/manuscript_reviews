@@ -200,6 +200,90 @@ and treat values from very small cell numbers (a few hundred) as noisier.
 
 ---
 
+## Experimental counterpart — does real data scale the same way?
+
+**Added 2026-08-30.** Everything above is synthetic. To check that the scaling is a
+property of the metric and not of the simulator, Experiment 4's design (complete gene
+panel, only cells subsampled) was repeated on a real dataset:
+`data_for_paper/sample_2b_filtered.csv` — the published exponential-growth sample,
+1041 cells x 2071 genes, rRNA already removed. All 2071 genes are retained at every
+size; only the cell count varies (500-1000, the range the 1041-cell pool supports).
+Cells are drawn uniformly **at random without replacement**, 5 seeded draws per size,
+independently at each size (the 500-cell draw is not a subset of the 600-cell draw).
+
+Two simulated arms are compared. The **calibrated** arm (rho 0.7, `inv_gamma_scale`
+0.04) is matched to this dataset's dimensions *and* sparsity and is the like-for-like
+control. The **published** arm is the rho = 0.9 curve from Experiment 4 above, read from
+its log; it used a much sparser expression prior (~24 detected genes per cell versus
+~100 here), so it is not directly comparable — it is shown because it is the curve this
+document reports.
+
+Script: `scripts/subsampling_experimental_2b.py` ·
+Outputs: `results/subsampling_experimental/` ·
+Run: `subsampling_experimental_2b_20260830_113604`
+
+| cells | experimental GMP-Cor | CV | frac of n=1000 | lambda*_scr | detected |
+|------:|---------------------:|-----:|---------------:|------------:|---------:|
+| 500   | 25.26 +/- 2.84 | 0.112 | 0.766 | 9.62 |  99.8 |
+| 600   | 28.37 +/- 4.66 | 0.164 | 0.860 | 8.52 | 101.7 |
+| 700   | 28.18 +/- 2.47 | 0.088 | 0.855 | 7.74 | 101.3 |
+| 800   | 30.11 +/- 4.28 | 0.142 | 0.913 | 7.15 |  99.8 |
+| 900   | 30.97 +/- 2.62 | 0.085 | 0.939 | 6.65 | 100.1 |
+| 1000  | 32.97 +/- 0.98 | 0.030 | 1.000 | 6.21 | 100.7 |
+
+Scaling, each arm as a fraction of its own value at n = 1000:
+
+| arm | n=500 | n=600 | n=800 | n=1000 |
+|---|---:|---:|---:|---:|
+| experimental (sample_2b) | 0.766 | 0.860 | 0.913 | 1.000 |
+| simulated (calibrated, rho = 0.7) | 0.780 | 0.791 | 0.944 | 1.000 |
+| simulated (published, rho = 0.9) | — | 0.813 | 0.888 | 1.000 |
+
+### Conclusions
+
+1. **Real data follows the same scaling as the simulation.** GMP-Cor declines gently as
+   cells are removed, retaining ~77% of its full-size value at half the cells, and the
+   experimental and calibrated-simulation curves agree to within their draw-to-draw
+   scatter at every size (0.766 vs 0.780 at n = 500; 0.913 vs 0.944 at n = 800). The
+   synthetic result in Experiment 4 is therefore not an artefact of the simulator.
+
+2. **The decline is the noise threshold, not a loss of structure.** The gene panel is
+   fixed and essentially all of it survives at every size (p = 2058-2070 of 2071), so the
+   extensivity-in-p confound is absent here. What changes is the Marchenko-Pastur edge:
+   `lambda*_scr` rises 6.21 -> 9.62 as cells go 1000 -> 500, and the experimental and
+   simulated thresholds track each other almost exactly because both are pure functions of
+   matrix shape. Detection per cell is flat (~100 genes) across all sizes, as it must be
+   for a uniform cell draw. This part of the result is deterministic and does not depend
+   on which cells are drawn.
+
+3. **Real data is less variable than the sparse synthetic curve, but not dramatically so.**
+   At matched cell number the experimental CV is 0.09-0.16, against 0.18-0.20 for the
+   published rho = 0.9 arm at n = 600-800. The calibrated arm sits lower still
+   (0.03-0.07). The very high variance of the published curve at small n therefore
+   reflects the *sparsity* of the old expression prior as much as the cell number.
+
+4. **Practical read for the manuscript.** Over 500-1000 cells the index stays within ~23%
+   of its full-size value, so the reported per-condition values are not sensitive to how
+   many cells were profiled in this range.
+
+### Two caveats
+
+**Five repeats is too few to compare arms at a single size.** An earlier run of this same
+script, differing only in the random seeds, gave the experimental fraction at n = 500 as
+0.828 (versus 0.766 here) and its CV as 0.058 (versus 0.112). On that draw the
+experimental curve looked flatter and more stable than the calibrated simulation; on this
+one it does not. Those apparent differences were draw noise, and only the conclusions that
+survive both draws are stated above — the agreement between the arms, and the
+threshold-driven mechanism. Resolving genuine arm differences of this size would need
+substantially more than 5 repeats per point.
+
+**The range is capped at n = 1000** by the 1041-cell pool, so this does not reach the
+200-400 regime where the synthetic curves show their largest variance. The claim is
+restricted to 500-1000 cells; a deeper sample or the unfiltered barcode pool would be
+needed to extend it.
+
+---
+
 ## Files
 
 | Experiment | Script | Output stem (`results/simulation_results/`) |

@@ -1,0 +1,99 @@
+======================================================================
+INVERTED-SUBPOPULATION MIXING — Reviewer #1, comments 1 and 2.3
+Run timestamp : 20260830_111402
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\inverted_subpopulation_mixing_run.py
+======================================================================
+
+PARAMETERS
+----------------------------------------------------------------------
+  n_cells             : 1000
+  n_genes             : 2000
+  ratios              : (0.0, 0.5, 1.0)
+  rho_high            : 0.1
+  rho_low             : 0.7
+  seed_a              : 20
+  seed_b              : 21
+  mu_seed             : 7
+  count_seed_a        : 0
+  count_seed_b        : 1
+  dropout_rate        : 1.0
+  shape               : 1.5
+  hub_probability     : 0.2
+  inv_gamma_scale     : 0.04
+  norm_sum            : 50
+  sigma_modes         : ('shared',)
+  n_repeats           : 5
+
+  Sub-population B is sub-population A with the gene expression ranking
+  inverted (lowest-expressed <-> highest-expressed). The multiset of gene
+  means is preserved exactly, so both populations have identical marginal
+  expression distributions (Spearman of the two profiles = -1.000).
+
+GMP-COR DEFINITION
+----------------------------------------------------------------------
+  GMP-Cor = sum( max(lambda_i - max_scrambled_lambda, 0) )
+  dGMP    = 1 - GMP-Cor(group-centered) / GMP-Cor(raw)
+            i.e. the fraction of GMP-Cor that is between-population structure
+
+RESULTS — GMP-Cor by mixing ratio (mean +/- SD over repeats)
+----------------------------------------------------------------------
+
+  sigma_mode = shared
+   ratio A          GMP-Cor         centered     dGMP    AUC   bimod  mode
+      0.00      3.26 +/- 0.7       3.31 +/- 0.5    -0.036    nan     nan     -
+      0.50     29.68 +/- 0.6       4.46 +/- 0.9     0.850  1.000   0.907     1
+      1.00      4.08 +/- 0.7       3.84 +/- 0.6     0.054    nan     nan     -
+
+  REGULATED SINGLE POPULATION (rho=0.7) : 43.20 +/- 4.67
+
+KEY COMPARISONS
+----------------------------------------------------------------------
+  shared    pure populations   :    3.67 +/- 0.77
+  shared    mixtures           :   29.68 +/- 0.60
+  shared    mixture / pure     :    8.09x
+  shared    lowest mixture     :   28.82  (the "mixture floor")
+  shared    floor / reference  :    0.67x
+
+EXPERIMENTAL REFERENCE (data_for_umap, matched n=1000, shared 2000-gene panel)
+----------------------------------------------------------------------
+  pure Exp            : 16.52
+  pure VapC-2h        : 28.46
+  50/50 mixture       : 41.22  (above BOTH pure populations)
+  dGMP of that mixture: 0.55
+
+INTERPRETATION
+----------------------------------------------------------------------
+  Two dysregulated sub-populations that are transcriptomically opposite
+  separate cleanly in UMAP and are bimodal along the group axis - the
+  scenario the reviewer raises.
+
+  Both sub-populations are individually at the noise floor, yet their
+  mixture is strongly elevated - the separating mode alone accounts for
+  almost all of it. Two conclusions follow:
+
+  1. Mixing NEVER lowers GMP-Cor. Even mixing two populations that have
+     no internal coordination at all raises the index well above what
+     either shows alone. A low observed GMP-Cor therefore cannot be
+     produced by population heterogeneity - which is exactly the
+     reviewer's concern, answered from the opposite direction.
+  2. The converse does NOT hold, and this bounds the claim: the raw
+     index alone cannot separate a coordinated single population from a
+     mixture of uncoordinated ones, since the two land in the same
+     range. dGMP does separate them (see below), which is why it, and
+     not the scalar, is the diagnostic to report for a clustered sample.
+
+  Group-mean centering separates the two contributions: it removes the
+  between-population mode while leaving within-cell coordination intact.
+  dGMP is therefore a direct test on real data of whether an observed GMP-Cor
+  is mixture structure or genuine coordination — a test that requires
+  single-cell data and cannot be performed on bulk RNA-seq.
+
+FILES
+----------------------------------------------------------------------
+  json : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\inverted_subpopulation_mixing_dysregulated_20260830_111402.json
+  txt  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\inverted_subpopulation_mixing_dysregulated_20260830_111402.txt
+  csv  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\inverted_subpopulation_mixing_dysregulated_20260830_111402.csv
+  umap : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\inverted_subpopulation_mixing_dysregulated_20260830_111402_umap.csv
+  svg  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\inverted_subpopulation_mixing_dysregulated_20260830_111402.svg
+  png  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\inverted_subpopulation_mixing_dysregulated_20260830_111402.png
+======================================================================

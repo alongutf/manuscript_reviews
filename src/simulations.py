@@ -62,7 +62,7 @@ def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
 
 # ── scRNA-seq count simulation ───────────────────────────────────────────────
 
-def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout_rate=2, inv_gamma_shape=1.5, inv_gamma_scale=0.01, seed=None):
+def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout_rate=2, inv_gamma_shape=1.5, inv_gamma_scale=0.01, seed=None, gene_mu=None):
     """
     Simulate single-cell RNA-seq count data with realistic noise.
 
@@ -74,6 +74,11 @@ def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout
     rho          : shared-variance fraction passed to generate_gram_hub_matrix
     dropout_rate : controls dropout probability: P(dropout) = exp(-dropout_rate * count)
     seed         : RNG seed (int or None)
+    gene_mu      : optional length-n_genes array of per-gene NB means. If None (default)
+                   the means are drawn from the inverse-Gamma prior exactly as before.
+                   Supplying them explicitly lets two simulated populations share, or
+                   deliberately differ in, their marginal expression profile — see
+                   `draw_gene_means` / `invert_gene_means`.
 
     Returns
     -------
@@ -93,11 +98,16 @@ def simulate_scRNA_data(n_cells=1000, n_genes=2000, sigma=None, rho=0.9, dropout
 
     counts = np.zeros_like(uniform_data)
     rng = np.random.default_rng(seed)
+    if gene_mu is not None:
+        gene_mu = np.asarray(gene_mu, dtype=float).ravel()
+        if gene_mu.size != n_genes:
+            raise ValueError(f'gene_mu has {gene_mu.size} entries, expected {n_genes}')
     for i in range(n_genes):
-        # Gene mean drawn from inverse-Gamma (heavy-tailed expression distribution)
-        gene_mu = 1.0 / rng.gamma(inv_gamma_shape, 1.0 / inv_gamma_scale, 1)
+        # Gene mean drawn from inverse-Gamma (heavy-tailed expression distribution),
+        # unless an explicit expression profile was supplied.
+        mu_i = gene_mu[i] if gene_mu is not None else 1.0 / rng.gamma(inv_gamma_shape, 1.0 / inv_gamma_scale, 1)
         gene_r = 0.5  # NB dispersion typical of scRNA-seq
-        p_param = gene_r / (gene_r + gene_mu)
+        p_param = gene_r / (gene_r + mu_i)
         counts[:, i] = nbinom.ppf(uniform_data[:, i], gene_r, p_param)
 
     # Cell-level amplitude variability (library-size differences)
@@ -514,6 +524,335 @@ def subpopulation_mixing(
 
     return results
 
+
+# ── Distinct (rank-inverted) sub-populations ─────────────────────────────────
+
+def draw_gene_means(n_genes, seed=0, inv_gamma_shape=1.5, inv_gamma_scale=0.01):
+    """
+    Draw a per-gene negative-binomial mean profile from the inverse-Gamma prior
+    used by `simulate_scRNA_data`.
+
+    Returned as an explicit array so that two simulated sub-populations can be
+    given deliberately related (e.g. rank-inverted) expression profiles instead
+    of two independent draws.
+    """
+    rng = np.random.default_rng(seed)
+    return 1.0 / rng.gamma(inv_gamma_shape, 1.0 / inv_gamma_scale, n_genes)
+
+
+def invert_gene_means(gene_mu):
+    """
+    Reverse the expression ranking of a gene-mean profile.
+
+    The most lowly-expressed gene receives the highest mean, the second-lowest
+    receives the second-highest, and so on. The multiset of means — and hence the
+    marginal expression distribution of the population — is exactly preserved;
+    only its assignment to genes is reversed.
+
+    This produces two populations that are transcriptomically opposite while
+    remaining statistically identical in every global property (dynamic range,
+    sparsity, library-size distribution), so any separation between them is a
+    genuine difference in *which* genes are expressed, not a depth artefact.
+    """
+    gene_mu = np.asarray(gene_mu, dtype=float).ravel()
+    order = np.argsort(gene_mu)              # gene indices, lowest mean first
+    inverted = np.empty_like(gene_mu)
+    inverted[order] = gene_mu[order[::-1]]   # lowest ↔ highest
+    return inverted
+
+
+def gmp_cor(matrix, norm=True, norm_sum=50):
+    """
+    GMP-Cor = Σ max(λᵢ − λ*_scrambled, 0), computed exactly as for the
+    experimental data via `analysis_functions.get_eig_dist`.
+
+    Returns a dict. `p_kept` is the number of genes surviving the all-zero filter;
+    GMP-Cor is extensive in it, so `gmp_cor_per_gene` is the form that may be
+    compared across matrices of different gene dimension.
+    """
+    from .analysis_functions import get_eig_dist
+    pcs, pcs1, frac_nz = get_eig_dist(matrix, norm=norm, log=False,
+                                      norm_method='sum', norm_sum=norm_sum)
+    thr = pcs1.max()
+    excess = pcs[pcs > thr] - thr
+    p_kept = int(pcs.size)
+    return dict(gmp_cor=float(excess.sum()),
+                gmp_cor_per_gene=float(excess.sum() / p_kept) if p_kept else np.nan,
+                lambda_max=float(pcs.max()), lambda_max_scrambled=float(thr),
+                n_modes_above_threshold=int(excess.size), p_kept=p_kept,
+                fraction_non_zero=float(frac_nz))
+
+
+def _preprocess(matrix, norm_sum=50):
+    """Row-normalize then z-transform columns — the preprocessing inside get_eig_dist."""
+    from .analysis_functions import normalize, z_transform
+    return z_transform(normalize(np.asarray(matrix, dtype=float),
+                                 method='sum', target_sum=norm_sum))
+
+
+def cell_scores(matrix, n_components=2, norm_sum=50):
+    """Cell coordinates on the leading principal components of the gene-gene structure."""
+    z = _preprocess(matrix, norm_sum=norm_sum)
+    u, s, _ = np.linalg.svd(z, full_matrices=False)
+    return u[:, :n_components] * s[:n_components]
+
+
+def group_centered(matrix, labels, norm_sum=50):
+    """
+    Row-normalize, then subtract each group's own gene means.
+
+    This removes all *between-group* structure while leaving within-cell
+    coordination intact, and is the basis of the dGMP diagnostic: a GMP-Cor
+    driven by a mixture collapses under this operation, genuine coordination
+    does not.
+    """
+    from .analysis_functions import normalize
+    m = normalize(np.asarray(matrix, dtype=float), method='sum', target_sum=norm_sum)
+    labels = np.asarray(labels)
+    out = m.copy()
+    for lab in np.unique(labels):
+        sel = labels == lab
+        out[sel] = m[sel] - m[sel].mean(axis=0)
+    return out
+
+
+def separation_metrics(matrix, labels, n_components=5, norm_sum=50):
+    """
+    How strongly do two labelled cell groups separate, and does the separating
+    direction show up as a mode of the correlation spectrum?
+
+    The group axis is the difference between the two groups' mean gene profiles in
+    the same z-transformed space in which GMP-Cor is computed. Reporting the AUC on
+    that axis — rather than on PC1 — matters: when a population carries strong
+    internal structure the separating direction is often PC2 or PC3, and a PC1-only
+    statistic then reads as "no separation" for two perfectly separated groups.
+
+    Returns
+      auc_group_axis    : AUC separating the groups along the group axis (0.5–1)
+      cohens_d          : standardized group difference on that axis
+      silhouette        : silhouette of the true labels in PC1–PC2 space
+      best_pc_auc/index : best-separating principal component and its AUC
+      group_mode_index  : mode most aligned with the group axis (0-based)
+      group_mode_alignment  : |cos| between that mode and the group axis
+      group_mode_eigenvalue : its eigenvalue
+      bimodality_coef   : Sarle's coefficient on the group axis (> 5/9 ⇒ bimodal)
+      gmm_bic_gain      : BIC(1 component) − BIC(2) on the group axis; > 0 favours two modes
+      n_genes_dz_gt_0.5 : genes whose standardized group difference exceeds 0.5 —
+                          the count that determines how large the separating mode is
+    """
+    from scipy.stats import mannwhitneyu, skew, kurtosis
+    from sklearn.metrics import silhouette_score
+    from sklearn.mixture import GaussianMixture
+
+    labels = np.asarray(labels)
+    z = _preprocess(matrix, norm_sum=norm_sum)
+    u, sv, vt = np.linalg.svd(z, full_matrices=False)
+    eigvals = sv ** 2 / z.shape[0]
+    scores = u * sv
+
+    def _auc(a, b):
+        if not a.size or not b.size:
+            return np.nan
+        stat = mannwhitneyu(a, b, alternative='two-sided').statistic
+        return max(stat, a.size * b.size - stat) / (a.size * b.size)
+
+    dz = z[labels == 0].mean(axis=0) - z[labels == 1].mean(axis=0)
+    axis = dz / np.linalg.norm(dz) if np.linalg.norm(dz) > 0 else dz
+    proj = z @ axis
+    pa, pb = proj[labels == 0], proj[labels == 1]
+
+    pooled = np.sqrt((pa.var(ddof=1) + pb.var(ddof=1)) / 2) if pa.size > 1 and pb.size > 1 else 0.0
+    k = min(n_components, scores.shape[1])
+    pc_aucs = [_auc(scores[labels == 0, j], scores[labels == 1, j]) for j in range(k)]
+    align = np.abs(vt[:k] @ axis)
+
+    n = proj.size
+    g, kt = skew(proj), kurtosis(proj, fisher=True)
+    denom = kt + 3 * (n - 1) ** 2 / ((n - 2) * (n - 3)) if n > 3 else np.nan
+    x = proj.reshape(-1, 1)
+
+    return {
+        'auc_group_axis': float(_auc(pa, pb)),
+        'cohens_d': float(abs(pa.mean() - pb.mean()) / pooled) if pooled > 0 else np.nan,
+        'silhouette': float(silhouette_score(scores[:, :2], labels)) if np.unique(labels).size > 1 else np.nan,
+        'best_pc_auc': float(np.nanmax(pc_aucs)),
+        'best_pc_index': int(np.nanargmax(pc_aucs)),
+        'group_mode_index': int(np.argmax(align)),
+        'group_mode_alignment': float(np.max(align)),
+        'group_mode_eigenvalue': float(eigvals[int(np.argmax(align))]),
+        'bimodality_coef': float((g ** 2 + 1) / denom) if denom and denom > 0 else np.nan,
+        'gmm_bic_gain': float(GaussianMixture(1, random_state=0).fit(x).bic(x)
+                              - GaussianMixture(2, random_state=0).fit(x).bic(x)),
+        'n_genes_dz_gt_0.5': int((np.abs(dz) > 0.5).sum()),
+    }
+
+
+def inverted_subpopulation_mixing(
+    n_cells=1000,
+    n_genes=2000,
+    ratios=(0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0),
+    rho_high=0.9,
+    rho_low=0.1,
+    seed_a=20,
+    seed_b=21,
+    mu_seed=7,
+    count_seed_a=0,
+    count_seed_b=1,
+    dropout_rate=1.0,
+    shape=1.5,
+    hub_probability=0.2,
+    inv_gamma_scale=0.04,
+    norm_sum=50,
+    sigma_mode='shared',
+    example_ratio=None,
+    umap_neighbors=15,
+    umap_min_dist=0.1,
+    umap_n_pcs=50,
+    umap_seed=0,
+    repeat=0,
+):
+    """
+    Mix two *genuinely distinct* internally-regulated sub-populations and track
+    what the separating mode does to GMP-Cor.
+
+    Sub-population B is built from sub-population A's expression profile with the
+    gene ranking **inverted** (`invert_gene_means`): A's most lowly-expressed
+    genes are B's most highly-expressed. Each population additionally carries its
+    own hub-network topology (`seed_a` vs `seed_b`) and is internally regulated at
+    `rho_high`. The two are therefore transcriptomically opposite — as the two
+    clusters of an experimental mixture are — while sharing an identical marginal
+    expression distribution, so the separation cannot be attributed to depth.
+
+    At every mixing ratio the function reports GMP-Cor, GMP-Cor after removing the
+    between-population means (`group_centered`), and how strongly the two
+    populations separate along PC1. A single dysregulated population (`rho_low`)
+    of the same size is computed as the reference for genuine loss of coordination.
+
+    Parameters
+    ----------
+    ratios     : fractions of the total cells taken from sub-population A. 0 and 1 are
+                 the pure populations; the interior values are the mixtures.
+    sigma_mode : 'shared'   — both populations use the same hub network, so they differ
+                              only in which genes they express (the experimental case:
+                              two states of the same organism share regulatory
+                              architecture). This is the configuration that reproduces
+                              the behaviour of a real mixture.
+                 'distinct' — each population additionally gets its own network
+                              topology. The two networks dilute one another, which
+                              works against the mixture signal; reported as the
+                              conservative case.
+    inv_gamma_scale : scale of the inverse-Gamma expression prior. The default 0.04
+                 (rather than the 0.01 used elsewhere in this module) is calibrated so
+                 that the simulated cells detect ~85 genes each, matching the
+                 experimental matrices; at 0.01 the data are so sparse that only a
+                 handful of genes carry any between-population difference and no
+                 separating mode can form.
+    repeat     : offset added to every count seed, for independent realizations.
+
+    Every ratio is evaluated at the same total cell number, so the pure populations
+    and the mixtures share n — without which the scrambled threshold (a pure
+    function of matrix shape) differs between them and the comparison is invalid.
+
+    example_ratio : if given, the record for that ratio additionally returns a UMAP
+                 embedding, principal-component coordinates, group-axis projection and
+                 leading eigenvalues of that one mixture, for plotting. The UMAP is run
+                 on the top `umap_n_pcs` principal components of the same preprocessed
+                 matrix GMP-Cor is computed from, matching `data_functions.get_umap`.
+
+    Returns
+    -------
+    dict with 'params', 'gene_means', 'reference' (the dysregulated population),
+    'ratios' (one record per mixing ratio) and 'example'.
+    """
+    ratios = list(ratios)
+
+    if sigma_mode not in ('shared', 'distinct'):
+        raise ValueError("sigma_mode must be 'shared' or 'distinct'")
+    sigma_a = generate_gram_hub_matrix(n_genes, rho_high, shape, hub_probability, seed=seed_a)
+    sigma_b = (sigma_a if sigma_mode == 'shared' else
+               generate_gram_hub_matrix(n_genes, rho_high, shape, hub_probability, seed=seed_b))
+    sigma_dys = generate_gram_hub_matrix(n_genes, rho_low, shape, hub_probability, seed=seed_a)
+
+    mu_a = draw_gene_means(n_genes, seed=mu_seed, inv_gamma_scale=inv_gamma_scale)
+    mu_b = invert_gene_means(mu_a)
+
+    # Cell pools, generated once and subsampled at every ratio.
+    _, pool_a = simulate_scRNA_data(n_cells=n_cells, n_genes=n_genes, sigma=sigma_a,
+                                    dropout_rate=dropout_rate, seed=count_seed_a + 100 * repeat,
+                                    gene_mu=mu_a)
+    _, pool_b = simulate_scRNA_data(n_cells=n_cells, n_genes=n_genes, sigma=sigma_b,
+                                    dropout_rate=dropout_rate, seed=count_seed_b + 100 * repeat,
+                                    gene_mu=mu_b)
+    _, pool_dys = simulate_scRNA_data(n_cells=n_cells, n_genes=n_genes, sigma=sigma_dys,
+                                      dropout_rate=dropout_rate, seed=count_seed_a + 100 * repeat,
+                                      gene_mu=mu_a)
+
+    rng = np.random.default_rng(1000 + repeat)
+    idx_a = rng.permutation(n_cells)
+    idx_b = rng.permutation(n_cells)
+
+    records = []
+    example = None
+    for r in ratios:
+        n_a = int(round(n_cells * r))
+        n_b = n_cells - n_a
+        parts, labels = [], []
+        if n_a:
+            parts.append(pool_a[idx_a[:n_a]])
+            labels.append(np.zeros(n_a, dtype=int))
+        if n_b:
+            parts.append(pool_b[idx_b[:n_b]])
+            labels.append(np.ones(n_b, dtype=int))
+        mixture = np.vstack(parts)
+        lab = np.concatenate(labels)
+
+        raw = gmp_cor(mixture, norm=True, norm_sum=norm_sum)
+        cen = gmp_cor(group_centered(mixture, lab, norm_sum=norm_sum), norm=False)
+        rec = dict(ratio_a=r, n_cells_a=n_a, n_cells_b=n_b, **raw)
+        rec['gmp_cor_group_centered'] = cen['gmp_cor']
+        rec['gmp_cor_group_centered_per_gene'] = cen['gmp_cor_per_gene']
+        rec['d_gmp'] = float(1 - cen['gmp_cor'] / raw['gmp_cor']) if raw['gmp_cor'] > 0 else np.nan
+        if n_a and n_b:
+            rec.update(separation_metrics(mixture, lab, norm_sum=norm_sum))
+        records.append(rec)
+
+        if example_ratio is not None and n_a and n_b and abs(r - example_ratio) < 1e-9:
+            import umap as _umap
+            z = _preprocess(mixture, norm_sum=norm_sum)
+            u, sv, vt = np.linalg.svd(z, full_matrices=False)
+            dz = z[lab == 0].mean(axis=0) - z[lab == 1].mean(axis=0)
+            axis = dz / np.linalg.norm(dz)
+            # UMAP on the top principal components, as in data_functions.get_umap
+            n_pcs = min(umap_n_pcs, z.shape[1])
+            embedding = _umap.UMAP(n_neighbors=umap_neighbors, min_dist=umap_min_dist,
+                                   n_components=2, random_state=umap_seed
+                                   ).fit_transform(z @ vt[:n_pcs].T)
+            example = dict(ratio_a=r, labels=lab.tolist(),
+                           umap=np.asarray(embedding).tolist(),
+                           umap_params=dict(n_neighbors=umap_neighbors,
+                                            min_dist=umap_min_dist, n_pcs=n_pcs,
+                                            random_state=umap_seed),
+                           pc_scores=(u[:, :2] * sv[:2]).tolist(),
+                           group_axis_projection=(z @ axis).tolist(),
+                           eigenvalues=(sv[:20] ** 2 / z.shape[0]).tolist())
+
+    ref = gmp_cor(pool_dys, norm=True, norm_sum=norm_sum)
+
+    return dict(
+        params=dict(n_cells=n_cells, n_genes=n_genes, ratios=ratios,
+                    rho_high=rho_high, rho_low=rho_low, seed_a=seed_a, seed_b=seed_b,
+                    mu_seed=mu_seed, count_seed_a=count_seed_a, count_seed_b=count_seed_b,
+                    dropout_rate=dropout_rate, shape=shape,
+                    hub_probability=hub_probability, inv_gamma_scale=inv_gamma_scale,
+                    norm_sum=norm_sum,
+                    sigma_mode=sigma_mode, repeat=repeat,
+                    gmp_cor_definition='sum(max(lambda_i - max_scrambled_lambda, 0))'),
+        gene_means=dict(mu_a=mu_a.tolist(), mu_b=mu_b.tolist(),
+                        spearman_a_vs_b=float(scipy_stats.spearmanr(mu_a, mu_b).statistic)),
+        reference=dict(rho=rho_low, **ref),
+        ratios=records,
+        example=example,
+    )
 
 # ── Graphical-lasso covariance entropy ───────────────────────────────────────
 

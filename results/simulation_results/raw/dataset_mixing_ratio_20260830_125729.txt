@@ -1,0 +1,70 @@
+======================================================================
+EXPERIMENTAL DATASET MIXING SERIES -- GMP-Cor with repeats
+Run timestamp : 2026-08-30T13:01:18.999303
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\dataset_mixing_ratio_run.py
+======================================================================
+
+DATA
+----------------------------------------------------------------------
+  dataset 1 (ratio 1.0) : Expira_biorep_t0A_filtered.csv   [Exponential]
+  dataset 2 (ratio 0.0) : VapC_biorep_t2A_filtered.csv   [VapC: 2h]
+  data_dir              : data_for_paper
+  gene space            : UNION
+  shared genes          : 1143 (excluded ['ampr', 'gfp', 'kanr', 'laci', 'mcherry'])
+  ** 1033 of the 2000 selected genes (52%) are present in only ONE
+     dataset and are zero-filled in the other. Such genes separate the two
+     populations perfectly by construction and are preferentially picked by
+     a Fano cut, so they inflate the mixture GMP-Cor non-biologically. **
+  cell pools            : 994 + 900 (highest total counts)
+  fixed gene panel      : 2000 genes, top Fano on the combined pool
+
+SAMPLING
+----------------------------------------------------------------------
+  n_total per point : 900   (same at EVERY ratio)
+  ratios            : [0.0, 0.25, 0.5, 0.75, 1.0]
+  repeats           : 5, uniform without replacement, seeded
+  GMP-Cor           : get_eig_dist(norm=True, norm_method="sum", norm_sum=1.0)
+
+RESULTS (mean +/- SD over repeats)
+----------------------------------------------------------------------
+   ratio           GMP-Cor          centered    dGMP    AUC      p  lam*_scr
+    0.00    27.49 +/- 0.96                  -       -      -   1390      5.24
+    0.25    50.64 +/- 6.50     38.41 +/- 4.40    0.240  1.000   1799      6.58
+    0.50    34.69 +/- 4.07     21.09 +/- 3.56    0.393  1.000   1887      6.80
+    0.75    34.48 +/- 8.19     24.38 +/- 9.41    0.317  1.000   1878      6.92
+    1.00     6.80 +/- 1.90                  -       -      -   1558      6.23
+
+KEY COMPARISON
+----------------------------------------------------------------------
+  pure VapC: 2h                :   27.49 +/- 0.96
+  pure Exponential             :    6.80 +/- 1.90
+  mixture 25%/75%              :   50.64 +/- 6.50   (1.84x the larger pure population)
+  mixture 50%/50%              :   34.69 +/- 4.07   (1.26x the larger pure population)
+  mixture 75%/25%              :   34.48 +/- 8.19   (1.25x the larger pure population)
+
+  Every mixture exceeds both pure populations: True
+
+INTERPRETATION
+----------------------------------------------------------------------
+  Mixing two experimentally distinct populations RAISES GMP-Cor above both
+  of the populations being mixed, and group-mean centering removes most of
+  the excess -- i.e. the elevation is the between-population mode, not new
+  within-cell coordination. Population heterogeneity therefore cannot
+  produce a LOW GMP-Cor, which is what the Dis-Arrest interpretation
+  requires. This is the experimental counterpart of the simulated
+  inverted-sub-population scenario in
+  simulations/inverted_subpopulation_mixing_run.py.
+
+  dGMP is the diagnostic to quote: it is the fraction of a mixture GMP-Cor
+  that disappears when each population is centered on its own gene means,
+  i.e. the fraction that is between-population structure rather than
+  within-cell coordination.
+
+FILES
+----------------------------------------------------------------------
+  json : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\dataset_mixing_ratio_20260830_125729.json
+  txt  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_125729.txt
+  csv  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_125729.csv
+  svg  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_125729.svg
+  png  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_125729.png
+======================================================================

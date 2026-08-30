@@ -1,0 +1,77 @@
+======================================================================
+EXPERIMENTAL DATASET MIXING SERIES -- GMP-Cor with repeats
+Run timestamp : 2026-08-30T13:22:34.046030
+Script        : C:\Users\owner\Documents\Projects\manuscript_reviews\simulations\dataset_mixing_ratio_run.py
+======================================================================
+
+DATA
+----------------------------------------------------------------------
+  dataset 1 (ratio 1.0) : Expira_biorep_t0A_filtered.csv   [Exponential]
+  dataset 2 (ratio 0.0) : VapC_biorep_t2A_filtered.csv   [VapC: 2h]
+  data_dir              : data_for_paper
+  gene space            : UNION
+  shared genes          : 1141
+  reporter/plasmid genes RETAINED (published convention): ['ampr', 'gfp', 'kanr', 'laci', 'mcherry', 'tetr']
+     (the paper drop list is exact-case, so lower-cased reporter genes such as
+      `laci` -- 38% of counts in Expira_biorep_t0A -- survive into the
+      published per-sample values this run is meant to be comparable with)
+  ** 1508 of the 2649 selected genes (57%) are present in only ONE
+     dataset and are zero-filled in the other. Such genes separate the two
+     populations perfectly by construction and are preferentially picked by
+     a Fano cut, so they inflate the mixture GMP-Cor non-biologically. **
+  cell pools            : 994 + 900 (highest total counts)
+  fixed gene panel      : 2649 genes, top Fano on the combined pool
+
+SAMPLING
+----------------------------------------------------------------------
+  n per point       : ALL cells of each pool (--all-cells), so n DIFFERS
+                      between the pure points and the mixtures. A larger n
+                      lowers the Marchenko-Pastur edge and a larger gene
+                      panel raises GMP-Cor (it is extensive in p), and both
+                      act in favour of the mixture -- compare the p and
+                      lam*_scr columns before reading the ratio as an effect.
+  reporter handling : published
+  ratios            : [0.0, 0.5, 1.0]
+  repeats           : 3; with --all-cells the cell set is fixed,
+                      so the SD measures the scramble draw only, not cell sampling
+  GMP-Cor           : get_eig_dist(norm=True, norm_method="sum", norm_sum=1.0)
+
+RESULTS (mean +/- SD over repeats)
+----------------------------------------------------------------------
+   ratio           GMP-Cor          centered    dGMP    AUC      p  lam*_scr
+    0.00    28.96 +/- 0.56                  -       -      -   1793      5.97
+    0.50    49.57 +/- 1.15     28.05 +/- 1.93    0.434  1.000   2649      5.51
+    1.00    30.14 +/- 1.10                  -       -      -   1997      7.11
+
+KEY COMPARISON
+----------------------------------------------------------------------
+  pure VapC: 2h                :   28.96 +/- 0.56
+  pure Exponential             :   30.14 +/- 1.10
+  mixture 50%/50%              :   49.57 +/- 1.15   (1.64x the larger pure population)
+
+  Every mixture exceeds both pure populations: True
+
+INTERPRETATION
+----------------------------------------------------------------------
+  Mixing two experimentally distinct populations RAISES GMP-Cor above both
+  of the populations being mixed, and group-mean centering removes most of
+  the excess -- i.e. the elevation is the between-population mode, not new
+  within-cell coordination. Population heterogeneity therefore cannot
+  produce a LOW GMP-Cor, which is what the Dis-Arrest interpretation
+  requires. This is the experimental counterpart of the simulated
+  inverted-sub-population scenario in
+  simulations/inverted_subpopulation_mixing_run.py.
+
+  dGMP is the diagnostic to quote: it is the fraction of a mixture GMP-Cor
+  that disappears when each population is centered on its own gene means,
+  i.e. the fraction that is between-population structure rather than
+  within-cell coordination.
+
+FILES
+----------------------------------------------------------------------
+  json : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\logs\dataset_mixing_ratio_20260830_131921.json
+  txt  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_131921.txt
+  csv  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\raw\dataset_mixing_ratio_20260830_131921.csv
+  svg  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_131921.svg
+  png  : C:\Users\owner\Documents\Projects\manuscript_reviews\results\simulation_results\figures\dataset_mixing_ratio_20260830_131921.png
+======================================================================

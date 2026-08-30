@@ -1,0 +1,47 @@
+Dis-arrest two-cluster test
+generated 20260830_144632
+
+Input : data_for_paper sample_13a + sample_15a, 2000 cells x 2042 genes (shared panel)
+Leiden: resolution 0.5075 gives exactly 2 clusters ({'low-depth': 1243, 'high-depth': 757})
+
+Q1 -- do the clusters track expression level?
+  total_counts   median     27.0 (low) vs     78.0 (high)  fold  2.89  AUC 0.954  d  0.88  p 1.05e-254
+  n_detected     median     21.0 (low) vs     62.0 (high)  fold  2.95  AUC 0.964  d  1.12  p 8.39e-266
+  log10(total counts) alone predicts the cluster label: CV AUC 0.953, accuracy 0.877
+  spearman_UMAP_1_vs_log_total_counts    -0.832
+  spearman_UMAP_2_vs_log_total_counts    +0.678
+  spearman_PC_1_vs_log_total_counts      +0.966
+  spearman_PC_2_vs_log_total_counts      -0.451
+  cluster vs batch:
+    cluster  high-depth  low-depth
+    batch                         
+    dis1            490        510
+    dis2            267        733
+  AUC(cluster separates dis1 from dis2) = 0.389
+  top-50 markers: 48 up in the high-depth cluster, 2 up in the low-depth cluster
+
+Q2 -- GMP-Cor per group, all at n = 757 cells, p = 2042, 5 seeded draws
+  group                       pool  det/cell  cnt/cell  lam_max  lam_scr          GMP-Cor
+  all cells                   2000      51.2      70.3   10.616    7.708     3.888 +/- 4.346
+  high-depth cluster           757      95.1     132.5   12.228    7.439     9.793 +/- 0.297
+  low-depth cluster           1243      24.4      32.4   10.098    7.558     3.234 +/- 3.256
+  depth split: upper half      996      82.9     116.4   10.510    7.389     9.438 +/- 3.242
+  depth split: lower half     1004      19.7      24.6    6.534    7.259     0.000 +/- 0.000
+  random half A               1000      50.1      68.7    9.129    7.661     2.597 +/- 1.355
+  random half B               1000      52.2      71.8   15.864    7.704     8.942 +/- 4.494
+  dis1                        1000      63.2      90.1   13.846    7.697    10.855 +/- 1.448
+  dis2                        1000      39.2      50.4    8.792    7.652     1.161 +/- 0.909
+
+  dGMP = fraction of GMP-Cor carried by the between-group mean difference
+  (all 2000 cells, raw GMP-Cor = 0.347)
+  partition                    centered     dGMP  axis AUC
+  leiden (2 clusters)             0.378   -0.090     0.876
+  depth median split              0.569   -0.642     0.814
+  batch (dis1 vs dis2)            0.362   -0.045     0.693
+  random split                    0.787   -1.269     0.565
+
+Reading:
+  The split is essentially a depth split: AUC 0.954 on total counts and 0.964 on genes detected.
+  dGMP: leiden -0.090, depth median split -0.642, random split -1.269 (the random split is the null).
+  Within-cluster GMP-Cor at matched n: 9.79 (high-depth) vs 3.23 (low-depth); all cells 3.89.
+  GMP-Cor is extensive in p and depends on n through the Marchenko-Pastur edge, so only the matched-n, matched-p rows above are comparable to one another.

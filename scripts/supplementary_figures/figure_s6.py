@@ -2,8 +2,10 @@
 Supplementary Figure S6 — Microscopy characterisation of Dis-Arrest vs Reg-Arrest cells.
 
 Panels:
-  A. Violin plot of cell area distributions for the four conditions
-     (SHX⁺, SHX⁻, VapC⁺ 24h, VapC⁻). Mean, n and CV annotated per condition.
+  A. Violin plot of cell length distributions (µm) for exponential cells and
+     the four arrest conditions (SHX⁺, SHX⁻, VapC⁺ 24h, VapC⁻). All groups are
+     randomly subsampled to the size of the smallest group. Mean and CV
+     annotated per condition.
   B. Violin plot of constitutive mCherry expression, VapC⁺ 24h vs VapC⁻,
      in the same format and colours as panel A. Mean, n and CV annotated
      per condition.
@@ -17,8 +19,6 @@ The figure is written next to this script as figure_s6.pdf.
 """
 import os
 import sys
-
-from networkx.algorithms.bipartite.basic import density
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO = os.path.dirname(os.path.dirname(_HERE))
@@ -45,15 +45,23 @@ IMG_DIR  = os.path.join(MICR_DIR, 'images')
 # Condition colours (dis-arrest warm, reg-arrest cool)
 DIS_COLOR = '#E07B54'
 REG_COLOR = 'steelblue'
+EXP_COLOR = '#045a8d'
+
+# Microscope calibration and subsampling
+PX_PER_UM = 15.15
+RNG_SEED = 42
 
 # ------------------------------------------------------------------
 # Load and filter data
 # ------------------------------------------------------------------
 vapc = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_vapc.csv'))
 shx  = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_shx.csv'))
+exp  = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_exp.csv'))
 
 vapc_filt = vapc[vapc['kept'] == True].copy()
 shx_filt  = shx[shx['kept'] == True].copy()
+exp_filt  = exp[exp['kept'] == True].copy()
+exp_filt['label'] = 'Exponential'
 
 # SHX: 'SHX' -> Dis-Arrest, 'CASP' -> Reg-Arrest
 shx_filt = shx_filt.copy()
@@ -64,21 +72,28 @@ vapc_filt = vapc_filt.copy()
 vapc_filt['label'] = vapc_filt['condition'].map({'VapC': 'VapC 24h', 'Reg-Arrest': 'Reg-Arrest (VapC)'})
 
 # Ordered groups for panel A (data keys) and their display labels
-PANEL_A_ORDER = ['Dis-Arrest (SHX)', 'Reg-Arrest (SHX)', 'VapC 24h', 'Reg-Arrest (VapC)']
-PANEL_A_LABELS = ['SHX$^+$', 'SHX$^-$', 'VapC$^+$ 24h', 'VapC$^-$']
-PANEL_A_COLORS = [DIS_COLOR, REG_COLOR, DIS_COLOR, REG_COLOR]
+PANEL_A_ORDER = ['Exponential', 'Dis-Arrest (SHX)', 'Reg-Arrest (SHX)', 'VapC 24h', 'Reg-Arrest (VapC)']
+PANEL_A_LABELS = ['Exponential', 'SHX$^+$', 'SHX$^-$\n(Reg-Arrest)', 'VapC$^+$ 24h', 'VapC$^-$\n(Reg-Arrest)']
+PANEL_A_COLORS = [EXP_COLOR, DIS_COLOR, REG_COLOR, DIS_COLOR, REG_COLOR]
 
 # Panel B keeps the VapC pair in the same order, labels and colours as in panel A
 PANEL_B_ORDER = ['VapC 24h', 'Reg-Arrest (VapC)']
 PANEL_B_LABELS = ['VapC$^+$ 24h', 'VapC$^-$']
 PANEL_B_COLORS = [DIS_COLOR, REG_COLOR]
 
-area_data = {
-    'Dis-Arrest (SHX)':  shx_filt.loc[shx_filt['label'] == 'Dis-Arrest (SHX)',  'area_px'].values,
-    'Reg-Arrest (SHX)':  shx_filt.loc[shx_filt['label'] == 'Reg-Arrest (SHX)',  'area_px'].values,
-    'VapC 24h': vapc_filt.loc[vapc_filt['label'] == 'VapC 24h', 'area_px'].values,
-    'Reg-Arrest (VapC)': vapc_filt.loc[vapc_filt['label'] == 'Reg-Arrest (VapC)', 'area_px'].values,
+# Cell length in µm, all groups subsampled to the size of the smallest group
+length_data = {
+    'Exponential':       exp_filt['length_px'].values / PX_PER_UM,
+    'Dis-Arrest (SHX)':  shx_filt.loc[shx_filt['label'] == 'Dis-Arrest (SHX)',  'length_px'].values / PX_PER_UM,
+    'Reg-Arrest (SHX)':  shx_filt.loc[shx_filt['label'] == 'Reg-Arrest (SHX)',  'length_px'].values / PX_PER_UM,
+    'VapC 24h':          vapc_filt.loc[vapc_filt['label'] == 'VapC 24h',          'length_px'].values / PX_PER_UM,
+    'Reg-Arrest (VapC)': vapc_filt.loc[vapc_filt['label'] == 'Reg-Arrest (VapC)', 'length_px'].values / PX_PER_UM,
 }
+
+N_SUBSAMPLE = min(len(v) for v in length_data.values())
+_rng = np.random.default_rng(RNG_SEED)
+length_data = {k: _rng.choice(v, size=N_SUBSAMPLE, replace=False)
+               for k, v in length_data.items()}
 
 mcherry_data = {
     'VapC 24h': vapc_filt.loc[vapc_filt['label'] == 'VapC 24h', 'mcherry_bgsub_median'].values,
@@ -127,7 +142,7 @@ def _violin(ax, data_dict, order, colors, ylabel, title, fsize):
     ax.spines['right'].set_visible(False)
 
 
-def _violin_with_stats(ax, data_dict, order, colors, ylabel, title, xlabels=None):
+def _violin_with_stats(ax, data_dict, order, colors, ylabel, title, xlabels=None, fmt='.0f', show_n=True):
     datasets = [data_dict[k] for k in order]
 
     parts = ax.violinplot(datasets, positions=range(len(order)),
@@ -163,8 +178,10 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title, xlabels=None
     for i, (key, vals) in enumerate(zip(order, datasets)):
         mean_val = vals.mean()
         cv_val   = vals.std() / mean_val if mean_val != 0 else float('nan')
-        ax.text(i, np.max(vals) + y_pad,
-                f'n={len(vals)}\nmean={mean_val:.0f}\nCV={cv_val:.2f}',
+        stats = f'mean={mean_val:{fmt}}\nCV={cv_val:.2f}'
+        if show_n:
+            stats = f'n={len(vals)}\n' + stats
+        ax.text(i, np.max(vals) + y_pad, stats,
                 ha='center', va='bottom', fontsize=fsize - 4)
 
     ax.set_title(title, fontsize=fsize, pad=4)
@@ -174,9 +191,9 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title, xlabels=None
 # Panels
 # ==================================================================
 def panel_A(ax):
-    _violin_with_stats(ax, area_data, PANEL_A_ORDER, PANEL_A_COLORS,
-                       'Cell area (px)', 'Cell area distributions',
-                       xlabels=PANEL_A_LABELS)
+    _violin_with_stats(ax, length_data, PANEL_A_ORDER, PANEL_A_COLORS,
+                       'Cell length (µm)', 'Cell length distributions',
+                       xlabels=PANEL_A_LABELS, fmt='.2f', show_n=False)
 
 
 def panel_B(ax):
@@ -191,7 +208,7 @@ def panel_D(ax):
     images = [
         ('shx2.png',      'SHX$^+$',       DIS_COLOR),
         ('shx_reg1.png',  'SHX$^-$',       REG_COLOR),
-        ('vapc1.png',     'VapC$^+$ 24h',  DIS_COLOR),
+        ('vapc.png',     'VapC$^+$ 24h',  DIS_COLOR),
         ('vapc_reg1.png', 'VapC$^-$',      REG_COLOR),
     ]
 

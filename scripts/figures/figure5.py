@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from figure_functions import PanelFigure
 import permutation_pvalues as pv
@@ -410,13 +411,13 @@ def panel_I_3d(ax):
     conditions = ['CTRLt0', 'CTRLt1400', 'VAPCt240', 'VAPCt1400']
     labels = ['Exp', 'Reg-Arrest', 'Early VapC', 'Late VapC']
     data = {}
-    colors = ['#2166ac','#9ecae1', '#fb6a4a', '#a50f15']
+    colors = ['#2166ac', '#9ecae1', '#fb6a4a', '#a50f15']
     plt.style.use('default')
 
     for condition in conditions:
         path = os.path.join(root_dir, 'scripts', 'figures', 'figure5', condition + '.csv')
         data[condition] = pd.read_csv(path, index_col=False, header=None).to_numpy()
-        if condition=='CTRLt0':
+        if condition == 'CTRLt0':
             t0 = np.min(data[condition])
 
     # replace the 2D axes with a 3D one at the same position
@@ -429,31 +430,43 @@ def panel_I_3d(ax):
     centers = 0.5 * (edges[:-1] + edges[1:])
     width = edges[1] - edges[0]
     # draw back-to-front so the near slices overlay the far ones
+    handles = []
     for i in range(len(conditions) - 1, -1, -1):
         condition = conditions[i]
         x = data[condition].flatten() - t0
         h, _ = np.histogram(x, bins=edges, density=True)
         ax.bar(centers, h, zs=i, zdir='y', width=width,
-               color=colors[i], edgecolor='k', linewidth=0.2, alpha=1,
-               label=labels[i])
+               color=colors[i], edgecolor='k', linewidth=0.2, alpha=1)
+    handles = [Patch(facecolor=c, edgecolor='k', linewidth=0.2, label=l)
+               for c, l in zip(colors, labels)]
 
     ax.set_xlabel('Lag time (min)', fontsize=fsize - 2, labelpad=-4)
-    ax.set_zlabel(r'Frequency ($\times10^{-2}$)', fontsize=fsize - 2, labelpad=-6)
+    ax.set_zlabel(r'Frequency ($\times10^{-2}$)', fontsize=fsize - 2,
+                  rotation=90, labelpad=-10)
     ax.set_xlim([0, 750])
     ax.set_ylim([-0.5, len(conditions) - 0.5])
     ax.set_xticks([200, 400, 600])
-    ax.set_yticks(range(len(conditions)))
-    ax.set_yticklabels(labels)
+    ax.set_yticks([])
     ax.set_zticks([0, 0.01, 0.02])
     ax.set_zticklabels([0, 1, 2])
     ax.tick_params(axis='both', which='major', labelsize=fsize - 3, pad=-2)
-    ax.tick_params(axis='y', pad=-3)
     ax.view_init(elev=22, azim=-58)
     ax.set_box_aspect((1.5, 1.1, 0.85), zoom=1.0)
     ax.xaxis.pane.set_alpha(0.0)
     ax.yaxis.pane.set_alpha(0.0)
     ax.zaxis.pane.set_alpha(0.0)
     ax.grid(False)
+    # draw the vertical (frequency) axis on the left-hand side of the box
+    planes = ax.zaxis._PLANES
+    ax.zaxis._PLANES = (planes[2], planes[3], planes[0], planes[1],
+                        planes[4], planes[5])
+    ax.zaxis.set_rotate_label(False)  # keep the label upright along the axis
+    # conditions are identified by the legend instead of depth-axis ticks
+    ax.legend(handles=handles, fontsize=fsize - 3, loc='upper right',
+              bbox_to_anchor=(0.9, 0.9), frameon=False,
+              handlelength=1.0, handletextpad=0.4, labelspacing=0.25,
+              borderpad=0.0)
+
 
 ###
 # Build figure 5:
@@ -473,7 +486,7 @@ panel_pos = [
     [0.4, 0.08, 0.24, 0.28],  # F
     [0.7, 0.72, 0.275, 0.22],  # G
     [0.7, 0.41, 0.275, 0.22],  # H
-    [0.745, 0.08, 0.23, 0.24],  # I
+    [0.68, 0.02, 0.32, 0.3],  # I
 ]
 # panel A:
 pf.add_panel(panel_pos[0], draw_func=panel_A)
@@ -492,7 +505,7 @@ pf.add_panel(panel_pos[6], draw_func=panel_G)
 # panel H:
 pf.add_panel(panel_pos[7], draw_func=panel_H)
 # panel I:
-pf.add_panel(panel_pos[8], draw_func=panel_I)
+pf.add_panel(panel_pos[8], draw_func=panel_I_3d)
 pf.save("figure5.pdf", dpi=300)
 pf.save("figure5_preview.png", dpi=200)
 plt.show()

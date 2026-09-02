@@ -5,33 +5,29 @@
 **Addresses:** Reviewer #1, comments 1 and 2.3
 **Created:** 2026-08-30
 
-Two rows. Row 1 shows that mixing two transcriptomically distinct sub-populations
-*raises* GMP-Cor and never lowers it; row 2 shows how the index scales with the
-dimensions of the matrix.
+A 2 x 2 grid on a 9 x 7.2 inch canvas. Row 1 (A, B) shows that mixing two
+transcriptomically distinct sub-populations *raises* GMP-Cor and never lowers it;
+row 2 (C, D) shows how the index scales with the dimensions of the matrix.
+
+| Panel | Rect `[left, bottom, width, height]` | Content |
+|---|---|---|
+| A | `[0.075, 0.575, 0.37, 0.345]` | Simulated regulated sub-populations (χ = 0.7) |
+| B | `[0.565, 0.575, 0.37, 0.345]` | Experimental VapC UMAP with mixing annotation |
+| C | `[0.095, 0.085, 0.345, 0.355]` | Cell subsampling, experiment vs simulation |
+| D | `[0.595, 0.085, 0.345, 0.355]` | Gene subsampling at fixed cell:gene ratio |
+
+The italic strapline sits at figure coordinates `(0.5, 0.535)`, between the rows.
+
+The earlier simulated *dysregulated* mixture (χ = 0.1, run
+`inverted_subpopulation_mixing_dysregulated_20260830_111402.json`; pure 4.08 / 3.26,
+mixture 29.68 — 7.3x the larger pure population) was dropped from the figure; the log
+is still on disk if it is needed again.
 
 ---
 
-## Panel A — simulated dysregulated sub-populations
+## Panel A — simulated regulated sub-populations
 
-UMAP of the 50/50 mixture from
-`results/simulation_results/logs/inverted_subpopulation_mixing_dysregulated_20260830_111402.json`
-(key `example`), coloured by sub-population. Both sub-populations are simulated at
-χ = 0.1, i.e. with essentially no internal gene-gene coupling; sub-population B is
-sub-population A with its gene-expression ranking inverted, so the two are
-transcriptomically opposite while sharing an identical marginal expression
-distribution. Both use the same hub network (`sigma_mode='shared'`).
-
-Annotations, all means over 5 repeats at n = 1000 cells:
-
-| | GMP-Cor |
-|---|---|
-| sub-pop. A (ratio_a = 1.0) | 4.08 |
-| sub-pop. B (ratio_a = 0.0) | 3.26 |
-| 50/50 mixture | **29.68** — 7.3x the larger pure population |
-
-## Panel B — simulated regulated sub-populations
-
-Identical construction at χ = 0.7, from
+UMAP of the 50/50 mixture of two inverted sub-populations at χ = 0.7, from
 `inverted_subpopulation_mixing_20260830_105044.json`. χ = 0.7 places a pure
 sub-population at GMP-Cor ~44, inside the range observed experimentally for
 regulated samples (~30-50).
@@ -42,12 +38,15 @@ regulated samples (~30-50).
 | sub-pop. B | 44.05 |
 | 50/50 mixture | **68.75** — 1.56x the larger pure population |
 
-## Panel C — experimental counterpart
+## Panel B — experimental counterpart
 
 The VapC UMAP reproduced from `scripts/figures/figure5.py` panel C
-(`scanpy/umap_coordinates_vapc.csv`, coloured by batch, same four colours). Two of
-the four batches are annotated — Exponential and VapC-2h — because those are the two
-that were actually mixed.
+(`scanpy/umap_coordinates_vapc.csv`). Only the two batches that were actually mixed —
+**Exponential** (`C_EXP`) and **VapC-2h** (`C_T2`) — are drawn in colour and annotated;
+VapC-5h and VapC-24h are drawn as a transparent grey backdrop (`color='0.6'`,
+`alpha=0.25`) so they still give the embedding its shape without competing with the
+annotated clusters. The panel carries **no legend** — the two coloured clusters are
+named by their annotation boxes.
 
 The two pure populations are the **published per-sample GMP-Cor** from
 `results/data_metrics/data_metrics.csv` (column `sum_denoised_ev`) — the same numbers
@@ -83,7 +82,7 @@ not cell-sampling variability.
 The mixture exceeds both pure populations by 1.64x, but two of the reasons are
 arithmetic rather than biological and should be stated with the number:
 
-1. **More genes.** GMP-Cor is extensive in p (panel E). The mixture has 2649 genes
+1. **More genes.** GMP-Cor is extensive in p (panel D). The mixture has 2649 genes
    against Exponential's 1997; scaling Exponential by 2649/1997 alone predicts ~40, i.e.
    most of the gap. Corrected for p, the elevation is roughly 1.2x.
 2. **More cells.** n = 1894 against 994 and 900. A larger n lowers the Marchenko-Pastur
@@ -99,7 +98,7 @@ centered on its own gene means.
 
 The version of this comparison with all three points on one panel at matched n and p is
 the `data_for_umap` run `dataset_mixing_ratio_20260830_122400` (Exp 18.66 ± 1.38,
-VapC-2h 29.22 ± 4.20, mixture 40.00 ± 4.41, 1.37x, dGMP 0.53). Panels A and B are the
+VapC-2h 29.22 ± 4.20, mixture 40.00 ± 4.41, 1.37x, dGMP 0.53). Panel A is the
 ground-truth version, where n and p are identical by construction.
 
 ### Reporter genes in the published values
@@ -119,7 +118,7 @@ numbers themselves. The paper's gene-removal list is **exact-case**
 The same code therefore filtered the two samples differently, and the published
 Exponential value (32.72) includes a plasmid transcript that dominates its library.
 Removing the reporters case-insensitively (`--reporter-handling clean`) gives
-Exponential 24.96 and a mixture of 34.26. Panel C uses `published` so that it remains
+Exponential 24.96 and a mixture of 34.26. Panel B uses `published` so that it remains
 comparable to `data_metrics.csv`, but the cleaner numbers are the defensible ones and
 this affects the per-sample table, not just this figure.
 
@@ -127,7 +126,7 @@ The UMAP itself is the published embedding of all four batches and was **not**
 recomputed on the 1000-cell subsets used for the GMP-Cor values; it is shown to
 identify the populations, not as the input to the calculation.
 
-## Panel D — cell subsampling, complete gene panel
+## Panel C — cell subsampling, complete gene panel
 
 `results/subsampling_experimental/logs/subsampling_experimental_2b_20260830_113604.json`
 (key `per_size`). Cells drawn uniformly at random without replacement, 5 seeded draws
@@ -152,7 +151,7 @@ transcriptionally *coordinated* sample as opposed to a dysregulated one. Note th
 the Reg-Arrest condition, which is `sample_13b` / `sample_15b` — the label should not be
 read as "Reg-Arrest". See `documents/gmp_cor_provenance_analysis.md` §2.
 
-## Panel E — gene subsampling at a fixed cell:gene ratio
+## Panel D — gene subsampling at a fixed cell:gene ratio
 
 `results/simulation_results/logs/subsampling_robustness_rho09_20260615_114715.json`
 (Experiment 1 of `documents/subsampling_analysis.md`). Cells and genes are subsampled
@@ -179,17 +178,17 @@ Reads only the source files listed above, all of which are committed run outputs
 simulation is re-run and no matrix is re-analysed, so the figure is reproducible in
 seconds. Every number in the figure now traces to a run log; nothing is hard-coded. If a
 source run is regenerated, update the timestamped filenames at the top of the script
-(`DYS_LOG`, `REG_LOG`, `GENE_LOG`, `CELL_LOG`, `MIX_LOG`).
+(`REG_LOG`, `GENE_LOG`, `CELL_LOG`, `MIX_LOG`).
 
 To regenerate the experimental mixing values themselves:
 
 ```bash
-python simulations/dataset_mixing_ratio_run.py          # defaults match panel C
+python simulations/dataset_mixing_ratio_run.py          # defaults match panel B
 ```
 
 ## Known cosmetic limits
 
-- In panel C the VapC-2h annotation sits at the right edge of the point cloud and its
+- In panel B the VapC-2h annotation sits at the right edge of the point cloud and its
   connector crosses the cloud; the four batches overlap heavily in this embedding, so
   there is no fully clear placement.
 - Row 1 panels carry ~34% vertical headroom to make space for the mixture box, so the

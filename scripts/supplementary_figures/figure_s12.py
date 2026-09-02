@@ -11,7 +11,6 @@ sys.path.insert(0, os.path.join(_REPO, 'scripts', 'figures'))         # figure_f
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 from figure_functions import PanelFigure
 
 # ------------------------------------------------------------------
@@ -22,16 +21,15 @@ from figure_functions import PanelFigure
 #   Row 1 -- mixing two transcriptomically distinct sub-populations RAISES
 #   GMP-Cor; it never lowers it, so a low observed value cannot be an artefact
 #   of population heterogeneity.
-#     A. simulated dysregulated sub-populations (rho = 0.1)
-#     B. simulated regulated sub-populations    (rho = 0.7)
-#     C. the experimental counterpart: the VapC UMAP of figure5.py panel C,
+#     A. simulated regulated sub-populations    (rho = 0.7)
+#     B. the experimental counterpart: the VapC UMAP of figure5.py panel C,
 #        annotated with the matched-n GMP-Cor of Exponential, VapC-2h and their
 #        50/50 mixture, read from the dataset_mixing_ratio run log.
 #
 #   Row 2 -- how GMP-Cor scales with the size of the matrix.
-#     D. cells subsampled, gene panel complete: experiment and simulation follow
+#     C. cells subsampled, gene panel complete: experiment and simulation follow
 #        the same curve.
-#     E. cells and genes subsampled together at a fixed cell:gene ratio: GMP-Cor
+#     D. cells and genes subsampled together at a fixed cell:gene ratio: GMP-Cor
 #        is extensive in the gene count while the per-gene index is invariant.
 #        Simulation only -- the experimental matrices have no spare gene
 #        dimension to subsample at a fixed ratio.
@@ -46,7 +44,6 @@ fsize = 10
 # ── Source runs ──────────────────────────────────────────────────────────────
 
 SIM_LOG_DIR = os.path.join(_REPO, 'results', 'simulation_results', 'logs')
-DYS_LOG = os.path.join(SIM_LOG_DIR, 'inverted_subpopulation_mixing_dysregulated_20260830_111402.json')
 REG_LOG = os.path.join(SIM_LOG_DIR, 'inverted_subpopulation_mixing_20260830_105044.json')
 GENE_LOG = os.path.join(SIM_LOG_DIR, 'subsampling_robustness_rho09_20260615_114715.json')
 CELL_LOG = os.path.join(_REPO, 'results', 'subsampling_experimental', 'logs',
@@ -185,7 +182,7 @@ def _bare(ax):
     ax.set_yticks([])
 
 
-# ── Panels A / B — simulated sub-population mixtures ─────────────────────────
+# ── Panel A — simulated sub-population mixture ───────────────────────────────
 
 def _simulated_umap(ax, log, title):
     ex = log['example']
@@ -214,27 +211,25 @@ def _simulated_umap(ax, log, title):
 
 
 def panel_A(ax):
-    return _simulated_umap(ax, _load(DYS_LOG),
-                           'Dysregulated sub-populations ($\\chi$ = 0.1)')
-
-
-def panel_B(ax):
     return _simulated_umap(ax, _load(REG_LOG),
                            'Regulated sub-populations ($\\chi$ = 0.7)')
 
 
-# ── Panel C — experimental VapC UMAP (reproduced from figure5.py panel C) ────
+# ── Panel B — experimental VapC UMAP (reproduced from figure5.py panel C) ────
 
-def panel_C(ax):
+def panel_B(ax):
     data = pd.read_csv(VAPC_UMAP, index_col=0, header=0)
     exp_data = data[data['batch'] == 'exp']
     t2_data = data[data['batch'] == 'T2']
     t5_data = data[np.logical_or(data['batch'] == 'T5A', data['batch'] == 'T5B')]
     ton_data = data[data['batch'] == 'TON']
 
-    for sub, color in ((t5_data, C_T5), (ton_data, C_TON),
-                       (exp_data, C_EXP), (t2_data, C_T2)):
-        ax.scatter(sub.UMAP_1, sub.UMAP_2, color=color, alpha=.8, s=.5, zorder=1)
+    # the two mixed populations carry their colors; the other time points stay as a
+    # transparent grey backdrop so the annotated clusters read on their own
+    for sub in (t5_data, ton_data):
+        ax.scatter(sub.UMAP_1, sub.UMAP_2, color='0.6', alpha=.1, s=.5, zorder=1)
+    for sub, color in ((exp_data, C_EXP), (t2_data, C_T2)):
+        ax.scatter(sub.UMAP_1, sub.UMAP_2, color=color, alpha=.8, s=.5, zorder=2)
 
     _bare(ax)
     xy = data[['UMAP_1', 'UMAP_2']].to_numpy(dtype=float)
@@ -250,17 +245,10 @@ def panel_C(ax):
                       C_EXP, C_T2)
     ax.set_title('Experimental (VapC)', fontsize=fsize - 1, pad=2)
 
-    handles = [Line2D([], [], marker='o', ls='', color=c, markersize=4, label=l)
-               for c, l in ((C_EXP, 'Exponential'), (C_T2, 'VapC: 2h'),
-                            (C_T5, 'VapC: 5h'), (C_TON, 'VapC: 24h'))]
-    ax.legend(handles=handles, fontsize=fsize - 4, loc='lower right',
-              frameon=False, borderpad=0.1, labelspacing=0.25,
-              handletextpad=0.2, bbox_to_anchor=(1.04, -0.04))
 
+# ── Panel C — cell subsampling, experiment vs simulation ─────────────────────
 
-# ── Panel D — cell subsampling, experiment vs simulation ─────────────────────
-
-def panel_D(ax):
+def panel_C(ax):
     log = _load(CELL_LOG)
     per_size = pd.DataFrame(log['per_size'])
     ref = log['reference_size']
@@ -284,9 +272,9 @@ def panel_D(ax):
               handlelength=1.4, borderpad=0.1, labelspacing=0.25)
 
 
-# ── Panel E — gene subsampling at fixed cell:gene ratio (extensivity) ────────
+# ── Panel D — gene subsampling at fixed cell:gene ratio (extensivity) ────────
 
-def panel_E(ax):
+def panel_D(ax):
     log = _load(GENE_LOG)
     per = pd.DataFrame(log['per_size']).sort_values('n_genes')
 
@@ -325,13 +313,12 @@ def panel_E(ax):
 # BUILD FIGURE
 # ------------------------------------------------------------------
 
-pf = PanelFigure(figsize=(11, 7.2), label_offset=(-0.035, 0.035))
+pf = PanelFigure(figsize=(9, 7.2), label_offset=(-0.045, 0.035))
 
-pf.add_panel([0.055, 0.575, 0.255, 0.345], label='A', draw_func=panel_A)
-pf.add_panel([0.385, 0.575, 0.255, 0.345], label='B', draw_func=panel_B)
-pf.add_panel([0.715, 0.575, 0.255, 0.345], label='C', draw_func=panel_C)
-pf.add_panel([0.085, 0.085, 0.335, 0.355], label='D', draw_func=panel_D)
-pf.add_panel([0.585, 0.085, 0.335, 0.355], label='E', draw_func=panel_E)
+pf.add_panel([0.075, 0.575, 0.37, 0.345], label='A', draw_func=panel_A)
+pf.add_panel([0.565, 0.575, 0.37, 0.345], label='B', draw_func=panel_B)
+pf.add_panel([0.095, 0.085, 0.345, 0.355], label='C', draw_func=panel_C)
+pf.add_panel([0.595, 0.085, 0.345, 0.355], label='D', draw_func=panel_D)
 
 pf.fig.text(0.5, 0.535, 'Mixing two distinct sub-populations raises GMP-Cor',
             ha='center', va='center', fontsize=fsize - 1, style='italic', color='0.35')
@@ -340,7 +327,7 @@ pf.save(os.path.join(_HERE, 'figure_s12.pdf'), dpi=300)
 pf.save(os.path.join(_HERE, 'figure_s12_preview.png'), dpi=200)
 print('Saved figure_s12.pdf and figure_s12_preview.png')
 
-for name, log in (('dysregulated', DYS_LOG), ('regulated', REG_LOG)):
+for name, log in (('regulated', REG_LOG),):
     v = _mixing_values(_load(log))
     print(f'{name:<13} pure A={v["pure_a"]:7.2f}  pure B={v["pure_b"]:7.2f}  '
           f'mixture={v["mixture"]:7.2f}  ({v["mixture"] / max(v["pure_a"], v["pure_b"]):.2f}x '

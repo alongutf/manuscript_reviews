@@ -261,19 +261,21 @@ Samples are matched from data_metrics.csv by the `file_name` column. The order (
 
 ## Panel I — Lag time distribution
 
-**Function:** `panel_I(ax)`  
+**Function:** `panel_I_3d(ax)` (currently drawn)  
 **Data files:** `scripts/figures/figure5/CTRLt0.csv`, `CTRLt1400.csv`, `VAPCt240.csv`, `VAPCt1400.csv`
 
-**Vertical violin plot** of single-cell lag times — one violin per condition, left to right in the order **Exp, Reg-Arrest, Early VapC, Late VapC**. Colors: `['#2166ac', '#9ecae1', '#fb6a4a', '#a50f15']`.
+**3D waterfall histogram** of single-cell lag times — one density histogram per condition, stacked along the depth (`y`) axis in the order **Exp, Reg-Arrest, Early VapC, Late VapC** (Exp nearest the viewer). Colors: `['#2166ac', '#9ecae1', '#fb6a4a', '#a50f15']`.
 
-- Y: lag time relative to `t0 = min(CTRLt0)`, `ylim [0, 750]`, ticks `[200, 400, 600]`.
-- X: condition index 1-4; two-line tick labels (a newline inside each label, e.g. `Reg-` / `Arrest`) so the names fit the narrow panel; tick marks suppressed (`length=0`).
-- Violins: `ax.violinplot(..., vert=True, widths=0.75, showextrema=False, showmedians=False)`; each body recolored with a black 0.5 pt edge.
-- Overlaid summary: a black vertical IQR bar (25th-75th percentile) with a white median dot.
-- Top and right spines hidden.
-- Panel rect is `[0.745, 0.08, 0.23, 0.24]` — shifted right of the other panels in that column so the `Lag time (min)` y-label clears panel F.
+- The 2D axes handed in by `PanelFigure` is removed and replaced by a `projection='3d'` axes at the same rect.
+- Histograms: 50 bins over `[0, 700]`, `density=True`, drawn with `ax.bar(..., zdir='y')`; slices are drawn back-to-front so near slices overlay far ones.
+- X: lag time relative to `t0 = min(CTRLt0)`, `xlim [0, 750]`, ticks `[200, 400, 600]`.
+- Z (vertical, frequency): ticks `[0, 0.01, 0.02]` relabelled `0, 1, 2`, axis label `Frequency (x10^-2)`.
+- **The vertical axis is drawn on the left-hand side of the box** by permuting `ax.zaxis._PLANES` (swapping the first two plane pairs); `set_rotate_label(False)` plus `rotation=90` keeps the z-label reading bottom-to-top alongside it.
+- **Conditions are identified by a frameless legend** (`Patch` handles, upper right, `bbox_to_anchor=(1.1, 1.0)`) instead of depth-axis ticks — `ax.set_yticks([])` removes them.
+- View `elev=22, azim=-58`; `box_aspect (1.5, 1.1, 0.85)`; panes made transparent and grid off.
+- Panel rect is `[0.745, 0.08, 0.23, 0.24]` — shifted right of the other panels in that column so the vertical axis label clears panel F.
 
-The earlier **3D waterfall version is preserved as `panel_I_3d(ax)`** in the same file; swap the `draw_func` in the assembly block to use it.
+The **vertical violin version is preserved as `panel_I(ax)`** in the same file; swap the `draw_func` in the assembly block to use it.
 
 ---
 
@@ -310,10 +312,10 @@ The earlier **3D waterfall version is preserved as `panel_I_3d(ax)`** in the sam
 | Change GMP-Cor y-range | edit `ax.set_ylim([0, 45])` in `panel_G` |
 | Change kill-curve detection limit | edit `floor = 1e-5` in `panel_B` — controls y-limits, which points are censored, and the `<10^-5` label |
 | Plot other kill-curve conditions | edit the `series` list in `panel_B` — entries are MPN block labels, not column names |
-| Reorder / add panel I conditions | edit the paired `conditions` / `labels` / `colors` lists in `panel_I` — first entry is the leftmost violin |
-| Fatten / thin the violins | `widths=0.75` in `ax.violinplot(...)` |
-| Make the violins horizontal again | `vert=False` in `ax.violinplot(...)`, and swap the x/y limit, tick and label calls |
-| Switch panel I back to the 3D histogram | `pf.add_panel(panel_pos[8], draw_func=panel_I_3d)` in the assembly block |
+| Reorder / add panel I conditions | edit the paired `conditions` / `labels` / `colors` lists in `panel_I_3d` — first entry is the nearest slice and the top legend entry |
+| Change panel I bin count / range | `edges = np.linspace(0, 700, 51)` in `panel_I_3d` |
+| Move the vertical axis back to the right | delete the `ax.zaxis._PLANES` permutation in `panel_I_3d` |
+| Switch panel I back to violins | `pf.add_panel(panel_pos[8], draw_func=panel_I)` in the assembly block |
 | Rotate the 3D view | edit `ax.view_init(elev=22, azim=-58)` in `panel_I_3d` |
 | Add error bars to panel F | add `yerr=` to `ax.bar(...)` and supply per-sample SD/SE |
 | Save as SVG | uncomment `pf.save("figure5.svg", dpi=300)` at bottom |

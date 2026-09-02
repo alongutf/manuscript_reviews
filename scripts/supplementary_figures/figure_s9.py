@@ -64,7 +64,7 @@ def panel_A(ax):
     ax.set_yscale('log')
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
     ax.set_ylabel('Fraction of arrested bacteria', fontsize=fsize, labelpad=0)
-    ax.set_xlim(0, 2500)
+    ax.set_xlim(-100, 2400)
     ax.set_ylim(0.002, 1.5)
     leg = ax.legend(loc='upper right', fontsize=fsize - 2, frameon=True,
                     framealpha=0.6, edgecolor='none')

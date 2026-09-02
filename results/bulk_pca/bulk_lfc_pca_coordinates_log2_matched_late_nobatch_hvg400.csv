@@ -1,0 +1,13 @@
+,dataset,sample,control,condition,label,biogroup,batch,PC1,PC2,PC3
+bulk|CASP_biorep1,bulk,CASP_biorep1,bulk|EXP_biorep1,CASP,Reg-Arrest1,CASP-like,bulk,26.679289178418994,2.879651969838663,20.84689826108573
+bulk|CASP_biorep2,bulk,CASP_biorep2,bulk|EXP_biorep2,CASP,Reg-Arrest1,CASP-like,bulk,17.27843499348844,31.572392883833654,-8.326402460904061
+bulk|CASP_biorep3,bulk,CASP_biorep3,bulk|EXP_biorep3,CASP,Reg-Arrest1,CASP-like,bulk,54.44124031033524,-24.29185892456033,-16.61000411666968
+bulk|Disrupted_biorep1,bulk,Disrupted_biorep1,bulk|EXP_biorep1,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-34.02716952556209,-8.522911382458142,12.300875524052504
+bulk|Disrupted_biorep2,bulk,Disrupted_biorep2,bulk|EXP_biorep2,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-37.03034586070562,11.736623141092842,-13.486167806305465
+bulk|Disrupted_biorep3,bulk,Disrupted_biorep3,bulk|EXP_biorep3,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-27.341449095974962,-13.373897687746716,5.274800598740982
+shx|Disrupted_biorep1t6,shx,Disrupted_biorep1t6,shx|EXP_biorep1t0,SHX_t6,Dis-Arrest2,Disrupted-like,timecourse,-23.288154661415216,-4.31651817430633,-5.836823580459296
+shx|Disrupted_biorep1t7,shx,Disrupted_biorep1t7,shx|EXP_biorep1t0,SHX_t7,Dis-Arrest2,Disrupted-like,timecourse,-17.345425350289915,-4.4187093288324135,-4.960995194088172
+shx|Disrupted_biorep1t8,shx,Disrupted_biorep1t8,shx|EXP_biorep1t0,SHX_t8,Dis-Arrest2,Disrupted-like,timecourse,-14.024804179787083,-4.329868934496083,-3.9990776934281453
+casp|CASP biorep1 400min,casp,CASP biorep1 400min,casp|EXP biorep2,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,19.763752444445526,5.34478060443823,7.619188514548281
+casp|CASP biorep1 511min,casp,CASP biorep1 511min,casp|EXP biorep2,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,15.538714088613562,3.6390968293561627,3.2058469986739255
+casp|CASP biorep1 621min,casp,CASP biorep1 621min,casp|EXP biorep2,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,19.35591765843315,4.081219003840427,3.9718609547534065

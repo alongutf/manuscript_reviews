@@ -1,0 +1,17 @@
+,dataset,sample,condition,label,biogroup,batch,PC1,PC2,PC3
+bulk|CASP_biorep1a,bulk,CASP_biorep1a,CASP,Reg-Arrest1,CASP-like,bulk,35.73416501024322,-6.347601667071079,-3.5294986272505815
+bulk|CASP_biorep1b,bulk,CASP_biorep1b,CASP,Reg-Arrest1,CASP-like,bulk,42.775508251827084,-18.779429162845233,17.069952887411556
+bulk|CASP_biorep1c,bulk,CASP_biorep1c,CASP,Reg-Arrest1,CASP-like,bulk,36.111014665692664,-7.189167097500101,-1.7511736426868405
+bulk|CASP_biorep2,bulk,CASP_biorep2,CASP,Reg-Arrest1,CASP-like,bulk,37.54448972807798,-4.46867853523637,-3.9702509366628402
+bulk|CASP_biorep3,bulk,CASP_biorep3,CASP,Reg-Arrest1,CASP-like,bulk,48.66208526377393,34.49745309103489,4.8897155083272015
+bulk|Disrupted_biorep1a,bulk,Disrupted_biorep1a,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-46.44776414158983,-0.5594926474003183,-7.928253420692355
+bulk|Disrupted_biorep1b,bulk,Disrupted_biorep1b,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-46.14753030464792,-0.09172798072126055,-7.901175158069397
+bulk|Disrupted_biorep1c,bulk,Disrupted_biorep1c,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-46.04632457965896,-0.9660429260405538,-7.424991042216298
+bulk|Disrupted_biorep2,bulk,Disrupted_biorep2,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-27.182973174587104,2.2103253182793456,6.2245975405586
+bulk|Disrupted_biorep3,bulk,Disrupted_biorep3,Disrupted,Dis-Arrest1,Disrupted-like,bulk,-35.002670719131004,1.694361607500673,4.321076891280948
+shx|Disrupted_biorep1t6,shx,Disrupted_biorep1t6,SHX_t6,Dis-Arrest2,Disrupted-like,timecourse,-28.42678149267293,1.9014566154526529,9.305989576725183
+shx|Disrupted_biorep1t7,shx,Disrupted_biorep1t7,SHX_t7,Dis-Arrest2,Disrupted-like,timecourse,-19.74844992490462,1.2827591628224457,11.959552806865748
+shx|Disrupted_biorep1t8,shx,Disrupted_biorep1t8,SHX_t8,Dis-Arrest2,Disrupted-like,timecourse,-15.38247595017962,0.5159703940293575,12.561260226306429
+casp|CASP biorep1 400min,casp,CASP biorep1 400min,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,22.415234333775764,-3.3598563474007683,-8.173154387254813
+casp|CASP biorep1 511min,casp,CASP biorep1 511min,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,16.992364734360528,0.7920962754951169,-15.742099504569323
+casp|CASP biorep1 621min,casp,CASP biorep1 621min,CASP_time,Reg-Arrest2+SHX,CASP-like,timecourse,24.15010829962084,-1.132426100398815,-9.911548718073215

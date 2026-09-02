@@ -1,0 +1,13 @@
+,A_raw,B_nobatch,C_raw,D_nobatch
+bulk|CASP_biorep1,2,2,2,1
+bulk|CASP_biorep2,2,2,2,1
+bulk|CASP_biorep3,2,2,2,1
+bulk|Disrupted_biorep1,1,1,1,2
+bulk|Disrupted_biorep2,1,1,1,2
+bulk|Disrupted_biorep3,1,1,1,2
+shx|Disrupted_biorep1t6,1,1,1,2
+shx|Disrupted_biorep1t7,1,1,1,2
+shx|Disrupted_biorep1t8,1,1,1,2
+casp|CASP biorep1 400min,2,2,2,1
+casp|CASP biorep1 511min,2,2,2,1
+casp|CASP biorep1 621min,2,2,2,1

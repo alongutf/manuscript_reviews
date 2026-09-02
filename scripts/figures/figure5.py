@@ -361,7 +361,51 @@ def panel_H(ax):
 
 
 def panel_I(ax):
-    # vapc lag time distribution
+    # vapc lag time distribution -- vertical violins, one per condition
+    conditions = ['CTRLt0', 'CTRLt1400', 'VAPCt240', 'VAPCt1400']
+    labels = ['Exp', 'Reg-\nArrest', 'Early\nVapC', 'Late\nVapC']
+    colors = ['#2166ac', '#9ecae1', '#fb6a4a', '#a50f15']
+    plt.style.use('default')
+
+    data = {}
+    for condition in conditions:
+        path = os.path.join(root_dir, 'scripts', 'figures', 'figure5', condition + '.csv')
+        data[condition] = pd.read_csv(path, index_col=False, header=None).to_numpy()
+        if condition == 'CTRLt0':
+            t0 = np.median(data[condition])
+    print(t0)
+    # left to right in the listed order
+    series = [data[c].flatten() - t0 for c in conditions]
+    positions = list(range(1, len(conditions) + 1))
+
+    parts = ax.violinplot(series, positions=positions, vert=True,
+                          widths=0.75, showextrema=False, showmedians=False)
+    for body, color in zip(parts['bodies'], colors):
+        body.set_facecolor(color)
+        body.set_edgecolor('k')
+        body.set_linewidth(0.5)
+        body.set_alpha(1)
+
+    # median + interquartile range on top of each violin
+    for x, pos in zip(series, positions):
+        q1, med, q3 = np.percentile(x, [25, 50, 75])
+        ax.vlines(pos, q1, q3, color='k', linewidth=1.5, zorder=3)
+        ax.plot(pos, med, 'o', color='w', markersize=3,
+                markeredgecolor='k', markeredgewidth=0.5, zorder=4)
+
+    ax.set_ylabel('Lag time (min)', fontsize=fsize, labelpad=2)
+    ax.set_ylim([-100, 750])
+    ax.set_yticks([0, 200, 400, 600])
+    ax.set_xticks(positions)
+    ax.set_xticklabels(labels, fontsize=fsize - 2)
+    ax.set_xlim([0.4, len(conditions) + 0.6])
+    ax.tick_params(axis='y', which='major', labelsize=fsize)
+    ax.tick_params(axis='x', which='major', length=0, pad=1)
+    ax.spines[['top', 'right']].set_visible(False)
+
+
+def panel_I_3d(ax):
+    # vapc lag time distribution -- 3D waterfall histogram, one condition per depth slice
     # Load the data
     conditions = ['CTRLt0', 'CTRLt1400', 'VAPCt240', 'VAPCt1400']
     labels = ['Exp', 'Reg-Arrest', 'Early VapC', 'Late VapC']
@@ -374,22 +418,42 @@ def panel_I(ax):
         data[condition] = pd.read_csv(path, index_col=False, header=None).to_numpy()
         if condition=='CTRLt0':
             t0 = np.min(data[condition])
-    # plot histograms of lag time
+
+    # replace the 2D axes with a 3D one at the same position
+    pos = ax.get_position()
+    fig = ax.figure
+    ax.remove()
+    ax = fig.add_axes(pos, projection='3d')
+
     edges = np.linspace(0, 700, 51)
-    for i, condition in enumerate(conditions):
-        x = data[condition].flatten() -t0
-        ax.hist(x, bins=edges, color=colors[i], histtype='stepfilled', edgecolor='k', alpha=1, label=labels[i],
-                 density=True)
-    ax.set_xlabel('Lag time (min)', fontsize=fsize)
-    ax.set_ylabel(r'Frequency', labelpad=0, fontsize=fsize)
-    ax.text(10, 0.018, r'$\times{10}^{-2}$', fontsize=fsize - 3)
-    # set axis label size
-    ax.legend(fontsize=fsize-2)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    width = edges[1] - edges[0]
+    # draw back-to-front so the near slices overlay the far ones
+    for i in range(len(conditions) - 1, -1, -1):
+        condition = conditions[i]
+        x = data[condition].flatten() - t0
+        h, _ = np.histogram(x, bins=edges, density=True)
+        ax.bar(centers, h, zs=i, zdir='y', width=width,
+               color=colors[i], edgecolor='k', linewidth=0.2, alpha=1,
+               label=labels[i])
+
+    ax.set_xlabel('Lag time (min)', fontsize=fsize - 2, labelpad=-4)
+    ax.set_zlabel(r'Frequency ($\times10^{-2}$)', fontsize=fsize - 2, labelpad=-6)
     ax.set_xlim([0, 750])
+    ax.set_ylim([-0.5, len(conditions) - 0.5])
     ax.set_xticks([200, 400, 600])
-    ax.set_yticks([0, 0.01, 0.02])
-    ax.set_yticklabels([0, 1, 2])
-    ax.tick_params(axis='both', which='major', labelsize=fsize)
+    ax.set_yticks(range(len(conditions)))
+    ax.set_yticklabels(labels)
+    ax.set_zticks([0, 0.01, 0.02])
+    ax.set_zticklabels([0, 1, 2])
+    ax.tick_params(axis='both', which='major', labelsize=fsize - 3, pad=-2)
+    ax.tick_params(axis='y', pad=-3)
+    ax.view_init(elev=22, azim=-58)
+    ax.set_box_aspect((1.5, 1.1, 0.85), zoom=1.0)
+    ax.xaxis.pane.set_alpha(0.0)
+    ax.yaxis.pane.set_alpha(0.0)
+    ax.zaxis.pane.set_alpha(0.0)
+    ax.grid(False)
 
 ###
 # Build figure 5:
@@ -409,7 +473,7 @@ panel_pos = [
     [0.4, 0.08, 0.24, 0.28],  # F
     [0.7, 0.72, 0.275, 0.22],  # G
     [0.7, 0.41, 0.275, 0.22],  # H
-    [0.7, 0.08, 0.275, 0.22],  # I
+    [0.745, 0.08, 0.23, 0.24],  # I
 ]
 # panel A:
 pf.add_panel(panel_pos[0], draw_func=panel_A)

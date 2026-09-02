@@ -23,12 +23,15 @@ data_dir = os.path.join(REPO, "scanlag_data", "exp2")
 # Normalization (identical to what figure1.py panel_E plots)
 # --------------------------------------------------------------------------
 # Each colony's raw X value is its absolute appearance time. The plot expresses
-# lag *relative* to the earliest exponential colony, so it subtracts a single
-# constant t0 = min appearance time of the REP3 exponential culture.
+# lag *relative* to the typical exponential colony, so it subtracts a single
+# constant t0 = MEDIAN appearance time of the REP3 exponential culture (figure1.py
+# panel_E used the minimum until the 2026 revision; the median is less sensitive to
+# the single earliest colony).
 # NOTE: because t0 is one constant subtracted from every group equally, it shifts
-# all means by the same amount and therefore does NOT change any t-test result.
-# We apply it only to stay faithful to the plotted data.
-t0 = np.min(pd.read_csv(os.path.join(data_dir, "REP3EXP_t00Min_ax1.csv"))["X"])
+# all means by the same amount and changes neither the standard deviations nor any
+# t-test result. We apply it only to stay faithful to the plotted data.
+t0 = np.median(pd.read_csv(os.path.join(data_dir, "REP3EXP_t00Min_ax1.csv"))["X"])
+print(f"t0 (median of REP3 exponential) = {t0:.1f} min\n")
 
 # Map each condition label to the substring that identifies it in the filenames.
 # Files look like: REP1SHX_t31756Min_ax1.csv, REP3CASP_..., REP4EXP_..., etc.
@@ -67,6 +70,14 @@ for condition in groups:
     for rep, m in sorted(rep_means[condition].items()):
         print(f"  {condition:12s} {rep}: {m:7.1f}")
     print()
+
+# Mean +/- SD across the three biological replicates (the unit of replication)
+print("Across the 3 biological replicates (mean of replicate means +/- SD):")
+for condition in groups:
+    v = np.array([rep_means[condition][r] for r in sorted(rep_means[condition])])
+    print(f"  {condition:12s} {v.mean():6.1f} +/- {v.std(ddof=1):5.1f} min"
+          f"   (SEM {v.std(ddof=1) / np.sqrt(v.size):4.1f}, n = {v.size} replicates)")
+print()
 
 # --------------------------------------------------------------------------
 # The actual test: 3 means vs 3 means

@@ -262,9 +262,18 @@ Samples are matched from data_metrics.csv by the `file_name` column. The order (
 ## Panel I — Lag time distribution
 
 **Function:** `panel_I(ax)`  
-**Data files:** `scripts/figures/figure5/CTRLt0.csv`, `VAPCt240.csv`, `VAPCt1400.csv`
+**Data files:** `scripts/figures/figure5/CTRLt0.csv`, `CTRLt1400.csv`, `VAPCt240.csv`, `VAPCt1400.csv`
 
-Overlapping histograms of single-cell lag times for 3 conditions (Reg-Arrest, Early VapC, Late VapC). X: 300–1100 min. Y: frequency density (×10⁻² scaling label). Colors: `['#9ecae1', '#fb6a4a', '#a50f15']`.
+**Vertical violin plot** of single-cell lag times — one violin per condition, left to right in the order **Exp, Reg-Arrest, Early VapC, Late VapC**. Colors: `['#2166ac', '#9ecae1', '#fb6a4a', '#a50f15']`.
+
+- Y: lag time relative to `t0 = min(CTRLt0)`, `ylim [0, 750]`, ticks `[200, 400, 600]`.
+- X: condition index 1-4; two-line tick labels (a newline inside each label, e.g. `Reg-` / `Arrest`) so the names fit the narrow panel; tick marks suppressed (`length=0`).
+- Violins: `ax.violinplot(..., vert=True, widths=0.75, showextrema=False, showmedians=False)`; each body recolored with a black 0.5 pt edge.
+- Overlaid summary: a black vertical IQR bar (25th-75th percentile) with a white median dot.
+- Top and right spines hidden.
+- Panel rect is `[0.745, 0.08, 0.23, 0.24]` — shifted right of the other panels in that column so the `Lag time (min)` y-label clears panel F.
+
+The earlier **3D waterfall version is preserved as `panel_I_3d(ax)`** in the same file; swap the `draw_func` in the assembly block to use it.
 
 ---
 
@@ -279,7 +288,8 @@ Overlapping histograms of single-cell lag times for 3 conditions (Reg-Arrest, Ea
 | `ev_data/VapC_biorep_tONA_filtered.npy` | Panel F | Eigenvalues: Late VapC (24h) |
 | `results/data_metrics/data_metrics.csv` | Panel G | GMP-Cor (`sum_denoised_ev`) + `gmp_cor_ci` error bars; `permutation_p` for panels E/F |
 | `scripts/figures/figure5/normalizedOD_at_20h.csv` | Panel H | SDS growth assay OD data |
-| `scripts/figures/figure5/CTRLt0.csv` | Panel I | Control lag times |
+| `scripts/figures/figure5/CTRLt0.csv` | Panel I | Exp (exponential) lag times; its minimum sets `t0` |
+| `scripts/figures/figure5/CTRLt1400.csv` | Panel I | Reg-Arrest lag times |
 | `scripts/figures/figure5/VAPCt240.csv` | Panel I | Early VapC lag times |
 | `scripts/figures/figure5/VAPCt1400.csv` | Panel I | Late VapC lag times |
 
@@ -300,6 +310,11 @@ Overlapping histograms of single-cell lag times for 3 conditions (Reg-Arrest, Ea
 | Change GMP-Cor y-range | edit `ax.set_ylim([0, 45])` in `panel_G` |
 | Change kill-curve detection limit | edit `floor = 1e-5` in `panel_B` — controls y-limits, which points are censored, and the `<10^-5` label |
 | Plot other kill-curve conditions | edit the `series` list in `panel_B` — entries are MPN block labels, not column names |
+| Reorder / add panel I conditions | edit the paired `conditions` / `labels` / `colors` lists in `panel_I` — first entry is the leftmost violin |
+| Fatten / thin the violins | `widths=0.75` in `ax.violinplot(...)` |
+| Make the violins horizontal again | `vert=False` in `ax.violinplot(...)`, and swap the x/y limit, tick and label calls |
+| Switch panel I back to the 3D histogram | `pf.add_panel(panel_pos[8], draw_func=panel_I_3d)` in the assembly block |
+| Rotate the 3D view | edit `ax.view_init(elev=22, azim=-58)` in `panel_I_3d` |
 | Add error bars to panel F | add `yerr=` to `ax.bar(...)` and supply per-sample SD/SE |
 | Save as SVG | uncomment `pf.save("figure5.svg", dpi=300)` at bottom |
 

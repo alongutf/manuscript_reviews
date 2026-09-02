@@ -55,20 +55,30 @@ def panel_A(axes):
         return b ** a / sc.special.gamma(a) * x ** (a - 1) * np.exp(-b * x)
 
     t0 = 0.8
+    tr = 5
+    tl = 3
     lw = 1
     green = '#31a354'
     red = '#CD5C5C'
     # Generate x values
-    x = np.linspace(0.01, 5, 100)
+    x = np.linspace(0.01, tr, 100)
     # Plot the regulated sigmoid function
     axes[0, 0].plot(x, sigmoid(x, 10, 4, 0.7), color=green, linewidth=lw+1)
     # Plot the disrupted sigmoid function
     axes[1, 0].plot(x[x < t0], sigmoid(x[x < t0], 10, 4, 1), color=red, linewidth=lw+1)
     axes[1, 0].plot(x[x >= t0], sigmoid(x[x >= t0], 10, 4, 1), color=red, linewidth=lw, linestyle='dashed')
-    axes[1, 0].plot([t0, 4], [sigmoid(t0, 10, 4, 1), sigmoid(t0, 10, 4, 1)], color=red, linewidth=lw+1)
+    axes[1, 0].plot([t0, tr], [sigmoid(t0, 10, 4, 1), sigmoid(t0, 10, 4, 1)], color=red, linewidth=lw+1)
     axes[1, 0].plot([t0, t0], [0.55, 0.85], color='k', linewidth=lw)
+
+    axes[1,0].set_xlabel('Time', fontsize=fsize, loc='right')
+    x = np.linspace(tr,10,100)
+    # second column:
+    # Plot the regulated sigmoid function
+    axes[0, 0].plot(x, 0.7 + sigmoid(x - tr-0.5, 10, 4, 0.7), color=green, linewidth=lw+1)
+    # Plot the disrupted sigmoid function
+    axes[1, 0].plot(x, 0.705 + sigmoid(x - tr - tl, 10, 4, 0.7), color=red, linewidth=lw+1)
     # add text to the plot
-    axes[1, 0].text(0.85, 0.4, 'Acute\nstress', fontsize=fsize-2, color='k')
+    #axes[1, 0].text(0.85, 0.4, 'Acute\nstress', fontsize=fsize-2, color='k')
     # remove the top and right spines
     for ax in axes[:, 0]:
         ax.spines['top'].set_visible(False)
@@ -78,81 +88,79 @@ def panel_A(axes):
         ax.spines['bottom'].set_linewidth(lw)
         ax.set_xticks([])  # remove ticks
         ax.set_yticks([])
-        ax.set_xlabel('Time', fontsize=fsize, loc='right')
         ax.set_ylabel('# of cells', fontsize=fsize, labelpad=0)
-        ax.set_xlim(0, 2)
+        ax.set_xlim(0, 9)
         ax.set_ylim(0, 1.1)
 
+    axes[1,0].set_xlabel('Time', fontsize=fsize, loc='center')
     # second column:
-    # Plot the regulated sigmoid function
-    axes[0, 1].plot(x, 0.67 + sigmoid(x - 0.2, 10, 4, 0.7), color=green, linewidth=lw+1)
-    # Plot the disrupted sigmoid function
-    axes[1, 1].plot(x, 0.705 + sigmoid(x - 0.65, 10, 4, 0.7), color=red, linewidth=lw+1)
-
-    for ax in axes[:, 1]:
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        # make the spines wider
-        ax.spines['left'].set_linewidth(lw)
-        ax.spines['bottom'].set_linewidth(lw)
-        ax.set_xticks([])  # remove ticks
-        ax.set_yticks([])
-        ax.set_xlim(0, 2)
-        ax.set_ylim(0, 1.1)
+    # # Plot the regulated sigmoid function
+    # axes[0, 1].plot(x, 0.67 + sigmoid(x - 0.2, 10, 4, 0.7), color=green, linewidth=lw+1)
+    # # Plot the disrupted sigmoid function
+    # axes[1, 1].plot(x, 0.705 + sigmoid(x - 0.65, 10, 4, 0.7), color=red, linewidth=lw+1)
+    #
+    # for ax in axes[:, 1]:
+    #     ax.spines['top'].set_visible(False)
+    #     ax.spines['right'].set_visible(False)
+    #     ax.spines['left'].set_visible(False)
+    #     # make the spines wider
+    #     ax.spines['left'].set_linewidth(lw)
+    #     ax.spines['bottom'].set_linewidth(lw)
+    #     ax.set_xticks([])  # remove ticks
+    #     ax.set_yticks([])
+    #     ax.set_xlim(0, 2)
+    #     ax.set_ylim(0, 1.1)
 
     # third column:
     # Plot the gamma distribution for different shape and scale
-    axins1 = inset_axes(axes[0, 1], bbox_to_anchor=(0.6, 0.1, 0.8, 0.8), bbox_transform=axes[0, 1].transAxes,
-                        width="70%", height="70%", loc="lower left")
-    axins1.plot(x, gamma(x, 2, 4.2), label='a=1, b=3', color=green, linewidth=lw+1)
-    # Plot the inverse gamma distribution for different shape and scale
-    axins2 = inset_axes(axes[1, 1], bbox_to_anchor=(0.6, 0.1, 0.8, 0.8), bbox_transform=axes[1, 1].transAxes,
-                        width="70%", height="70%", loc="lower left")
-    axins2.plot(x, inv_gamma(x, 2, 2), label='a=2, b=1', color=red, linewidth=lw+1)
-    # add labels and legend
-
-    # remove the top and right spines
-    for ax in [axins1, axins2]:
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        # make the spines wider
-        ax.spines['left'].set_linewidth(lw)
-        ax.spines['bottom'].set_linewidth(lw)
-        ax.set_xlabel('Lag time', fontsize=fsize - 3, labelpad=3)
-        ax.set_ylabel('Probability', fontsize=fsize - 3, labelpad=2)
-        ax.set_xticks([])  # remove ticks
-        ax.set_yticks([])
-        ax.set_xlim(0, 5)
-        ax.set_ylim(0, 1.6)
-        ax.set_title('Single-cell lag', fontsize=fsize - 2, pad=2)
+    # axins1 = inset_axes(axes[0, 1], bbox_to_anchor=(0.6, 0.1, 0.8, 0.8), bbox_transform=axes[0, 1].transAxes,
+    #                     width="70%", height="70%", loc="lower left")
+    # axins1.plot(x, gamma(x, 2, 4.2), label='a=1, b=3', color=green, linewidth=lw+1)
+    # # Plot the inverse gamma distribution for different shape and scale
+    # axins2 = inset_axes(axes[1, 1], bbox_to_anchor=(0.6, 0.1, 0.8, 0.8), bbox_transform=axes[1, 1].transAxes,
+    #                     width="70%", height="70%", loc="lower left")
+    # axins2.plot(x, inv_gamma(x, 2, 2), label='a=2, b=1', color=red, linewidth=lw+1)
+    # # add labels and legend
+    #
+    # # remove the top and right spines
+    # for ax in [axins1, axins2]:
+    #     ax.spines['top'].set_visible(False)
+    #     ax.spines['right'].set_visible(False)
+    #     # make the spines wider
+    #     ax.spines['left'].set_linewidth(lw)
+    #     ax.spines['bottom'].set_linewidth(lw)
+    #     ax.set_xlabel('Lag time', fontsize=fsize - 3, labelpad=3)
+    #     ax.set_ylabel('Probability', fontsize=fsize - 3, labelpad=2)
+    #     ax.set_xticks([])  # remove ticks
+    #     ax.set_yticks([])
+    #     ax.set_xlim(0, 5)
+    #     ax.set_ylim(0, 1.6)
+    #     ax.set_title('Single-cell lag', fontsize=fsize - 2, pad=2)
 
 
 def panel_B(axes):
     project_dir = os.path.dirname(os.path.dirname(root_dir))
-    bins = np.linspace(0, 1000, 40)
+    bins = np.linspace(-100, 900, 40)
     hist_data = np.loadtxt(os.path.join(project_dir, 'scanlag_data', 'kaplan_shx', 't0.txt'))
     hist_data2 = np.loadtxt(os.path.join(project_dir, 'scanlag_data', 'kaplan_shx', 't1346.txt'))
-    x0 = hist_data[0]
-    hist_data = hist_data - x0
-    hist_data2 = hist_data2 - x0
     green = '#31a354'
     red = '#CD5C5C'
     axes[0,0].hist(hist_data, bins=bins, color=green, alpha=0.7)
     axes[1,0].hist(hist_data2, bins=bins, color=red, alpha=0.7)
     for ax in axes[:, 0]:
         ax.set_ylabel('Probability', fontsize=fsize-2, labelpad=0)
-        ax.set_xlim(0, 1000)
+        ax.set_xlim(-100, 900)
         ax.set_yticks([])
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
     axes[0,0].set_xticks([])
     axes[1,0].set_xlabel('Lag time (min)', fontsize=fsize, labelpad=0)
+
 def panel_E(ax):
     # scanlag plot:
     data_dir = os.path.join(os.path.dirname(os.path.dirname(root_dir)), 'scanlag_data', 'exp2')
-    x_min = 0
+    x_min = -100
     x_max = 4000
     n_points = 400
     n_reps = 3
@@ -161,7 +169,8 @@ def panel_E(ax):
     linestyles = {'Exponential': '-', 'Reg-Arrest': '--', 'Dis-Arrest': '-'}
     common_x = np.linspace(x_min, x_max, num=n_points)
     exp_data = pd.read_csv(os.path.join(data_dir, 'REP3EXP_t00Min_ax1.csv'),header=0)
-    t0 = np.min(exp_data['X'])
+    t0 = np.median(exp_data['X'])
+    print('t0', t0)
     for file in os.listdir(data_dir):
         data = pd.read_csv(os.path.join(data_dir, file), header=0)
         y_interpolated = np.interp(common_x, data['X'], data['Y'])
@@ -191,7 +200,7 @@ def panel_E(ax):
     ax.set_ylabel('Fraction of arrested bacteria', fontsize=fsize-1, labelpad=0)
     #ax.set_xscale('log')
     ax.set_yscale('log')
-    ax.set_xlim(0, 2500)
+    ax.set_xlim(x_min, 2500)
     #ax.set_xticks([10, 100, 1000])
     #ax.set_xticklabels([10, 100, 1000])
     # set tick fontsize
@@ -267,7 +276,7 @@ def panel_H(ax):
 fsize = 10
 pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.03,0.03))
 panel_pos = [
-    [0.05, 0.68, 0.35, 0.28],  # A
+    [0.05, 0.68, 0.38, 0.28],  # A
     [0.48, 0.7, 0.22, 0.26],  # B
     [0.8, 0.74, 0.18, 0.22],  # C
     [0.05, 0.37, 0.2, 0.25],  # D
@@ -278,9 +287,9 @@ panel_pos = [
 ]
 root_dir = os.getcwd()
 # panel A:
-axes_panel_A = pf.add_grid_panel(panel_pos[0], 2, 2, label="A",
+axes_panel_A = pf.add_grid_panel(panel_pos[0], 2, 1, label="A",
                   sharex=True, sharey=True,
-                  wspace=0.15, hspace=0.2)
+                  hspace=0.1)
 panel_A(axes_panel_A)
 # panel B:
 axes_panel_B = pf.add_grid_panel(panel_pos[1], 2, 1, label="B",

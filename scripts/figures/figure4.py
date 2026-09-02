@@ -336,7 +336,7 @@ def panel_C(ax):
 
 def panel_D(ax):
     data_dir = os.path.join(root_dir, 'scanlag_data', 'bulk time in shx')
-    x_min = 0
+    x_min = -100
     x_max = 2000
     cmap = plt.get_cmap('Reds')
     v_min = -400
@@ -350,7 +350,7 @@ def panel_D(ax):
         data = pd.read_csv(os.path.join(data_dir, file), header=0)
         time_point = int(file[2:file.find('Min')])
         if time_point == 0:
-            t0 = np.min(data['X'])
+            t0 = np.median(data['X'])
         ax.plot(data['X']-t0, data['Y'], color=cmap(get_normalized_value(time_point, v_min, v_max)), label=time_point,
                 linewidth=1)
 

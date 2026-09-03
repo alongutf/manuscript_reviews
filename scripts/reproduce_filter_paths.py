@@ -24,6 +24,9 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# NOTE: absolute path to a sibling repo on this machine holding the raw
+# unfiltered probe-count CSV and the gene biotype map; must be updated to run
+# on another machine.
 OTHER = r'C:\Users\owner\Documents\Projects\rnaseq_correlations'
 UNFILT = os.path.join(OTHER, 'data', 'sample_15a_unfiltered.csv')
 BIOTYPE = os.path.join(OTHER, 'filtered_data', 'k12_biotype_map.csv')
@@ -31,10 +34,15 @@ PAPER_F = os.path.join(ROOT, 'data_for_paper', 'sample_15a_filtered.csv')
 UMAP_F = os.path.join(ROOT, 'data_for_umap', 'sample_15a_filtered.csv')
 OUTDIR = os.path.join(ROOT, 'results', 'cluster_gmp_cor')
 
-CHUNK = 20000
+CHUNK = 20000  # rows per pandas read_csv chunk when streaming the large unfiltered CSV
 
 
 def load_unfiltered(path):
+    """Read a raw unfiltered probe-count CSV (too large for one read_csv call)
+    in CHUNK-row pieces and stack them into one dense matrix.
+
+    Returns (counts, barcodes, gene_names) with counts shaped cells x genes.
+    """
     print(f'loading {path} ...')
     header = pd.read_csv(path, nrows=0)
     # first column holds barcodes; force str there and int32 everywhere else
@@ -48,7 +56,7 @@ def load_unfiltered(path):
         print(f'  chunk {i}: {ch.shape}')
     M = np.vstack(parts)
     idx = np.concatenate(index)
-    cols = ch.columns.values
+    cols = ch.columns.values  # column names are identical in every chunk; last is fine
     print(f'loaded {M.shape}')
     return M, np.asarray(idx), np.asarray(cols)
 
@@ -63,7 +71,19 @@ def protein_coding_mask(genes):
 
 
 def umi_filter(tot, umi_min, umi_max, target_cells=None):
-    """Replicates AnnMat.filter_by_umi_count, including the target_cells branch."""
+    """Replicates AnnMat.filter_by_umi_count, including the target_cells branch.
+
+    NOTE (see FINDINGS in the accompanying log): this does NOT exactly replicate
+    the library function. AnnMat.filter_by_umi_count reassigns its own
+    `target_cells` to min(len(sorted), num_above_max + target_cells) and THEN
+    indexes `sorted[num_above_max + target_cells]` with that reassigned value --
+    i.e. it effectively adds num_above_max twice. This function instead indexes
+    with a single num_above_max term (`k = min(len - 1, n_above + target_cells)`),
+    which is the "obviously intended" reading but is not bit-for-bit what the
+    notebook's actual filter call produces whenever a target_cells run is
+    involved. Candidates below built with target_cells != None should be read
+    with that caveat.
+    """
     if target_cells is not None:
         srt = np.flip(np.sort(tot))
         n_above = int((tot > umi_max).sum())
@@ -73,7 +93,8 @@ def umi_filter(tot, umi_min, umi_max, target_cells=None):
 
 
 def dispersion_mask(M, min_dispersion=1.0):
-    """Replicates AnnMat.filter_by_gene_dispersion."""
+    """Replicates AnnMat.filter_by_gene_dispersion: dispersion = var/mean per
+    gene (0 where mean is 0), keep genes with dispersion > min_dispersion."""
     mean = M.mean(axis=0)
     var = M.var(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -83,6 +104,7 @@ def dispersion_mask(M, min_dispersion=1.0):
 
 
 def summarize(M, bcs, genes, label, published):
+    # `genes` is accepted but unused -- every call site passes None for it.
     tot = M.sum(1)
     det = (M > 0).sum(1)
     rec = {
@@ -95,6 +117,7 @@ def summarize(M, bcs, genes, label, published):
         'mean_detected': float(det.mean()) if len(det) else np.nan,
     }
     s = set(bcs)
+    # for each published file, how many of its barcodes this candidate reproduces
     for pname, pbc in published.items():
         rec[f'overlap_{pname}'] = len(s & pbc)
         rec[f'pct_of_{pname}'] = round(100 * len(s & pbc) / len(pbc), 1)
@@ -105,6 +128,7 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
+    # barcodes of the two candidate published files, to score every reconstruction against
     published = {}
     for name, path in [('paper', PAPER_F), ('umap', UMAP_F)]:
         d = pd.read_csv(path, index_col=0, usecols=[0])
@@ -112,21 +136,24 @@ def main():
         print(f'published {name}: {len(published[name])} barcodes')
 
     M, bcs, genes = load_unfiltered(UNFILT)
-    bcs = np.array([str(b).split('-')[0] for b in bcs])
+    bcs = np.array([str(b).split('-')[0] for b in bcs])  # drop GEM well suffix ("-1" etc.)
     rrna_cols = [i for i, g in enumerate(genes) if str(g).startswith('16s')]
     print(f'rRNA columns: {[genes[i] for i in rrna_cols]}')
 
     pc = protein_coding_mask(genes)
     print(f'protein-coding-ish genes kept: {pc.sum()} / {len(genes)}')
 
-    tot_all = M.sum(1)
-    tot_mrna = M[:, pc].sum(1)
+    tot_all = M.sum(1)          # every gene, including 16s rRNA (~92% of counts)
+    tot_mrna = M[:, pc].sum(1)  # protein-coding genes only
     print(f'total counts/barcode: median {np.median(tot_all):.0f}, max {tot_all.max()}')
     print(f'mRNA  counts/barcode: median {np.median(tot_mrna):.0f}, max {tot_mrna.max()}')
 
     records = []
 
-    # ---- paper path: gene filter first, UMI counted on mRNA ----
+    # ---- paper path: gene filter first, UMI counted on mRNA only ----
+    # (100, 2000, None/1000) mirror the notebook's literal call; (400, 20000, None)
+    # is the wider window used elsewhere in this repo's reproduction scripts, kept
+    # here for comparison.
     for (lo, hi, tgt) in [(100, 2000, None), (100, 2000, 1000), (400, 20000, None)]:
         cells = umi_filter(tot_mrna, lo, hi, tgt)
         sub = M[np.ix_(cells, pc)]

@@ -19,19 +19,32 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, REPO)
 sys.path.insert(0, HERE)
-os.chdir(HERE)
+os.chdir(HERE)  # figure2.py's data paths are relative to scripts/figures/
 
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg')  # headless backend; this script only ever writes files
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
+# external, machine-specific export target (a synced cloud drive), not part of
+# this repo -- update or redirect this path to run the export elsewhere
 OUT_DIR = r'G:\Other computers\My MacBook Air\Alon\PhD\documents\GRC conference\figures'
 FS = 12   # base font size for these presentation figures
 
 
 def load_figure2_namespace():
+    """Execute figure2.py's module-level code up to (but not including) the
+    line that builds its `pf = PanelFigure(...)` full-figure layout, and return
+    the resulting namespace.
+
+    This reuses figure2.py's data loading and its `_draw_ccdf` helper without
+    running or reproducing its panel-layout logic, and without ever importing
+    figure2.py as a module (which would execute the whole file, panels
+    included). It relies on the literal text 'pf = PanelFigure' appearing at
+    the start of a line in figure2.py -- if that line is reworded or the
+    variable renamed, `next()` raises StopIteration and this script breaks.
+    """
     path = os.path.join(HERE, 'figure2.py')
     with open(path, 'r', encoding='utf-8') as fh:
         lines = fh.readlines()
@@ -43,11 +56,13 @@ def load_figure2_namespace():
 
 
 ns = load_figure2_namespace()
-ev_data_dir = ns['ev_data_dir']
-_draw_ccdf = ns['_draw_ccdf']
+ev_data_dir = ns['ev_data_dir']  # directory of pre-computed eigenvalue-spectrum .npy files, from figure2.py
+_draw_ccdf = ns['_draw_ccdf']    # figure2.py's shared CCDF-plotting helper
 
 
 def save(fig, name, tight_bbox=True):
+    # writes the real (transparent SVG) output to OUT_DIR, plus a PNG preview
+    # alongside this script for a quick local look without opening OUT_DIR
     bbox = 'tight' if tight_bbox else None
     svg = os.path.join(OUT_DIR, name + '.svg')
     fig.savefig(svg, transparent=True, bbox_inches=bbox)
@@ -61,6 +76,9 @@ def save(fig, name, tight_bbox=True):
 # 1. Heatmap (2C top) — tall & narrow
 # ------------------------------------------------------------------
 def make_heatmap():
+    # this panel is a schematic, not real data: a synthetic sparse cells x genes
+    # matrix (per-gene detection rate 15-38%, exponential nonzero values) just to
+    # illustrate what a raw scRNA-seq count matrix looks like
     np.random.seed(42)
     n_cells, n_genes = 30, 12
     matrix = np.zeros((n_cells, n_genes))
@@ -84,11 +102,13 @@ def make_heatmap():
 # Shared 2D-top data
 # ------------------------------------------------------------------
 pcs_data = np.load(os.path.join(ev_data_dir, 'simulated_pcs.npy'))
-pcs, pcs1 = pcs_data[0], pcs_data[1]
+pcs, pcs1 = pcs_data[0], pcs_data[1]  # row 0 = real-data eigenvalues, row 1 = scrambled-null eigenvalues
 data1 = pcs[pcs > 0]
 data2 = pcs1[pcs1 > 0]
 bin_width = 0.15
-x2 = float(np.max(pcs1)) + bin_width   # scrambled maximum = GMP-Cor threshold
+# scrambled maximum = the GMP-Cor threshold; offset by one bin width so the
+# dividing line sits at a histogram bin edge rather than mid-bin
+x2 = float(np.max(pcs1)) + bin_width
 
 SPURIOUS_COLOR = 'darkgray'
 SIGNAL_COLOR = 'skyblue'
@@ -98,6 +118,8 @@ SIGNAL_COLOR = 'skyblue'
 # 2. Main histogram (2D top) — grey spurious up to x2, blue signal above
 # ------------------------------------------------------------------
 def make_hist():
+    # bin edges span both the real and scrambled data so the two histograms
+    # would align if plotted together, even though only data1 (real) is drawn
     all_data = np.concatenate([data1, data2])
     bin_edges = np.arange(min(all_data), max(all_data) + bin_width, bin_width)
 
@@ -105,6 +127,8 @@ def make_hist():
     _, _, patches = ax.hist(
         data1, bins=bin_edges, width=bin_width * 0.8, align='right',
         edgecolor='black', color='#d9d9d9', alpha=0.7, density=True)
+    # recolor bars by whether they lie below (spurious/noise) or above
+    # (signal) the scrambled-null threshold x2
     for patch in patches:
         patch.set_facecolor(SPURIOUS_COLOR if patch.get_x() < x2 else SIGNAL_COLOR)
 

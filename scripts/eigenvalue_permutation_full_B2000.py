@@ -66,7 +66,13 @@ OUT = os.path.join(_REPO, 'results', 'permutation_test')
 
 
 def _work(args):
-    """Run B permutations for one sample. Executed in a worker process."""
+    """Run B permutations for one sample. Executed in a worker process.
+
+    Returns a dict with the observed spectrum (top k_store ranks), the full (B,
+    k_store) draw matrix, and running first/second moments plus min/max/exceedance
+    counts over the FULL spectrum (all n ranks), computed online so the full draw
+    matrix itself never needs to be kept in memory.
+    """
     import numpy as np
     from eigenvalue_permutation_test import (
         load_matrix, prep, spec, scramble, validate, DATA_DIR, EV_DIR)
@@ -100,13 +106,16 @@ def _work(args):
     for b in range(B):
         e = spec(scramble(M, rng))
         draws[b] = e[:k_store]
-        s1 += e
-        s2 += e * e
+        s1 += e                                    # running sum -> mean
+        s2 += e * e                                # running sum of squares -> variance
         np.minimum(fmin, e, out=fmin)
         np.maximum(fmax, e, out=fmax)
-        n_above_full += (e >= obs[:len(e)])
+        n_above_full += (e >= obs[:len(e)])        # exceedance count, every rank
 
     mean_full = s1 / B
+    # E[X^2] - E[X]^2, Bessel-corrected (x B/(B-1)) to match np.std(ddof=1) used
+    # elsewhere; clipped at 0 because floating-point error can drive it slightly
+    # negative when the true variance is ~0
     var_full = np.maximum(s2 / B - mean_full ** 2, 0) * B / (B - 1)
     sd_full = np.sqrt(var_full)
 
@@ -120,6 +129,8 @@ def _work(args):
 
 
 def main(B=B_DEFAULT, n_workers=None):
+    """Run the full B-replicate permutation test over every sample in data_for_paper/,
+    in parallel across worker processes, and write all raw/log outputs."""
     from scipy.stats import beta as _beta, mannwhitneyu
 
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -133,7 +144,8 @@ def main(B=B_DEFAULT, n_workers=None):
     print('B={}  samples={}  workers={}'.format(B, len(samples), n_workers), flush=True)
     t_start = time.time()
 
-    # distinct, reproducible stream per sample
+    # distinct, reproducible stream per sample: each worker seeds its own
+    # np.random.default_rng, so samples running concurrently never share a stream
     seeds = {nm: SEED + 1000 + i for i, nm in enumerate(samples)}
     # cost scales with the matrix size, and the largest sample dominates wall time,
     # so submit longest-first rather than letting it start last
@@ -164,7 +176,7 @@ def main(B=B_DEFAULT, n_workers=None):
         sd = d.std(0, ddof=1)
         z = (obs - mu) / sd
         n_exc = (d >= obs[None, :]).sum(0)
-        p_emp = (1 + n_exc) / (B + 1)
+        p_emp = (1 + n_exc) / (B + 1)          # assumption-free permutation p-value
         # exact (Clopper-Pearson) 95% interval for the exceedance probability
         ci_lo = np.array([_beta.ppf(0.025, c + 1, B - c) if c < B else 1.0 for c in n_exc])
         ci_hi = np.array([_beta.ppf(0.975, c + 1, B - c) if c < B else 1.0 for c in n_exc])
@@ -173,10 +185,18 @@ def main(B=B_DEFAULT, n_workers=None):
         T_null = d[:, :K_REPORT].sum(1)
         p_topK = float((1 + (T_null >= T_obs).sum()) / (B + 1))
         maxT_obs = float(z[:K_REPORT].max())
+        # max over ranks, taken WITHIN each replicate first -> controls the family-wise
+        # error rate across the K_REPORT ranks tested simultaneously
         maxT_null = ((d[:, :K_REPORT] - mu[:K_REPORT]) / sd[:K_REPORT]).max(1)
         p_maxT = float((1 + (maxT_null >= maxT_obs).sum()) / (B + 1))
 
-        # parallel analysis over the full spectrum, from the stored full-rank counts
+        # parallel analysis over the full spectrum, from the stored full-rank counts:
+        # a rank "survives" if fewer than ALPHA of the B null draws reach the observed
+        # value at that rank, i.e. the observation exceeds the null's own 95th
+        # percentile at its rank. k_hat is the first rank that fails this (or the full
+        # spectrum length if every rank passes). Equivalent in spirit to, but computed
+        # differently from, the np.quantile-based k_hat in eigenvalue_permutation_test.py
+        # (see the cross-script note in eigenvalue_permutation_test.py's log).
         q95_full = None
         above_full = r['n_above_full'] / B < ALPHA      # obs above null 95th pct at that rank
         k_hat = int(np.argmin(above_full)) if not above_full.all() else int(r['n_ranks_full'])

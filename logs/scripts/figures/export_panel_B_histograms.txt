@@ -1,0 +1,70 @@
+================================================================================
+scripts/figures/export_panel_B_histograms.py
+41 lines (48 after documentation pass)  |  reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A small standalone export script, not one of the numbered figureN.py scripts:
+    it draws two simple histograms of per-cell lag time (time to regrowth after SHX
+    exposure) at two time points, t0 and t1346 minutes, from the kaplan_shx scanlag
+    dataset. Per its filename and output path, this was produced for a conference
+    poster/talk (IPS 2026) as a "panel B"-styled pair of figures, separate from the
+    manuscript's own figure4.py which has its own panel B (a GO enrichment bar
+    plot, unrelated content).
+
+INPUTS
+    scanlag_data/kaplan_shx/t0.txt, scanlag_data/kaplan_shx/t1346.txt - each a plain
+    text list of per-cell lag times (one value per line/whitespace token), loaded
+    with np.loadtxt into a 1-D array.
+
+OUTPUTS
+    <output_dir>/panel_B_t0.png and <output_dir>/panel_B_t1346.png, where output_dir
+    is a hard-coded absolute path on the original author's own machine (see
+    FINDINGS [1]) rather than anywhere in this repository.
+
+HOW IT WORKS
+    project_dir is derived from __file__ (two directories up from
+    scripts/figures/), used only to locate the two input .txt files. hist_data and
+    hist_data2 are loaded and both shifted by the first entry of hist_data (t0),
+    giving both series a shared time origin. make_hist_fig(data, color, xlabel)
+    builds one small histogram (40 bins over [0, 1000] minutes) with the y-axis
+    ticks removed (only bar heights matter, not exact counts) and top/right spines
+    stripped, matching a minimal poster-figure style. It is called twice, once per
+    time point, with different fill colors (steelblue for t0, a red for t1346), and
+    each figure is saved as a separate PNG and closed.
+
+KEY PARAMETERS AND CONSTANTS
+    bins = np.linspace(0, 1000, 40) - 40 histogram bins spanning 0-1000 minutes of
+        lag time; shared between both figures so the two are visually comparable.
+    fsize = 12 - base font size for labels/ticks.
+    output_dir - hard-coded to a path under the author's personal Documents folder;
+        see FINDINGS [1].
+
+FINDINGS
+
+    [1] RISK - output path is hard-coded to a personal, non-repository directory
+        Location: line "output_dir = "/Users/along/Documents/Alon/PhD/documents/IPS 2026""
+        What the code does: writes both output PNGs to an absolute macOS path
+            specific to the original author's machine.
+        Why that is a problem: the script will raise FileNotFoundError for anyone
+            else who runs it (the directory will not exist), and it does not follow
+            the pattern of scripts/figures/figureN.py, whose previews are saved
+            alongside the script per the project's own convention (a
+            "figureN_preview.png" location convention is documented in this
+            project's memory / CLAUDE.md guidance for figure scripts). Since this
+            script is a one-off, non-figureN export, that convention was not
+            necessarily meant to apply, but the absolute machine-specific path is
+            still fragile for anyone re-running it, including the original author on
+            a different machine.
+        Suggested fix: default to a path under the repo (e.g.
+            scripts/figures/panel_B_t0.png) or make output_dir a CLI argument /
+            environment variable with a repo-relative fallback. Not changed in this
+            pass (comments only).
+
+RELATED FILES
+    scripts/figures/figure4.py - the manuscript's actual Figure 4, whose own panel B
+        is unrelated in content (a GO-enrichment bar chart, not a lag-time
+        histogram) despite the shared "panel_B" naming in this script's output
+        filenames -- naming collision only, not a code dependency.
+    scanlag_data/kaplan_shx/ - the only data source; not otherwise referenced by any
+        of the other files reviewed in this batch.

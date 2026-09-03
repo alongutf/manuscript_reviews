@@ -52,6 +52,9 @@ import scanpy as sc
 # Parameters (kept identical to scanpy_analysis.ipynb)
 # --------------------------------------------------------------------------
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# NOTE: absolute path to a sibling repo on this machine that holds the raw
+# per-sample unfiltered probe-count CSVs; only used when --barcodes=paper.
+# Running this script on another machine requires this path to be updated.
 UNFILTERED_DIR = r'C:\Users\owner\Documents\Projects\rnaseq_correlations\data'
 PAPER_DIR = os.path.join(REPO, 'data_for_paper')
 UMAP_DIR = os.path.join(REPO, 'data_for_umap')
@@ -72,15 +75,18 @@ SAMPLES = [
 
 TARGET_SUM = 1e4  # uniform across all samples (override with --target-sum)
 
+# reporter/rRNA/tRNA-like genes dropped from every sample before normalisation
+# (see docstring point (1) for why removal must happen before, not after)
 GENES_TO_REMOVE = ['16s_mature', '16s_unprocessed', 'LELOBEKK', 'kanR', 'mCherry']
-MIN_CELLS = 3
-N_TOP_GENES = 2000
-N_COMPS = 50
-N_NEIGHBORS = 40
-N_PCS = 40
-MIN_DIST = 0.3
-RANDOM_STATE = 0
-LEIDEN_RESOLUTION = 0.4
+MIN_CELLS = 3         # scanpy filter_genes: drop genes detected in fewer cells than this
+N_TOP_GENES = 2000     # highly-variable-gene subset size passed to --n-top-genes
+N_COMPS = 50           # number of PCA components computed by sc.tl.pca
+N_NEIGHBORS = 40       # neighbourhood size for the kNN graph feeding UMAP/Leiden
+N_PCS = 40             # number of PCs used to build that neighbour graph
+MIN_DIST = 0.3         # UMAP min_dist (point spread) parameter
+RANDOM_STATE = 0       # UMAP RNG seed, for a reproducible embedding
+LEIDEN_RESOLUTION = 0.4  # Leiden clustering resolution (higher = more clusters)
+# all of the above are kept identical to scanpy_analysis.ipynb (see module docstring)
 
 POINT_SIZE = 4       # figure only; scanpy's default would be ~24 at this n
 POINT_ALPHA = 0.35
@@ -91,6 +97,8 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 
 def parse_args():
+    # CLI overrides for the three deliberate differences from the notebook
+    # (target-sum, barcode set, HVG count) plus one convenience switch (mCherry).
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--target-sum', type=float, default=TARGET_SUM,
                         help='uniform normalize_total target for every sample '
@@ -147,6 +155,8 @@ def main():
     n_top_genes = args.n_top_genes
     src = f'{args.barcodes}_barcodes'
 
+    # everything below is recorded so a given output set can be traced back to
+    # exactly which code path and parameters produced it
     log = {'timestamp': TS,
            'script': os.path.basename(__file__),
            'barcode_set': args.barcodes,
@@ -185,17 +195,21 @@ def main():
     print(f'{adata.n_obs} cells x {adata.n_vars} genes after gene removal '
           f'(target_sum={target_sum:g})')
 
+    # normalise-then-log-transform on the gene-removed matrix (see docstring
+    # point (1)): this is what makes the published UMAP reproducible here
     sc.pp.normalize_total(adata, target_sum=target_sum)
     sc.pp.log1p(adata)
     adata.layers['lognorm'] = adata.X.copy()  # normalised + log1p, all genes
     adata.raw = adata                          # full gene space, lognorm values
     if n_top_genes:
         sc.pp.highly_variable_genes(adata, n_top_genes=n_top_genes, subset=True)
-    sc.pp.scale(adata)
+    sc.pp.scale(adata)  # z-score each gene, the standard input to PCA/UMAP
     sc.tl.pca(adata, svd_solver='arpack', n_comps=N_COMPS)
     sc.pp.neighbors(adata, n_neighbors=N_NEIGHBORS, n_pcs=N_PCS)
     sc.tl.umap(adata, min_dist=MIN_DIST, random_state=RANDOM_STATE)
     sc.tl.leiden(adata, resolution=LEIDEN_RESOLUTION)
+    # marker genes are tested on raw counts (layer='counts'), not the scaled/
+    # HVG-subset matrix used for the embedding, so results cover all genes
     sc.tl.rank_genes_groups(adata, 'leiden', method='wilcoxon',
                             use_raw=False, layer='counts')
 

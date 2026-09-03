@@ -1,0 +1,162 @@
+================================================================================
+scripts/bulk_expression_correlation_panel.py
+406 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Produces a single, readable panel showing the Spearman sample-sample
+    correlation of the 12 bulk RNA-seq samples in absolute-expression space, after
+    batch correction. It is a single-panel, larger-format extraction of panel D of
+    the four-panel figure built by bulk_correlation_dendrogram.py. Beyond drawing
+    the figure, the script exists to *prove* the heatmap is correct: it recomputes
+    the plotted correlation matrix three independent ways, re-derives the batch
+    correction one gene at a time by an independent least-squares solve, checks the
+    condition contrast survives the batch correction untouched, cross-checks the
+    raw (uncorrected) matrix cell-for-cell against the CSV written independently by
+    bulk_lfc_correlation.py, and asserts that a handful of illustrative gene-by-gene
+    pair scatters reproduce the exact heatmap cells they are meant to illustrate.
+    This sits in the bulk RNA-seq side of the pipeline described in CLAUDE.md,
+    downstream of bulk_lfc_pca.py.
+
+INPUTS
+    results/bulk_pca/bulk_normalized_counts<SUFFIX>.csv
+        genes x samples, DESeq2 median-of-ratios normalised counts, written by
+        `python bulk_lfc_pca.py --bulk-control matched --shx-late`. <SUFFIX>
+        defaults to "_log2_matched_late". The script exits with a clear error if
+        this file does not exist.
+    results/bulk_pca/bulk_expression_correlation_spearman<SUFFIX>.csv (optional)
+        the raw-space Spearman matrix written independently by
+        bulk_lfc_correlation.py --space expression; used only for validation
+        check 5. If absent, that one check is skipped (not failed).
+    CLI arguments: --no-dendrogram (fixed condition>batch>sample sample order
+        instead of a clustering dendrogram), --cmap {viridis,bluered},
+        --n-pairs (how many validation scatter pairs to draw, default 4),
+        --suffix (which input matrix variant to read, default
+        "_log2_matched_late").
+
+OUTPUTS
+    results/bulk_pca/bulk_expression_spearman_nobatch<SUFFIX>.csv
+        the plotted 12x12 Spearman correlation matrix (batch-corrected).
+    results/bulk_pca/bulk_expression_spearman_nobatch<TAG>.{svg,png}
+        the heatmap figure (dendrogram + heatmap + condition/batch colour strips).
+    results/bulk_pca/bulk_expression_pair_scatter<TAG>.{svg,png}
+        gene-by-gene scatterplots (value space and rank space) for a handful of
+        sample pairs spanning the observed range of rho.
+    results/bulk_pca/bulk_expression_spearman_nobatch_validation<TAG>.txt
+        every line printed during the run (all validation results, the four
+        within/between-group correlation summaries, the tree-vs-condition split,
+        and the pair-scatter numbers), for a durable, inspectable audit trail.
+        TAG = <SUFFIX> plus "_bluered" when --cmap bluered is used, so switching
+        colour maps does not overwrite the default-cmap output.
+    Exit code 1 if any validation check fails.
+
+HOW IT WORKS
+    The script reads the normalised-count matrix and applies log10(count + 1),
+    matching the transform used everywhere else in the bulk pipeline for absolute
+    expression. Sample columns ("<dataset>|<sample>") are parsed into a metadata
+    table (dataset, sample, publication label, condition, batch) by `annotate`,
+    identical in logic to the annotation code in bulk_lfc_correlation.py and
+    bulk_correlation_dendrogram.py.
+
+    Batch correction (`remove_batch`) fits, independently for every gene, a linear
+    model expression ~ 1 + condition + batch, then subtracts only the fitted batch
+    coefficient. Because every condition appears in both batches (a balanced 2x2
+    design), the batch and condition effects are not confounded and the fit
+    isolates the batch offset without absorbing genuine biological signal. The
+    design matrix rank is checked before use as a guard against silent
+    confounding. The Spearman correlation of the corrected matrix is what gets
+    plotted and saved.
+
+    The validation block (checks 1-7) then attacks the same numbers from several
+    independent angles: scipy.stats.spearmanr on the same matrix; Pearson
+    correlation on explicitly-computed per-sample ranks (the textbook definition
+    of Spearman); an independent per-gene least-squares refit of the batch term
+    on 200 randomly sampled genes; a check that the per-gene Reg-vs-Dis contrast
+    is numerically unchanged by the correction (expected exactly, because a
+    balanced 2x2 design shifts both condition means by the same batch offset);
+    a cell-for-cell comparison of the raw (pre-correction) matrix against the
+    independently-computed CSV from bulk_lfc_correlation.py; a check that Spearman
+    computed on the untransformed counts equals Spearman on the log-transformed
+    values (true because Spearman only depends on rank order, and log10(x+1) is
+    monotone); and basic shape sanity (symmetric, unit diagonal, values in
+    [-1, 1]). Each check is recorded via `check()`, printed, and buffered into a
+    log that is written to the validation .txt file at the end.
+
+    The script then reports the mean off-diagonal correlation before and after
+    batch correction, broken down by same/different condition x same/different
+    batch, to show what the correction actually did to the numbers (batch
+    correction should raise "same condition, different batch" the most).
+
+    The figure itself averages-links a 1-rho distance matrix into a dendrogram
+    (unless --no-dendrogram fixes a condition>batch>sample order instead), draws
+    the correlation heatmap with per-cell numeric annotations, and adds two colour
+    strips underneath showing condition and batch for every column. A two-cluster
+    cut of the dendrogram is compared against the condition labels to report
+    whether the top split of the tree recovers the biological condition.
+
+    Finally, a small multiple of gene-by-gene scatterplots is drawn for a spread
+    of sample pairs (weakest to strongest correlation, evenly sampled by rank),
+    once in value space and once in rank space (literally what Spearman
+    correlates). Each plotted pair's Spearman rho is asserted, not just printed,
+    to equal the corresponding heatmap cell -- so the scatters double as another
+    validation of the matrix rather than merely illustrating it.
+
+KEY PARAMETERS AND CONSTANTS
+    TOL = 1e-10 - tolerance for checks that should agree to floating-point noise
+        only (matrix recomputed by a different algorithm/library on the exact
+        same values). Used for checks 1, 2, 6, 7.
+    1e-9 - tolerance used for checks 3 and 4 (independent per-gene lstsq refit,
+        and the preserved condition contrast); looser than TOL because these
+        involve separate linear solves whose rounding can differ slightly more.
+    5e-6 - tolerance for check 5 (comparison against a CSV file written by
+        another script); loosened further because writing/reading through a CSV
+        round-trips the numbers through text formatting, which truncates
+        precision.
+    +1.0 pseudocount in log10(counts + 1) - keeps the handful of zero counts
+        finite. Every gene here has already passed the mean-count filter applied
+        in bulk_lfc_pca.py, so the pseudocount does not distort genes that carry
+        real signal.
+    --n-pairs default 4 - number of sample pairs drawn as validation scatters,
+        chosen to span the full observed range of correlation values.
+    rng = np.random.default_rng(0) - fixed seed for the 200-gene subsample used
+        in the independent per-gene batch-correction refit (check 3); makes the
+        validation run reproducible but is not itself a modeling choice that
+        affects any published number (it only selects which genes get
+        double-checked).
+    vmin = floor(min rho * 20) / 20 - heatmap colour scale floor, rounded down to
+        the nearest 0.05 so the colour bar has a tidy lower bound; vmax fixed at
+        1.0 since the diagonal is always 1.
+
+FINDINGS
+    No logical errors or inconsistencies found.
+
+    [1] SMELL - validation log duplicates bulk_correlation_dendrogram.py / bulk_lfc_correlation.py annotation code
+        Location: `annotate()`, `LABELS`, `short()`, `remove_batch()` (lines 89-135)
+        What the code does: re-implements, verbatim or near-verbatim, the sample
+        annotation dict, the annotate() function, the short() axis-label helper,
+        and the remove_batch() limma-style batch correction that also appear in
+        bulk_lfc_correlation.py and bulk_correlation_dendrogram.py.
+        Why that is a problem: any future change to how samples are labelled or
+        batch-corrected must be made in three places by hand; a partial update
+        would silently desynchronise the "independent" cross-checks this script
+        relies on (e.g. check 5 compares against a CSV computed by
+        near-identical-but-separately-maintained code).
+        Suggested fix: factor annotate/LABELS/short/remove_batch into a shared
+        module (e.g. a `bulk_common.py` in src/ or scripts/) imported by all
+        three scripts. This is explicitly acknowledged and intentionally
+        deferred per this file's own module docstring and the task instructions
+        for this documentation pass, which name this duplication across
+        bulk_expression_correlation_panel.py, bulk_lfc_pca.py and
+        bulk_correlation_dendrogram.py.
+
+RELATED FILES
+    scripts/bulk_lfc_pca.py - writes bulk_normalized_counts<SUFFIX>.csv, the sole
+        input to this script.
+    scripts/bulk_lfc_correlation.py - writes
+        bulk_expression_correlation_spearman<SUFFIX>.csv, used as an independent
+        cross-check reference in validation check 5; shares the annotate/LABELS/
+        remove_batch logic (see finding [1]).
+    scripts/bulk_correlation_dendrogram.py - the four-panel figure this script
+        extracts one panel from (panel D); shares the same annotate/LABELS/
+        remove_batch/short logic.
+    results/bulk_pca/ - all inputs and outputs live here.

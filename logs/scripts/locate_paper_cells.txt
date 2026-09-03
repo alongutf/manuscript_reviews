@@ -1,0 +1,130 @@
+================================================================================
+scripts/locate_paper_cells.py
+127 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Diagnostic/provenance script, not part of the main figure pipeline. It
+    investigates a discrepancy noted in the module docstring: re-running the
+    processing notebook's "paper" cell-calling path reproduces only ~5% of
+    the barcodes in the published data_for_paper/sample_15a_filtered.csv,
+    while the "umap" path reproduces data_for_umap/sample_15a_filtered.csv
+    at ~96%. This script profiles where the published paper-set barcodes
+    actually sit in the unfiltered matrix (sequencing depth, mRNA/rRNA
+    content, detected-gene count, rank) to work out what selection criterion
+    actually produced that file, since the documented notebook logic does
+    not reproduce it. This is provenance/QC work supporting the manuscript
+    revision, not a script that feeds any published figure directly.
+
+INPUTS
+    - <rnaseq_correlations repo>/data/sample_15a_unfiltered.csv - the full,
+      pre-cell-calling barcode x gene count matrix for sample 15a. NOT part
+      of this repo; read from a sibling repo at a hard-coded absolute path
+      (see FINDINGS).
+    - <rnaseq_correlations repo>/filtered_data/k12_biotype_map.csv - gene ->
+      biotype table (used to exclude tRNA/rRNA genes from the "mRNA" count).
+    - data_for_paper/sample_15a_filtered.csv - the published, paper-path
+      filtered cell set for this sample.
+    - data_for_umap/sample_15a_filtered.csv - the published, umap-path
+      filtered cell set for this sample.
+    - results/cluster_gmp_cor/sample_15a_barcode_stats.npz - optional cache
+      of the expensive full-matrix pass; reused if present.
+
+OUTPUTS
+    - results/cluster_gmp_cor/sample_15a_barcode_stats.npz - cached per-
+      barcode totals (total count, mRNA count, rRNA count, detected
+      protein-coding gene count) for the whole unfiltered matrix, plus the
+      gene list and protein-coding mask. Built once, reused on later runs.
+    - results/cluster_gmp_cor/locate_paper_cells_<timestamp>.csv - one row
+      per candidate cell set ("paper", "umap") with summary statistics
+      (median depth, median rRNA fraction, median rank, % in top 1000 by
+      depth/mRNA) describing where that set sits in the unfiltered pool.
+    - console output: the same summary table, a reference summary of the
+      whole unfiltered pool, and the rank-percentile spread of the paper
+      set specifically (to see whether it is a clean top-N-by-depth cut).
+
+HOW IT WORKS
+    build_cache() streams the unfiltered matrix in CHUNK-row pieces (it is
+    too large to load whole) and, per barcode, computes total count, mRNA
+    count (sum over protein-coding genes, via protein_coding_mask), 16S rRNA
+    count (genes whose name starts with '16s'), and the number of distinct
+    protein-coding genes with nonzero count. Barcodes are truncated to the
+    part before '-' so they match the (also truncated) barcodes in the
+    published filtered files. Results are cached to an .npz so this full
+    pass, the expensive step, only has to run once across repeated
+    investigations.
+
+    main() loads the cache (or builds it), then loads the paper and umap
+    filtered files and looks up each of their barcodes' positions in the
+    cached unfiltered arrays. It computes each barcode's rank within the
+    unfiltered pool by total count and by mRNA count (rank 1 = deepest), and
+    reports, per candidate set: how many of its barcodes were found in the
+    unfiltered matrix, their median depth/mRNA/rRNA-fraction/detected-gene
+    count, their median rank by each metric, and what fraction fall in the
+    top 1000 barcodes by each metric. It also prints the full percentile
+    spread (min/p25/median/p75/max) of the paper set's rank, which is the
+    key diagnostic for whether the paper set is simply "the N deepest
+    cells" (a tight, low rank band) or something else (a wide or non-
+    contiguous band, implying a different or additional filter was used).
+
+KEY PARAMETERS AND CONSTANTS
+    CHUNK = 20000 - rows per pandas read_csv chunk; a memory/speed knob only,
+        does not affect results.
+    'lelobekk_' prefix stripped in protein_coding_mask() - some probe names
+        carry this prefix while the biotype map does not; without stripping
+        it, most probes would fail to match and pc would be nearly empty.
+    16S rRNA identified by a 'startswith(16s)' name check rather than the
+        biotype map's 'rRNA' label - a second, independent way of finding
+        rRNA probes; not verified whether it selects exactly the same genes
+        as biotype == 'rRNA' would (relevant given documents/
+        gmp_cor_provenance_analysis.md notes 16S rRNA is ~92% of counts).
+    top1000 cutoff for the "pct_in_top1000_by_*" columns - an arbitrary,
+        round-number reference band, not derived from any filtering
+        threshold used elsewhere in the pipeline.
+
+FINDINGS
+    [1] RISK - hard-coded, machine-specific absolute path to a sibling repo
+        Location: OTHER (line 18)
+        What the code does: reads the unfiltered matrix and biotype map from
+        `C:\Users\owner\Documents\Projects\rnaseq_correlations`, a repository
+        outside manuscript_reviews, referenced by an absolute Windows path.
+        Why that is a problem: the script cannot run on any other machine or
+        checkout (including CI, a collaborator's machine, or a future clone
+        of this repo alone) without that exact sibling directory present at
+        that exact path. It is also outside version control, so the input
+        data's provenance/immutability is not tracked here.
+        Suggested fix: make the path configurable (env var or CLI argument)
+        with the current value only as a documented default, or copy/link
+        the needed inputs into this repo if they are meant to be
+        reproducible artifacts of the manuscript.
+        (Verified: the path exists and contains the expected files on this
+        machine, so the script runs correctly today.)
+
+    [2] SMELL - no assertion that all published barcodes were found in the
+        unfiltered pool
+        Location: line 88 (now `ix = np.array([pos[b] for b in arr if b in
+        pos])`)
+        What the code does: silently drops any barcode from `sets[name]`
+        that is not present in the unfiltered matrix's barcode list, then
+        reports `n_found_in_unfiltered` as one of the summary columns.
+        Why that is a problem: this is a real diagnostic (a low
+        n_found_in_unfiltered would itself be informative), so it is not
+        wrong, but nothing calls attention to it if the count is
+        surprisingly low - it is only visible by reading the printed table
+        column, easy to miss in passing.
+        Suggested fix: none needed beyond what's already printed; noting it
+        here since it is easy to overlook when skimming output.
+
+RELATED FILES
+    - data_for_paper/sample_15a_filtered.csv, data_for_umap/
+      sample_15a_filtered.csv - the two candidate published cell sets this
+      script compares.
+    - documents/umap_pipeline_details.md and documents/
+      gmp_cor_provenance_analysis.md - narrative documentation of related
+      provenance questions about which files are "the" published ones and
+      how the cell-calling/filtering pipeline is supposed to work; this
+      script's premise (paper path reproduces only 5%) is the kind of
+      discrepancy those documents also discuss.
+    - analysis_notebook.ipynb - the notebook whose "paper" and "umap"
+      reconstruction paths this script is comparing against the actually
+      published files.

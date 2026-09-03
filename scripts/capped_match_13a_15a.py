@@ -24,21 +24,29 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import src.analysis_functions as af
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# unfiltered matrices and biotype map live in a sibling repo, not under version
+# control here; machine-specific absolute path (see also locate_paper_cells.py,
+# which reads the same sibling repo).
 OTHER = r'C:\Users\owner\Documents\Projects\rnaseq_correlations'
 DATA = os.path.join(OTHER, 'data')
 BIOTYPE = os.path.join(OTHER, 'filtered_data', 'k12_biotype_map.csv')
 OUTDIR = os.path.join(ROOT, 'results', 'cluster_gmp_cor')
-CACHE_DIR = os.path.join(OUTDIR, 'barcode_stats')
+CACHE_DIR = os.path.join(OUTDIR, 'barcode_stats')   # pre-built per-barcode depth stats
 
 FILES = {'dis1': 'sample_13a_unfiltered.csv', 'dis2': 'sample_15a_unfiltered.csv'}
-N_CELLS = 1000
-DETECTION_FRAC = 0.05
-CHUNK = 20000
-NORM_SUM = 50
-SEED = 0
+N_CELLS = 1000          # cells drawn per sample after capping
+DETECTION_FRAC = 0.05   # a gene must be detected in >= 5% of retained cells, in BOTH
+                        # samples, to stay in the shared gene set used for GMP-Cor
+CHUNK = 20000           # rows per streamed read_csv chunk
+NORM_SUM = 50           # per-cell target sum for row normalization before eigen-analysis
+SEED = 0                # fixes the random matrix scramble inside af.get_eig_dist,
+                        # so the reported GMP-Cor values are reproducible run to run
 
 
 def protein_coding_mask(genes):
+    """Boolean mask over `genes` selecting protein-coding probes (drops tRNA/rRNA
+    biotypes). Matches names case-insensitively after stripping the 'lelobekk_'
+    probe-set prefix, which appears on some probe names but not in the biotype map."""
     bt = pd.read_csv(BIOTYPE)
     pc = bt.gene[(bt.biotype != 'tRNA') & (bt.biotype != 'rRNA')].astype(str)
     pc = set(v.casefold() for v in pc)
@@ -47,7 +55,12 @@ def protein_coding_mask(genes):
 
 
 def load_rows(sample, wanted):
-    """Stream the unfiltered CSV, keeping only barcodes in `wanted`."""
+    """Stream the unfiltered CSV, keeping only barcodes in `wanted`.
+
+    Returns (matrix, barcodes, gene_names): matrix is cells x protein-coding
+    genes (float), restricted to rows whose barcode (prefix before '-') is
+    in `wanted` and to protein-coding gene columns only.
+    """
     path = os.path.join(DATA, FILES[sample])
     header = pd.read_csv(path, nrows=0)
     dtypes = {c: np.int32 for c in header.columns[1:]}
@@ -65,6 +78,15 @@ def load_rows(sample, wanted):
 
 
 def gmp_cor(m):
+    """Compute GMP-Cor and related summary stats for cell x gene matrix `m`.
+
+    Runs the empirical-vs-scrambled eigenvalue comparison (af.get_eig_dist):
+    pcs is the observed eigenvalue spectrum, pcs1 the mean scrambled
+    (permuted) spectrum. GMP-Cor is the excess of the observed eigenvalues
+    above the scrambled noise ceiling (thr = max of the scrambled spectrum),
+    summed only over the positive excess - i.e. the total "signal" beyond
+    what a random correlation structure would produce.
+    """
     pcs, pcs1, _ = af.get_eig_dist(m, norm=True, log=False,
                                    norm_method='sum', norm_sum=NORM_SUM)
     thr = float(pcs1.max())
@@ -84,15 +106,20 @@ def main():
           for s in FILES}
 
     results = {}
+    # NOTE: only the mRNA-count selection variant is actually run here; the module
+    # docstring also promises a total-count variant "reported alongside" for
+    # comparison with the original pipeline's total-count threshold, but that
+    # variant is not present in this loop (see FINDINGS in the log for this file).
     for metric in ['mrna']:
         d1, d2 = st['dis1'][metric], st['dis2'][metric]
-        cap = int(d1.max())
+        cap = int(d1.max())   # 13a's own deepest cell sets the ceiling for 15a
         print(f'\n=== selection on {metric} ===')
         print(f'13a deepest cell: {cap} counts  -> cap for 15a')
 
-        # 13a: its own top N
+        # 13a: its own top N (no capping needed, it defines the cap)
         o1 = np.argsort(-d1)[:N_CELLS]
-        # 15a: top N among cells strictly below the cap
+        # 15a: top N among cells strictly below the cap, i.e. drop 15a's tail that
+        # is deeper than anything available in 13a before selecting
         elig = np.where(d2 < cap)[0]
         o2 = elig[np.argsort(-d2[elig])[:N_CELLS]]
         print(f'13a top {N_CELLS}: depth {d1[o1].min():.0f}-{d1[o1].max():.0f}, '
@@ -110,7 +137,8 @@ def main():
             mats[s] = (M, genes)
             print(f'  loaded {s}: {M.shape}')
 
-        # common gene set: detected in >=DETECTION_FRAC of cells in BOTH
+        # common gene set: detected in >=DETECTION_FRAC of cells in BOTH samples,
+        # so GMP-Cor is computed on the same gene axis for both and is comparable
         keep = None
         for s, (M, genes) in mats.items():
             frac = (M > 0).mean(axis=0)

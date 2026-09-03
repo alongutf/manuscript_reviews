@@ -1,0 +1,138 @@
+================================================================================
+scripts/umap_paper_barcodes.py
+259 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Regenerates the SHX/casp UMAP embedding (Leiden clusters, marker genes) for
+    the published figure, from the same five samples used by
+    scripts/scanpy_analysis.ipynb, but with the gene-removal / normalisation
+    order and cell set made explicit and controllable from the command line.
+    It sits downstream of the probe-count -> cell-gene matrix step
+    (analysis_notebook.ipynb) and is a provenance/reproduction script: its
+    purpose is to nail down which combination of choices actually reproduces
+    scanpy/umap_coordinates.csv, the published UMAP.
+
+INPUTS
+    - UNFILTERED_DIR (hard-coded absolute path to a sibling repo,
+      C:\Users\owner\Documents\Projects\rnaseq_correlations\data): per-sample
+      "<sample>_unfiltered.csv" raw probe-count matrices, cells x genes, used
+      only when --barcodes=paper.
+    - data_for_paper/<sample>_filtered.csv: index-only read, supplies the
+      "paper" barcode set (--barcodes=paper, the default).
+    - data_for_umap/<sample>_filtered.csv: full matrix, used directly when
+      --barcodes=umap. Documented as cell-filtered only (same gene columns as
+      the unfiltered matrix).
+    - CLI args: --target-sum (float, default 1e4), --barcodes {paper,umap},
+      --n-top-genes (int, default 2000; 0 disables HVG subsetting),
+      --keep-mcherry (flag).
+    - SAMPLES list hard-codes the five sample-id -> condition-key pairs
+      (sample_2b=exp, sample_13a=dis1, sample_15a=dis2, sample_13b=reg1,
+      sample_15b=reg2).
+
+OUTPUTS
+    All written to scanpy/ and scripts/logs/, filenames tagged with the
+    barcode source (<src> = paper_barcodes | umap_barcodes) and a timestamp:
+    - scanpy/adata_shx_<src>_<ts>.h5ad: full AnnData object (X = scaled
+      values; layers['counts'] = raw ints; layers['lognorm'] = normalised +
+      log1p over all genes; .raw = lognorm over all genes).
+    - scanpy/umap_coordinates_shx_<src>_<ts>.csv: UMAP_1, UMAP_2, batch,
+      cluster per cell.
+    - scanpy/umap_shx_<src>_<ts>.svg / .png: two-panel UMAP scatter (Leiden
+      clusters, sample/batch).
+    - scanpy/marker_genes_shx_<src>_<ts>.xlsx: one sheet per Leiden cluster,
+      rank_genes_groups output.
+    - scripts/logs/umap_<src>_<ts>.json: full parameter + per-sample QC log.
+
+HOW IT WORKS
+    parse_args() exposes the three deliberate departures from the notebook
+    (normalisation target, barcode set, HVG count) plus a switch to keep the
+    mCherry reporter. load_sample() reads one sample's raw counts under the
+    chosen barcode set and wraps it as an AnnData object without normalising
+    it -- normalisation happens later, after gene removal, on the concatenated
+    matrix. For --barcodes=paper it reads the published barcode index from
+    data_for_paper and subsets the unfiltered matrix to exactly those rows,
+    raising if any published barcode is missing from the unfiltered file. For
+    --barcodes=umap it reads the data_for_umap matrix directly.
+
+    main() concatenates the five per-sample AnnData objects with sc.concat
+    (batch label = the condition key), then removes GENES_TO_REMOVE (16s rRNA,
+    the LELOBEKK/kanR/mCherry reporters) and applies sc.pp.filter_genes(
+    min_cells=MIN_CELLS) BEFORE normalisation -- this ordering is the whole
+    point of the script (see module docstring point 1): normalising first, as
+    the notebook does, divides every cell's counts by a total that is ~92% 16s
+    rRNA, so the genes that survive filtering carry a scale factor dominated by
+    rRNA content rather than by their own expression. Doing gene removal first
+    reproduces the published embedding (Procrustes disparity 0.054 against
+    umap_coordinates.csv, claimed in the docstring) where the opposite order
+    does not (0.30-0.45).
+
+    Normalisation then follows: sc.pp.normalize_total with one uniform
+    target_sum across all five samples (unlike the notebook, which used
+    different hard-coded per-condition "total RNA" scalings -- see docstring
+    point 2), then log1p. HVG subsetting (optional, default on) then z-scoring
+    (sc.pp.scale) prepare the matrix for PCA (arpack, N_COMPS components),
+    which feeds a kNN graph (N_NEIGHBORS, N_PCS), UMAP embedding (MIN_DIST,
+    RANDOM_STATE) and Leiden clustering (LEIDEN_RESOLUTION). Marker genes are
+    then tested with the Wilcoxon rank-sum test on raw counts (layer='counts'),
+    not the scaled/HVG-subset matrix used for the embedding, so the marker
+    table covers every gene, not just the HVG subset.
+
+    Outputs are written with a shuffled cell draw order for the scatter plot
+    (np.random.default_rng(0).permutation) so no single sample/cluster is
+    painted entirely on top of the others, and a JSON log records every
+    parameter plus per-sample cell/gene/UMI-count summaries for provenance.
+
+KEY PARAMETERS AND CONSTANTS
+    TARGET_SUM = 1e4: uniform normalize_total target for every sample
+      (override with --target-sum); replaces the notebook's per-condition
+      scalings (exp=3802, SHX=3507, casp=46), a ~76x gap the notebook imposed
+      before log1p.
+    GENES_TO_REMOVE: 16s_mature, 16s_unprocessed, LELOBEKK, kanR, mCherry --
+      dropped before normalisation (see HOW IT WORKS). --keep-mcherry restores
+      mCherry only.
+    MIN_CELLS = 3: scanpy filter_genes floor.
+    N_TOP_GENES = 2000 (--n-top-genes): HVG subset size; the notebook used no
+      HVG subsetting for the published run, per the CLI help text.
+    N_COMPS = 50, N_NEIGHBORS = 40, N_PCS = 40, MIN_DIST = 0.3,
+      RANDOM_STATE = 0, LEIDEN_RESOLUTION = 0.4: all kept identical to
+      scanpy_analysis.ipynb.
+    POINT_SIZE = 4, POINT_ALPHA = 0.35: plotting only, deliberately smaller
+      than scanpy's default (~24) at this cell count.
+
+FINDINGS
+    [1] RISK - hard-coded, machine-specific absolute path
+        Location: line 56 (UNFILTERED_DIR)
+        What the code does: UNFILTERED_DIR points at
+        C:\Users\owner\Documents\Projects\rnaseq_correlations\data, a sibling
+        repository on this specific machine, used whenever --barcodes=paper
+        (the default).
+        Why that is a problem: the script cannot run for anyone else, or on a
+        different machine/checkout layout, without editing the source; it will
+        fail with a FileNotFoundError rather than a clear configuration error.
+        Suggested fix: read the path from an environment variable or a repo
+        config file, with this value as a documented default/fallback.
+
+    [2] SMELL - the "Procrustes disparity 0.054 vs 0.30-0.45" claim in the
+        module docstring is asserted, not computed or checked, by this script
+        Location: module docstring (lines 1-37)
+        What the code does: states specific quantitative support for the
+        chosen operation order without any code here computing or verifying
+        it.
+        Why that is a problem: readers cannot confirm the claim from this file
+        alone; if the comparison script that produced it is renamed or
+        removed, the number becomes unverifiable.
+        Suggested fix: reference the specific comparison script/notebook cell
+        that produced the 0.054 figure, if one still exists in the repo.
+
+RELATED FILES
+    scripts/scanpy_analysis.ipynb: the original notebook this script
+      reproduces and deliberately diverges from (order of operations,
+      normalisation target, barcode set).
+    data_for_paper/*.csv, data_for_umap/*.csv: the two candidate cell sets.
+    scanpy/umap_coordinates.csv: the published UMAP this script's output is
+      compared against (per project memory, this is the published one).
+    src/data_functions.py (get_umap, project_on_pcs): the library's own UMAP
+      helper, used elsewhere in the pipeline; not called by this script, which
+      re-implements the pipeline directly via scanpy for finer control over
+      operation order.

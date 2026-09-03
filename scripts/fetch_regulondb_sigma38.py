@@ -81,6 +81,11 @@ def _ca_bundle():
 
 
 def gql(query, ctx):
+    """POST a GraphQL query string to the RegulonDB API and return its "data" object.
+
+    Raises if the response carries a top-level "errors" list (truncated to 500 chars
+    so a malformed query doesn't dump a huge error payload to the console).
+    """
     req = urllib.request.Request(
         API, data=json.dumps({"query": query}).encode(),
         headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
@@ -91,6 +96,14 @@ def gql(query, ctx):
 
 
 def main():
+    """Fetch the sigma-38 sigmulon and write the gene list with a provenance header.
+
+    Resolves metadata/regulondb_sigma38_regulon.txt relative to the repo root (one
+    level up from this script), builds a TLS context using the AIA-patched CA bundle
+    from _ca_bundle(), then issues two GraphQL queries: one for the current RegulonDB
+    release metadata (for the provenance header) and one searching sigmulons for
+    "RpoS" to get sigma-38's gene list.
+    """
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(here)
     dest = os.path.join(root, "metadata", "regulondb_sigma38_regulon.txt")
@@ -105,8 +118,11 @@ def main():
                'sigmaFactor{name abbreviatedName sigmulonGenes{_id name}} '
                'statistics{genes}}}}', ctx)["getSigmulonBy"]["data"]
 
+    # the "RpoS" search can return other sigma factors/sigmulons that merely mention
+    # RpoS, so pick out the record whose abbreviated name is exactly sigma38
     rec = next(r for r in data if r["sigmaFactor"]["abbreviatedName"] == "sigma38")
     sf = rec["sigmaFactor"]
+    # de-duplicate and sort for a stable, diffable output file across reruns
     genes = sorted({g["name"] for g in sf["sigmulonGenes"]})
     if len(genes) != rec["statistics"]["genes"]:
         print("note: %d unique names vs statistics.genes=%d"

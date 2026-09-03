@@ -1,0 +1,178 @@
+================================================================================
+scripts/matched_downsampling.py
+182 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Tests whether the between-sample ordering of GMP-Cor (the paper's spectral
+    dysregulation order parameter, computed by src.analysis_functions.get_eig_dist)
+    survives once the 5 scRNA-seq samples (exp, dis1, dis2, reg1, reg2) are forced
+    to share the same gene set (p), the same cell count (n), and the same per-cell
+    sequencing depth. This directly addresses the "GMP-Cor scales with p" / depth
+    confound noted in this project's own provenance notes: if GMP-Cor differences
+    between conditions were really an artifact of matrix geometry (more genes,
+    more cells, or deeper sequencing in one condition than another) rather than
+    correlation structure, matching all three should erase the between-sample
+    ordering. It is run independently on two parallel data sources -- the combined
+    h5ad object and the per-sample data_for_paper CSVs -- as a consistency check
+    between the two representations of the same experiment described in CLAUDE.md's
+    data-flow diagram.
+
+INPUTS
+    - data/scanpy_shx.h5ad
+      AnnData object with a 'counts' layer (cells x genes, sparse or dense) and an
+      obs column 'batch' with values exp/dis1/dis2/reg1/reg2.
+    - data_for_paper/sample_{2b,13a,15a,13b,15b}_filtered.csv
+      Per-sample filtered count matrices (cells x genes on disk, gene names as
+      columns), one file per batch via BATCH_TO_FILE.
+    - src.analysis_functions.get_eig_dist (via `import src.analysis_functions as af`)
+      for the eigenvalue-spectrum computation GMP-Cor is derived from.
+    - Working-directory-independent: paths are resolved from __file__, not cwd.
+
+OUTPUTS (all under results/cluster_gmp_cor/, timestamped)
+    - matched_downsampling_<timestamp>.csv   one row per (source, batch, rep): cell/
+                                              gene counts, mean expression/genes
+                                              detected, lambda_max, the scrambled
+                                              threshold, mode count, and gmp_cor.
+    - matched_downsampling_<timestamp>.txt   human-readable summary: per-source setup
+                                              (common gene count, target UMI/cell
+                                              counts, per-sample median depth and
+                                              eligible-cell counts) plus the mean+/-sd
+                                              GMP-Cor and mean-genes-detected pivot
+                                              tables printed to stdout.
+    - matched_downsampling_<timestamp>.json  the same setup dict, every per-run
+                                              record, and the fixed run parameters
+                                              (paths, dropped genes, reps, norm_sum,
+                                              seed, thinning method, GMP-Cor formula)
+                                              for full reproducibility.
+
+HOW IT WORKS
+    gmp_cor(m) wraps af.get_eig_dist on a cells x genes count matrix (row-sum
+    normalized to NORM_SUM, no log transform) and reduces its output to the
+    conventional scalar order parameter: the summed excess of empirical eigenvalues
+    above the maximum eigenvalue of the mean scrambled-null spectrum (the same
+    "spectral weight expelled above the noise edge" quantity used throughout the
+    paper). It also returns the raw max eigenvalue, the scrambled threshold, and the
+    number of modes above threshold for diagnostics.
+
+    thin(M, target, rng) multinomially resamples each cell's count vector down to
+    exactly `target` total counts (a standard equal-depth normalization more
+    principled than simple rescaling, since it preserves the discrete, Poisson-like
+    noise structure of the original counts rather than just dividing by a factor).
+    Rows already at or below target are passed through unchanged; the caller is
+    expected to have already restricted to cells at/above target, so that branch is
+    a defensive no-op in normal use.
+
+    load_source(name) returns the raw, unmatched {batch: (matrix, gene_names)} dict
+    for one of the two data representations, dropping DROP_GENES from each (a
+    largely inert step here -- see FINDINGS [2]).
+
+    main() loops over the two sources. For each: (1) intersects the gene names
+    across all 5 batches to get a common gene set of size p, and reindexes every
+    batch's matrix to that column order; (2) sets target_umi to the *lowest*
+    per-sample median depth (so every sample can be thinned down to it without
+    needing to be thinned up) and target_n to the *smallest* per-sample count of
+    cells at/above that depth (so every sample can supply the same number of
+    matched cells); (3) for REPS independent random draws, subsamples target_n
+    eligible cells per batch without replacement and multinomially thins them to
+    exactly target_umi counts, then computes gmp_cor on the result and records
+    diagnostics. After all sources/reps, it pivots the results into a
+    (batch x source) mean+/-sd GMP-Cor table and a mean-genes-detected table
+    (a secondary check that "matched depth" did not still leave one condition
+    with systematically fewer genes detected per cell), prints both, and writes
+    the CSV/TXT/JSON outputs described above.
+
+KEY PARAMETERS AND CONSTANTS
+    DROP_GENES = ['16s_mature', '16s_unprocessed', 'mCherry']
+                              Marker/reporter genes excluded before the correlation
+                              analysis, matching the convention in
+                              analysis_notebook.ipynb (t_genes=[] there refers to a
+                              different, empty exclusion list at that later stage;
+                              see FINDINGS [2] for what was actually verified).
+    BATCH_TO_FILE / BATCH_ORDER
+                              Fixes which data_for_paper CSV corresponds to which
+                              batch label and the row/column order used throughout;
+                              a rename of the underlying CSVs would silently point
+                              this script at the wrong sample.
+    REPS = 3                  Number of independent random draws per source/batch,
+                              used only to gauge stability of the matched GMP-Cor
+                              (mean +/- sd in the summary table); not used for any
+                              formal statistical test.
+    NORM_SUM = 50              Row-sum normalization target passed into
+                              af.get_eig_dist's own 'sum' normalization. Since every
+                              row is already thinned to exactly target_umi counts
+                              before this runs, NORM_SUM only rescales the (already
+                              uniform) row sums and does not itself equalize depth.
+    SEED = 0                   Base RNG seed; each rep uses np.random.default_rng
+                              (SEED + rep), so the whole run is fully reproducible
+                              rep-by-rep while still drawing REPS independent
+                              samples for the stability check.
+    target_umi, target_n (computed, not literals)
+                              Derived per source as the minimum median depth and
+                              minimum eligible-cell count across the 5 batches
+                              respectively -- i.e. the analysis is always matched to
+                              the *worst* (shallowest/smallest) sample, which
+                              maximizes how much data can be equalized but also
+                              means the matched analysis uses less data than some
+                              samples could otherwise support.
+
+FINDINGS
+    [1] RISK - internal gene/cell filtering inside af.get_eig_dist can silently
+        un-match p across batches and reps
+        Location: gmp_cor() -> src.analysis_functions.get_eig_dist
+        What the code does: main() matches all 5 batches to an identical common
+        gene set of size p and an identical cell count n per rep before calling
+        gmp_cor(). However, get_eig_dist itself re-filters its input, dropping any
+        gene with zero counts across all sampled cells (gene_sums >= min_cells,
+        min_cells=1) and any cell with zero counts across all genes (min_genes=1),
+        after the multinomial thinning to target_umi has already happened.
+        Why that is a problem: multinomial thinning to a low target_umi can plausibly
+        zero out a lowly-expressed gene's column for cells in one batch/rep but not
+        another (an all-zero gene in a rep's 1000 cells is entirely possible for the
+        rarer genes in a ~4000-gene panel at typical single-cell depths). That would
+        make the *effective* p passed into the eigenvalue calculation differ slightly
+        between batches and even between reps of the same batch, which is exactly the
+        kind of matrix-geometry confound this script exists to eliminate. The n_genes
+        field written to the output records the pre-filtering p (len(common)), not
+        the effective p actually used by get_eig_dist, so this drift would not be
+        visible in the output CSV without cross-checking get_eig_dist's own printed
+        m.shape.
+        Suggested fix: after thinning, check (or have gmp_cor return) the post-filter
+        gene count from get_eig_dist and record it alongside n_genes in each output
+        record, or pre-filter to genes with nonzero counts in every rep's cell
+        sample so p is guaranteed identical downstream as well as upstream.
+
+    [2] SMELL - DROP_GENES has little or no effect on either data source
+        Location: DROP_GENES constant / load_source()
+        What the code does: attempts to drop '16s_mature', '16s_unprocessed' and
+        'mCherry' from both the h5ad and the data_for_paper matrices before the
+        common-gene intersection.
+        Why that is a problem (verified by inspection): '16s_mature' and
+        '16s_unprocessed' are not present as column/var names in either
+        data/scanpy_shx.h5ad or any of the 5 data_for_paper/sample_*_filtered.csv
+        files used here (checked directly) -- they appear to already be removed
+        upstream, consistent with this project's own provenance notes that 16S
+        reads are filtered out early in the probe-count pipeline. 'mCherry' is
+        present in the h5ad (drop is effective there) but is not a column in the
+        data_for_paper CSVs (drop is a no-op there). So for the 'paper' source,
+        DROP_GENES currently removes nothing; the exclusion is not wrong, just
+        stale/defensive relative to the current data files.
+        Suggested fix: none required functionally; if kept for documentation intent,
+        a one-line comment noting these are already absent upstream would prevent a
+        future reader from assuming they are actively being filtered here.
+
+RELATED FILES
+    - src/analysis_functions.py: get_eig_dist (eigenvalue spectra + scrambled null),
+      get_pcs/normalize/scramble/z_transform (called internally) -- the numerical
+      core this script's gmp_cor() wraps; see FINDINGS [1] for the interaction
+      between this script's own gene/cell matching and get_eig_dist's own filtering.
+    - scripts/analysis_notebook.ipynb: the notebook that produces data_for_paper/*
+      and (per its t_genes=[] cell) is the reference for "no extra genes are
+      excluded at that later stage" mentioned in this project's memory notes on
+      GMP-Cor provenance.
+    - Other files under results/cluster_gmp_cor/ (e.g. cluster_gmp_cor_*.csv,
+      thinned_match_*.csv, equate_depth_matched_*.csv) suggest this script is one of
+      a family of matching/control analyses run against the same 5-sample GMP-Cor
+      comparison; not reviewed here, but likely share the DROP_GENES/BATCH_TO_FILE
+      conventions and would be worth checking for the same gene-set-size drift
+      described in FINDINGS [1].

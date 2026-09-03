@@ -1,0 +1,155 @@
+================================================================================
+scripts/eigenvector_leverage.py
+221 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Answers a reviewer question ("which genes actually carry the correlation
+    signal behind GMP-Cor?") with a gene-level, rotation-invariant score
+    instead of raw eigenvector loadings, which are not individually
+    interpretable when several eigenvalues sit close together (near-
+    degenerate signal subspace). For each sample it ranks genes by this
+    "coordination score", runs GO enrichment on the top-ranked genes, and
+    checks whether the same coordinated gene program recurs across
+    regulated conditions and is lost under dis-arrest.
+
+INPUTS
+    data_for_paper/*.csv
+        one cell x gene count matrix per sample (index_col=0), same format
+        consumed throughout the pipeline.
+    results/data_metrics/test8.csv (via METRICS)
+        supplies each sample's category ('r'/'d') and its published GMP-Cor
+        value (sum_denoised_ev), used only to label the summary text -- see
+        FINDINGS [1].
+    src/analysis_functions.py (af)
+        af.get_eig_vectors for the eigen-decomposition + scrambled threshold,
+        af.coordination_score for the per-gene score.
+    src/bulk_functions.py (bf), goatools
+        optional: GO_OBO, GAF_FILE, GTF_FILE and get_ID_conversion for GO
+        enrichment; if any of this fails to import, GO analysis is disabled
+        for the whole run (RUN_GO flips to False) rather than crashing.
+    Must be run with cwd = scripts/ (ROOT is derived from
+    os.path.dirname(os.getcwd())), per CLAUDE.md's convention for
+    bulk_functions.py's metadata/ resolution.
+
+OUTPUTS
+    results/eigenvector_analysis/leverage/scores/<file>.csv
+        every kept gene for that sample, ranked by coordination score
+        (descending).
+    results/eigenvector_analysis/leverage/go/<file>.csv
+        significant (FDR<0.05), enriched GO terms for the top-ranked genes
+        of that sample, if any.
+    results/eigenvector_analysis/leverage/score_correlation.csv
+        sample x sample Spearman correlation matrix of coordination-score
+        vectors, over the union of all genes seen across samples.
+    results/eigenvector_analysis/leverage/summary.txt
+        human-readable digest: within/across-category mean correlations, then
+        one block per sample with its top genes and top GO terms.
+
+HOW IT WORKS
+    For each sample CSV, af.get_eig_vectors() re-derives the eigenvalues/
+    eigenvectors of the gene-gene correlation structure (mirroring the same
+    filtering/normalization used everywhere else for the eigenvalue
+    spectrum) together with `threshold`, the mean scrambled-null maximum
+    eigenvalue (lambda_max^scr, averaged over 10 scramble repetitions inside
+    af.get_eig_vectors) -- the same cutoff used to define "signal" modes for
+    GMP-Cor elsewhere in the paper. af.coordination_score() then reconstructs
+    the diagonal of the "de-noised" gene covariance using only the modes
+    above that threshold, weighting each mode by how far above threshold its
+    eigenvalue sits: score_i = sum_k (eig_k - threshold) * eigvec[k,i]^2.
+    Because this sums over the whole signal subspace rather than reading off
+    one eigenvector, it is invariant to any rotation within that subspace
+    (which is exactly the ambiguity that makes individual eigenvectors
+    uninterpretable when eigenvalues are close together), so it is a stable
+    per-gene readout of "how much does this gene participate in the
+    surviving coordinated structure."
+
+    Genes are ranked by score (descending) and written out per sample. If GO
+    machinery is available and the sample has at least one signal mode, the
+    top TOP_FRAC (5%, floored at TOP_MIN=50) genes by score are tested for
+    GO enrichment against the full kept-gene set for that sample as
+    background (go_for_genes(), a standard hypergeometric-style
+    GOEnrichmentStudy with Benjamini-Hochberg FDR correction, keeping only
+    over-represented terms below 0.05).
+
+    After the per-sample loop, coordination-score vectors are collected into
+    a genes x samples matrix (gene names cleaned of probe-index prefixes,
+    duplicate cleaned names collapsed by taking the max score; missing genes
+    per sample filled with 0). Ranks are computed per column and correlated
+    via a plain Pearson correlation of the ranks, which is the standard way
+    to obtain a Spearman correlation matrix; the pairwise mean of this matrix
+    is computed separately within the regulated group, within the
+    dis-arrest group, and across the two groups (block_mean()), to test
+    whether regulated samples share a common coordinated program that
+    dis-arrested samples do not.
+
+KEY PARAMETERS AND CONSTANTS
+    TOP_FRAC = 0.05, TOP_MIN = 50
+        fraction (and floor) of genes, by coordination score, fed into GO
+        enrichment per sample; larger values dilute the study set with
+        lower-scoring genes, smaller values risk failing the "at least 3
+        study genes" guard in go_for_genes().
+    RUN_GO = True (may be forced False at import time)
+        toggles GO enrichment; disabled automatically (with a printed
+        reason) if goatools or the GO reference files are unavailable, so
+        the score/ranking half of the pipeline still runs standalone.
+    threshold (from af.get_eig_vectors, rep=10 internally)
+        the scrambled-null cutoff defining which eigenmodes count as
+        "signal"; not tunable from this script, inherited from af's default.
+    METRICS = results/data_metrics/test8.csv
+        see FINDINGS [1]: this is documented elsewhere in the project as a
+        stale metrics table.
+
+FINDINGS
+    [1] INCONSISTENCY - reads the stale test8.csv metrics table instead of
+        the current data_metrics.csv
+        Location: line 49 (`METRICS = os.path.join(ROOT, "results",
+        "data_metrics", "test8.csv")`)
+        What the code does: loads category and GMP-Cor (sum_denoised_ev)
+        labels for the summary text from results/data_metrics/test8.csv.
+        Why that is a problem: results/data_metrics/data_metrics.csv is the
+        current, 18-sample metrics table; results/data_metrics/test8.csv is
+        an older, 15-sample scramble realisation whose sum_denoised_ev
+        values differ from data_metrics.csv by up to ~4.1 because the
+        GMP-Cor threshold depends on a random scramble draw that differs
+        between the two files' generating runs. This is the same class of
+        staleness already flagged in scripts/figure3.py's
+        _load_group_medians (documented separately). Here the effect is
+        limited to the GMP-Cor value printed per sample in summary.txt (not
+        the coordination-score computation, which recomputes its own
+        threshold directly from each sample's matrix) and to the category
+        lookup, which would only misbehave for samples present in one file
+        but not the other -- I did not verify whether the 18 vs. 15 sample
+        sets fully overlap, so a KeyError-free `cat_map.get(fname, "?")` may
+        silently fall back to "?" for any sample missing from test8.csv.
+        Suggested fix: point METRICS at data_metrics.csv, consistent with
+        the rest of the current pipeline.
+
+    [2] SMELL - unverified claim about duplicate gene collapsing
+        Location: line ~150 (`score_series[fname] = s_cond.groupby(level=0).max()`)
+        What the code does: when multiple probes clean to the same gene
+        name, only the maximum coordination score across those probes is
+        kept for the cross-condition correlation matrix.
+        Why noted: this silently discards information from the other
+        probe(s) for that gene in the correlation step (though not in the
+        per-sample ranked CSV, which keeps every probe). Not necessarily
+        wrong, but worth a reader knowing "max wins" was the chosen
+        collapsing rule rather than, say, a mean.
+
+RELATED FILES
+    src/analysis_functions.py
+        af.get_eig_vectors (eigen-decomposition + scrambled threshold),
+        af.coordination_score (the per-gene score formula), both already
+        well-commented in that module.
+    scripts/eigenvector_analysis.py (not in this batch)
+        the raw-eigenvector-loading analysis this script's docstring
+        explicitly positions itself as an improvement over, for the reason
+        that individual eigenvectors mix within the near-degenerate signal
+        subspace.
+    results/data_metrics/data_metrics.csv vs. test8.csv
+        see FINDINGS [1]; data_metrics.csv is the current table per project
+        convention, test8.csv is a stale scramble realisation.
+    scripts/figure3.py
+        shares the same test8.csv-vs-data_metrics.csv staleness issue in its
+        _load_group_medians function (documented separately in that file's
+        review, if in scope).

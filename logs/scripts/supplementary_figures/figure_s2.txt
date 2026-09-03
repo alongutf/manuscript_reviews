@@ -1,0 +1,120 @@
+================================================================================
+scripts/supplementary_figures/figure_s2.py
+300 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Builds Supplementary Figure S2, a three-row schematic explaining end-to-end how
+    the paper's synthetic scRNA-seq data are generated: (1) the cluster+hub factor
+    model used to design gene-gene correlation structure, with example correlation
+    heatmaps at high vs. low correlation strength; (2) the count-generation pipeline
+    (correlated Gaussian -> uniform -> negative-binomial counts -> library-size
+    scaling -> dropout); (3) representative simulated cell/gene rank plots compared
+    against a real filtered dataset. It documents, rather than analyzes, the
+    simulation machinery in src/simulations.py that other panels (e.g. figure3,
+    the rho_sweep GMP-Cor calibration) rely on.
+
+INPUTS
+    src.simulations.generate_gram_hub_matrix, simulate_scRNA_data - the simulator
+        functions being illustrated.
+    data_for_paper/sample_2b_filtered.csv - a real filtered cell x gene count
+        matrix (index_col=0), used only for the row-3 rank-plot comparison.
+    scripts/figures/figure_functions.py - PanelFigure, the shared multi-panel
+        layout helper (imported via a sys.path insert, not a package import).
+    No CLI arguments; all parameters are constants at the top of the file.
+
+OUTPUTS
+    figure_s2_preview.png and figure_s2.pdf, written next to this script (the
+    script must be run from scripts/supplementary_figures/, since PanelFigure.save
+    writes to a path relative to the current working directory).
+
+HOW IT WORKS
+    The import bootstrap prepends the repo root and scripts/figures to sys.path so
+    that `src.simulations` and `figure_functions` can be imported without the
+    package being installed.
+
+    Pre-computed data is generated once at module scope, ahead of the panel
+    functions that consume it, so nothing is recomputed panel to panel. R_high and
+    R_low are two 2000x2000 correlation matrices from generate_gram_hub_matrix at
+    the same cluster/hub topology (seed=31) but different alpha (shared-variance
+    fraction): alpha=0.9 vs 0.5, used for the row-1 heatmaps. R_small is a smaller
+    (400x400) matrix used to drive obs_counts, the toy dataset behind the row-2
+    count-generation mini-panels. Separately, rank_obs_counts is a full-scale
+    (1000 cells x 2000 genes) simulation from R_high, matched in size to the real
+    dataset, whose row/column totals become the "Simulated" rank curves in row 3;
+    real_cell_totals/real_gene_totals are the same summary statistics computed
+    directly from sample_2b_filtered.csv. _pair_ylim precomputes shared y-limits
+    for each simulated/data pair so the two curves in a pair are directly
+    comparable at a glance.
+
+    Panel A draws a hand-placed network diagram (not derived from actual model
+    output) illustrating the cluster+hub factor model: four clusters of genes each
+    orbiting a cluster hub, a subset of cluster hubs connected to one global hub.
+    Panels C/D (_heatmap) show the top-left 100x100 corner of R_high/R_low. Panel E
+    is a three-step flow-chart schematic (its own small 2-gene toy example,
+    independent of R_small) showing correlated MVN -> NB counts -> observed counts,
+    with the dropout fraction annotated. Panels F/G (_rank_plot, via panel_F,
+    panel_F_data, panel_G, panel_G_data) plot cell-total and gene-total rank curves
+    for simulated vs. real data on shared, semilog-y axes; panel_G/panel_G_data
+    drop the single highest gene total (drop_top=True) because it otherwise
+    stretches the y-scale and obscures the rest of the curve.
+
+    The panels are assembled into one PanelFigure using an explicit list of
+    [left, bottom, width, height] rectangles (panel_pos), with step-header text
+    annotations ("1 - Design correlation structure", etc.) placed independently
+    down the left margin. Output is saved twice: a PNG preview at modest DPI and
+    the publication PDF at higher DPI with a transparent background.
+
+KEY PARAMETERS AND CONSTANTS
+    _HEATMAP_PARAMS = dict(n=2000, shape=1.5, hub_probability=0.2, seed=31) - shared
+        across R_high/R_low so the two heatmaps differ only in alpha; matches the
+        chi_sweep run behind the Fig. 3 CCDFs (per the in-file comment).
+    alpha=0.9 / 0.5 - "high" vs "low" correlation strength for the two heatmaps.
+    _N_SMALL = 400 - size of the toy matrix behind the row-2 schematic; deliberately
+        far smaller than the paper-scale 2000x2000, since only a 40x40 corner is
+        ever rendered.
+    inv_gamma_shape=2, inv_gamma_scale=0.1 (for obs_counts) vs. the function
+        defaults (inv_gamma_shape=1.5, inv_gamma_scale=0.01) used for
+        rank_obs_counts - the former is tuned only for a legible histogram in the
+        schematic; the latter is tuned (per the file's own comment) to track the
+        real data's marginals, matching the rho_sweep calibration used elsewhere.
+    dropout_rate=1 - used for both obs_counts and rank_obs_counts.
+    seed=31 for rank_obs_counts's simulate_scRNA_data call - reproducibility of the
+        headline simulated-vs-data comparison.
+    pad=1.6 in _pair_ylim - multiplicative headroom above/below the min/max of the
+        paired series.
+
+FINDINGS
+    [1] SMELL - inconsistent naming for the same 2000-gene "high correlation"
+        matrix between this file and figure3.py-family scripts.
+        Location: lines 57-58 (R_high/R_low) and line 74 (rank_obs_counts's sigma)
+        What the code does: builds R_high = generate_gram_hub_matrix(alpha=0.9,
+            n=2000, shape=1.5, hub_probability=0.2, seed=31), then reuses it
+            directly as `sigma=R_high` for the row-3 simulation.
+        Why that is a problem: purely a documentation/traceability note (recorded
+            explicitly in this file's own comment, "R_high is exactly the sweep's
+            sigma at rho=0.9") - not independently verified against figure3.py's
+            own generation call, which was out of scope for this review. If the
+            two ever diverge (e.g. a parameter change in one file but not the
+            other), the claim in the comment would silently go stale.
+        Suggested fix: none needed unless the comment is found to be wrong;
+            flagged for completeness only.
+
+    No other logical errors or inconsistencies found in this file itself. The one
+    functional check performed - that generate_gram_hub_matrix/simulate_scRNA_data
+    are called with a consistent, reproducible seed and that dropout_rate/
+    inv_gamma parameters differ deliberately (not accidentally) between the row-2
+    schematic and the row-3 rank-plot simulation - is documented above and is not
+    a bug: it is explained by the file's own in-line comments.
+
+RELATED FILES
+    src/simulations.py - defines generate_gram_hub_matrix and simulate_scRNA_data,
+        the two functions this figure exists to document.
+    scripts/figures/figure_functions.py - PanelFigure, the shared layout helper
+        (imported by every figure script in the repo).
+    scripts/simulated_data.ipynb - the notebook referenced in-file as the source of
+        the rho_sweep / rank-plot calibration parameters this script mirrors.
+    data_for_paper/sample_2b_filtered.csv - real dataset used for the row-3
+        comparison; also the kind of matrix produced by analysis_notebook.ipynb.
+    scripts/figures/figure3.py (not reviewed here) - referenced in-file as sharing
+        the chi_sweep parameters used to build R_high/R_low.

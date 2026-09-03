@@ -166,6 +166,20 @@ STEM = 'inverted_subpopulation_mixing'
 # ── Run ──────────────────────────────────────────────────────────────────────
 
 def run():
+    """
+    Execute the full sweep: for every sigma_mode ('shared'/'distinct' hub network)
+    and every repeat, call `inverted_subpopulation_mixing` (src/simulations.py) once,
+    which itself evaluates every ratio in PARAMS['ratios'] plus the single-population
+    dysregulated reference.
+
+    Returns (df, example, gene_means):
+      df         — one row per (sigma_mode, repeat, ratio), plus one reference row per
+                   (sigma_mode, repeat) tagged ratio_a='dysregulated_reference'
+      example    — per-cell UMAP/PC/group-axis coordinates for the one repeat picked
+                   as EXAMPLE_MODE/EXAMPLE_RATIO (used for panel B), else None
+      gene_means — the mu_a/mu_b profiles and their Spearman correlation for that same
+                   example repeat (used for panel A), else None
+    """
     records, example, gene_means = [], None, None
     for mode in SIGMA_MODES:
         for rep in range(N_REPEATS):
@@ -180,6 +194,10 @@ def run():
                 gene_means = res['gene_means']
             for rec in res['ratios']:
                 records.append(dict(sigma_mode=mode, repeat=rep, **rec))
+            # single-population reference gets its own row, tagged by a sentinel
+            # string in the otherwise-numeric ratio_a column so it can be filtered
+            # out of / into df alongside the real mixing ratios; 'rho' is dropped
+            # since its value differs from ratio_a's per-ratio rho_high/rho_low use
             records.append(dict(sigma_mode=mode, repeat=rep, ratio_a='dysregulated_reference',
                                 **{k: v for k, v in res['reference'].items() if k != 'rho'}))
     return pd.DataFrame(records), example, gene_means
@@ -199,6 +217,19 @@ _MODE_COLOR = {'shared': 'steelblue', 'distinct': 'darkorange'}
 
 
 def make_figure(df, example, gene_means, path_svg, path_png):
+    """
+    Build the 4-panel summary figure and write it to `path_svg`/`path_png`.
+
+    A: log-log scatter of sub-population A's gene means vs B's, showing the
+       inversion (and, via Spearman, that it is an exact rank reversal).
+    B: UMAP of the representative 50/50 mixture (`example`), coloured by
+       sub-population, with an inset histogram of each population's projection
+       onto the group axis (the axis separating the two labels) showing bimodality.
+    C: GMP-Cor vs mixing ratio, one line per sigma_mode, against the single-
+       population dysregulated-reference line.
+    D: dGMP (fraction of GMP-Cor attributable to the between-population mode) at
+       the interior ratio(s), compared with the experimental Exp+VapC-2h mixture.
+    """
     fig = plt.figure(figsize=(13, 9))
     gs = fig.add_gridspec(2, 2, hspace=0.32, wspace=0.26)
     fs = 11
@@ -314,6 +345,12 @@ def make_figure(df, example, gene_means, path_svg, path_png):
 # ── Text summary ─────────────────────────────────────────────────────────────
 
 def write_summary(df, summary, gene_means, paths, timestamp):
+    """Render the human-readable .txt report: parameters, GMP-Cor definition, the
+    per-ratio results table, key summary comparisons, the experimental reference
+    numbers and a plain-language interpretation section (which differs depending on
+    whether SCENARIO is 'regulated' or 'dysregulated'). Returns the report as a
+    single string; `summary` (from `summarize`) is accepted but not used directly —
+    the per-ratio numbers here are recomputed straight from `df`."""
     mix = df[df['ratio_a'] != 'dysregulated_reference'].copy()
     mix['ratio_a'] = mix['ratio_a'].astype(float)
     ref = df[df['ratio_a'] == 'dysregulated_reference']['gmp_cor'].astype(float)
@@ -453,6 +490,10 @@ def write_umap_csv(example, path):
 
 
 def main():
+    # entry point: parse --scenario/--repeats, override the module-level scenario
+    # settings and PARAMS accordingly, run the full sweep, and write every output
+    # (csv, per-cell umap csv, figure, text summary, full json log) under a shared
+    # <stem>_<timestamp> basename in results/simulation_results/
     global SCENARIO, REF_LABEL, SIGMA_MODES, STEM, N_REPEATS
     import argparse
     ap = argparse.ArgumentParser(description=__doc__,

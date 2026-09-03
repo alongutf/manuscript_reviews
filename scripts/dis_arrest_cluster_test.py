@@ -180,6 +180,7 @@ def auc(x, labels):
 
 
 def cohens_d(x, labels):
+    """Standardized mean difference (label==1 minus label==0), pooled SD (ddof=1)."""
     x = np.asarray(x, dtype=float)
     labels = np.asarray(labels)
     a, b = x[labels == 1], x[labels == 0]
@@ -232,6 +233,16 @@ def build_embedding(counts, batch, args):
 
 # ------------------------------------------------------------------ main ---
 def main():
+    """Run the full dis-arrest two-cluster test end to end.
+
+    Loads the two dis-arrest sample matrices on their shared gene panel, builds the
+    published-style embedding and bisects leiden resolution to exactly two clusters
+    (build_embedding), then answers question 1 (does the split track sequencing
+    depth?) and question 2 (is GMP-Cor meaningful within each cluster, at matched n,
+    against a permutation null and against depth/random/batch control splits), and
+    finally writes the JSON log, per-cell CSV, text summary and figure described in
+    the module docstring.
+    """
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--stem', default='dis_arrest_cluster_test')
@@ -385,6 +396,8 @@ def main():
 
     # dGMP on all cells for each candidate partition
     raw_all = gmp_cor(X, norm_sum=args.norm_sum)['gmp_cor']
+    # normalized (but not z-transformed) matrix, shared by every partition below: it
+    # gives the group mean-difference axis and the AUC of projecting cells onto it
     xn = af.normalize(X, method='sum', target_sum=args.norm_sum)
     partitions = {
         'leiden (2 clusters)': y,
@@ -395,6 +408,9 @@ def main():
     dgmp = {}
     for name, lab in partitions.items():
         cen = gmp_cor_centered(X, lab, norm_sum=args.norm_sum)
+        # direction of the group-1 minus group-0 mean difference in gene space;
+        # projecting cells onto it and taking the AUC checks how well that single
+        # axis alone separates the two groups (a sanity check on dGMP's premise)
         axis = xn[lab == 1].mean(0) - xn[lab == 0].mean(0)
         dgmp[name] = {
             'gmp_cor_raw': raw_all, 'gmp_cor_group_centered': cen,
@@ -583,6 +599,16 @@ def main():
 
 
 def make_figure(cells, per_group, dgmp, depth_tests, res_used, shape, stem):
+    """Six-panel summary figure, written to <stem>.svg and <stem>.png (dpi=200).
+
+    A: UMAP colored by leiden cluster.  B: UMAP colored by sample of origin.
+    C: UMAP colored by log10 total counts (the depth confound).
+    D: histogram of total counts per cluster, log-x.
+    E: GMP-Cor (vs. permutation null when available, else draw mean +/- SD) per
+       group, with the empirical p-value annotated and starred at p < 0.05.
+    F: per-group GMP-Cor across the independent matched-n cell draws, one row per
+       group, points jittered vertically only for readability.
+    """
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt

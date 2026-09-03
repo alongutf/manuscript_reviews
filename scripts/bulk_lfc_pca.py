@@ -67,6 +67,9 @@ parser.add_argument("--n-hvg", type=int, default=0,
                     help="restrict the PCA to the N most variable log fold changes "
                          "(0 = use all genes)")
 args = parser.parse_args()
+# SUFFIX encodes every choice that changes the output matrix into the output file
+# names, so different --transform/--drop-ncrna/--bulk-control/... runs never
+# overwrite each other and downstream scripts can name the exact file they need
 SUFFIX = ("_" + args.transform
           + ("_coding" if args.drop_ncrna else "")
           + "_" + args.bulk_control
@@ -183,6 +186,10 @@ meta["control"] = [" + ".join(CONTROL[c]) for c in samples]
 
 
 def condition(name):
+    """Condition label for a treated sample column: CASP/Disrupted for the bulk
+    dataset, the SHX time point (e.g. "SHX_t6") for the shx dataset, or
+    "CASP_time" for every casp time-course sample (they share one condition
+    since the time itself is the variable of interest there)."""
     ds, s = name.split("|")
     if ds == "bulk":
         return "CASP" if s.startswith("CASP") else "Disrupted"
@@ -324,6 +331,8 @@ for lab in ORDER:
 
 
 def tag(s):
+    """Compact point-annotation label: strip the dataset-specific sample prefix
+    and abbreviate "...min" time points to "...'" so labels fit next to points."""
     s = s.replace("Disrupted_biorep", "").replace("CASP_biorep", "")
     return s.replace("CASP biorep1 ", "").replace("min", "'")
 

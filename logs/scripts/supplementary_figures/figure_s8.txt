@@ -1,0 +1,118 @@
+================================================================================
+scripts/supplementary_figures/figure_s8.py
+216 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Builds Supplementary Figure S8, which applies the paper's correlation-spectrum
+    / GMP-Cor framework - developed on the bacterial scRNA-seq data - to a
+    mammalian cancer cell line (day-14 PC9 cells), to show the readout transfers
+    across organisms. It plots representative CCDF panels for the Proliferating
+    and Arrested subpopulations, a UMAP of all cells colored by subpopulation, and
+    a bar chart of mean GMP-Cor per subpopulation across two replicates. All of the
+    underlying computation (eigenvalue spectra, GMP-Cor values, UMAP coordinates)
+    is done upstream by scripts/cancer_pc9_correlation_analysis.py; this script
+    only reads its outputs and lays out the figure.
+
+INPUTS
+    pc9_data/obs_metadata.csv - per-cell metadata with UMAP_X, UMAP_Y and a
+        'sample' column (e.g. '14_rep1_high'); index_col=0.
+    results/cancer_pc9/ev_data/<sample>.npy - one file per sample, shape (2, P):
+        row 0 = empirical eigenvalues, row 1 = eigenvalues of the
+        permutation-scrambled matrix (P = number of genes/components kept).
+    results/cancer_pc9/pc9_day14_gmp_cor.csv - one row per sample with a 'sample'
+        and 'GMP_Cor' column (read with set_index('sample')).
+    scripts/figures/figure_functions.py - PanelFigure layout helper.
+    No CLI arguments.
+
+OUTPUTS
+    figure_s8.pdf and figure_s8_preview.png, written next to this script (run from
+    scripts/supplementary_figures/).
+
+HOW IT WORKS
+    Sample tags encode a fluorescent-marker level (low/med/high) rather than the
+    proliferation state directly; _condition() extracts that level by substring
+    match, and COND_DISPLAY remaps it to the reader-facing label (low marker =
+    Proliferating, high marker = Arrested - explicitly the OPPOSITE direction, per
+    the module docstring and the COND_COLOR comment).
+
+    panel_A draws the UMAP scatter (all cells, colored by subpopulation), drawing
+    the densest group ('high') first so the sparser groups plot on top and stay
+    visible.
+
+    _plot_ccdf renders one loglog CCDF panel: it loads a sample's saved eigenvalue
+    pair, keeps only strictly-positive eigenvalues, computes the standard
+    empirical CCDF with the usual "+1/n" finite-sample correction, and splits the
+    empirical eigenvalues into "spurious" (below the scrambled maximum,
+    consistent with pure noise) and "signal" (at/above it) for separate coloring.
+    A dashed vertical line marks the scrambled maximum (the GMP-Cor threshold
+    lambda_max^scr), and the pre-computed GMP-Cor value is annotated as text.
+    panel_proliferating_ccdf / panel_arrested_ccdf call this for one representative
+    replicate-1 sample each (REP_LOW = Proliferating, REP_HIGH = Arrested).
+
+    panel_C (the bar-plot panel) averages GMP-Cor over the two biological
+    replicates per subpopulation and plots mean +/- SEM (ddof=1, n=2) as bars,
+    with the individual replicate values overlaid as points.
+
+    Note on naming: the function names panel_A/panel_C do not correspond 1:1 to
+    the assembled figure's final panel letters. In the "Assemble" section,
+    draw_func=panel_proliferating_ccdf/panel_arrested_ccdf are wired to labels A/B,
+    draw_func=panel_A (the UMAP) is wired to label C, and draw_func=panel_C (the
+    bar chart) is wired to label D. This is purely a readability issue in the
+    source, not a behavioral one - the actual layout is correct, as verified below.
+
+KEY PARAMETERS AND CONSTANTS
+    COND_COLOR / COND_ORDER / COND_DISPLAY - fixed low/med/high -> color/label
+        mapping, shared across panels A-D for visual consistency.
+    CLUSTER_LABEL = {2: 'Cycling', 0: 'Non-cycling'} - defined but not referenced
+        anywhere else in the file (see FINDINGS).
+    REP_HIGH = '14_rep1_high', REP_LOW = '14_rep1_low' - hard-coded choice of
+        which replicate is "representative" for the CCDF panels; replicate 2 is
+        never shown in this figure, only averaged into panel D's bar chart.
+    ax.set_xlim([0.1, 200]), ax.set_ylim(top=1.5) - fixed axis ranges tuned to this
+        specific dataset's eigenvalue scale.
+    ax.set_ylim(bottom=50) in panel_C - crops empty space below the lowest
+        observed GMP-Cor value; would clip a bar if any future GMP-Cor value <50.
+
+FINDINGS
+    [1] SMELL - CLUSTER_LABEL dict is defined but never used.
+        Location: line 66 (CLUSTER_LABEL = {2: 'Cycling', 0: 'Non-cycling'})
+        What the code does: defines a Leiden-cluster-to-label mapping with a
+            docstring comment "drawn above each cluster in panel A", but no code
+            in panel_A (or anywhere else in the file) references it.
+        Why that is a problem: dead code; a reader following the comment into
+            panel_A looking for the annotation will not find it, suggesting either
+            an incomplete feature or a leftover from an earlier version of the
+            figure.
+        Suggested fix: either wire the annotation into panel_A as the comment
+            describes, or delete the unused constant.
+
+    [2] SMELL - misleading section-header comment / function-name vs. final panel
+        label mismatch.
+        Location: lines 77-80 (section header above _plot_ccdf) and the "Assemble"
+            section (draw_func wiring)
+        What the code does: the code is functionally correct - the assembled
+            figure's panels A-D are labeled correctly (verified by reading the
+            add_panel calls) - but panel_A's function draws what becomes panel C,
+            and panel_C's function draws what becomes panel D, while the two CCDF
+            functions (not named panel_A/panel_B at all) become panels A/B.
+        Why that is a problem: purely a maintainability hazard - a future edit
+            based on the function names risks touching the wrong panel.
+        Suggested fix: rename panel_A -> panel_umap and panel_C -> panel_gmp_bar
+            (or similar) to remove the ambiguity.
+
+    No BUG or RISK findings: eigenvalue file loading, the CCDF formula, and the
+    SEM computation were checked and are consistent with the same computation used
+    in sibling scripts (figure2.py/figure3.py's CCDF style, per this file's own
+    comment) and with a standard n=2 SEM.
+
+RELATED FILES
+    scripts/cancer_pc9_correlation_analysis.py - produces all three input files;
+        not reviewed here, so its own correctness (e.g. how ev_data/*.npy is
+        computed) is assumed rather than verified.
+    scripts/figures/figure2.py, scripts/figures/figure3.py - the CCDF plotting
+        style this file explicitly matches (grey = spurious, colored = signal,
+        black = scrambled).
+    scripts/figures/figure_functions.py - PanelFigure.
+    src/analysis_functions.py - get_eig_dist, the presumed origin of the
+        eigenvalue arrays stored in ev_data/*.npy (not directly imported here).

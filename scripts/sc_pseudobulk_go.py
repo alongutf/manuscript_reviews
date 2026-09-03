@@ -7,6 +7,14 @@ the bulk Section 2.1 comparison (weaker enrichment in Dis-Arrest) in single-cell
 data. Gene-name harmonization follows scripts/bulk_correlations.ipynb.
 
 Run from the scripts/ directory so that os.path.dirname(os.getcwd()) is the repo root.
+
+Input:  data_for_umap/*.csv (preferred) or data_for_paper/*.csv (fallback), the
+        per-replicate cell x gene count matrices named in CONDITIONS below;
+        metadata/genomic.gtf and metadata/go-basic.obo / metadata/ecocyc.gaf for
+        gene-name harmonization and GO enrichment.
+Output: results/deseq_results/sc_pseudobulk/  (pseudobulk counts, DESeq2 tables)
+        results/GO_results/sc_pseudobulk/     (per-condition GO enrichment tables,
+        the Section 2.1 comparison figure)
 """
 import os
 import re
@@ -38,6 +46,9 @@ def resolve(fname):
 
 # ---- gene-name harmonization (adapted from bulk_correlations.ipynb) ----
 def get_gene_synonyms():
+    """Build a synonym -> canonical-name lookup (both lowercased) from the GTF's
+    gene_synonym attributes, so sc and bulk gene names can be matched across the
+    two annotation vocabularies."""
     gtf = pd.read_csv(os.path.join(META, 'genomic.gtf'), sep='\t', comment='#', header=None)
     syn = {}
     for i in range(len(gtf)):
@@ -52,7 +63,12 @@ def get_gene_synonyms():
 
 
 def harmonize(genes, syn):
-    """Return canonical lowercase gene names for a list of sc column names."""
+    """Return canonical lowercase gene names for a list of sc column names.
+
+    Strips the LELOBEKK_ locus-tag prefix used by some sc matrices, lowercases,
+    then maps through the synonym table so the same gene from sc and bulk data
+    lands on the same index entry.
+    """
     out = []
     for g in genes:
         g = g.replace('LELOBEKK_', '').replace('LELOBEKK', '')
@@ -63,7 +79,11 @@ def harmonize(genes, syn):
 
 
 def pseudobulk_vector(path, syn):
-    """Sum counts across cells -> Series indexed by harmonized gene name."""
+    """Sum counts across cells -> Series indexed by harmonized gene name.
+
+    This is the pseudobulk step proper: a single-cell count matrix (cells x genes)
+    collapsed to one bulk-like profile per replicate by summing over cells.
+    """
     df = pd.read_csv(path, index_col=0)
     df = df.apply(pd.to_numeric, errors='coerce').fillna(0)   # drop stray non-numeric cols
     totals = df.sum(axis=0)                       # gene -> summed count
@@ -76,6 +96,11 @@ def pseudobulk_vector(path, syn):
 
 
 def build_pseudobulk():
+    """Build the pseudobulk count matrix (genes x replicates) and its sample metadata.
+
+    Only genes present in EVERY replicate survive the intersection, so the count
+    matrix is dense (no missing values) going into DESeq2.
+    """
     syn = get_gene_synonyms()
     cols, meta_rows = {}, []
     for cond, files in CONDITIONS.items():
@@ -94,6 +119,8 @@ def build_pseudobulk():
 
 
 def run_deseq_contrasts(count, meta, out_dir):
+    """Fit one DESeq2 model (condition as the design factor) and extract two
+    contrasts (disrupted vs control, regulated vs control); write each to CSV."""
     from pydeseq2.dds import DeseqDataSet
     from pydeseq2.ds import DeseqStats
     counts_T = count.T                            # samples x genes

@@ -1,3 +1,19 @@
+"""
+Defines AnnMat, the annotated cell x gene count-matrix class used throughout the
+pipeline (see CLAUDE.md), plus the functions that build, filter, transform and
+visualize it: get_annotated_data() converts a raw probe-count CSV into an
+AnnMat; the AnnMat filtering methods (filter_by_umi_count, filter_by_gene_
+dispersion, filter_by_mean_expression, remove_highly_expressed_genes,
+remove_non_protein_coding_genes) mark cells/genes for exclusion without
+copying data until get_filtered_matrix() materializes the result;
+plot_eig_dist / pcs_to_csv / get_histogram_data turn eigenvalue spectra
+(computed in analysis_functions.py) into figures and CSV histograms;
+project_on_pcs / get_umap produce PCA/UMAP embeddings; concat_datasets and
+equate_dims combine or size-match multiple AnnMat datasets (e.g. for the UMAP
+and cross-dataset comparison notebooks). This module is imported (not run
+directly) as `src.data_functions`, typically aliased `df`, from the scripts/
+notebooks.
+"""
 import numpy as np
 import pandas as pd
 import re
@@ -10,7 +26,19 @@ import os
 
 
 class AnnMat:
-    # defines a class for annotated matrices
+    """
+    Annotated cell x gene count matrix: `m` is the raw (n_objects x n_variables)
+    numeric array, `obj_names`/`var_names` are its row/column labels (cell
+    barcodes and gene names for the usual scRNA-seq use, but also used
+    transposed - see transpose_matrix), and `batch` is an optional per-row
+    dataset/batch label (set by concat_datasets).
+
+    Filtering is lazy: `filtered_obj` / `filtered_var` are boolean masks over
+    obj_names / var_names that the filter_by_* methods narrow (AND together)
+    in place, without ever copying or slicing `m`. Call get_filtered_matrix()
+    to materialize a new AnnMat containing only the currently-unmasked rows
+    and columns; until then `m` itself is unchanged.
+    """
     def __init__(self, m, obj_names=None, var_names=None, batch=None):
         self.m = m
         self.obj_names = np.array(obj_names)
@@ -24,14 +52,17 @@ class AnnMat:
         return f"annotated matrix with {n} objects and {p} variables"
 
     def to_csv(self, path):
-        # function to save the annotated matrix to a csv file
-        # first column is the object names, first row is the variable names
+        # save the (unfiltered) matrix to csv: rows = obj_names, columns = var_names
         df = pd.DataFrame(self.m, index=self.obj_names, columns=self.var_names)
         df.to_csv(path)
         print('Data saved to', path)
 
     def filter_by_umi_count(self, umi_min, umi_max, target_cells=None, plot=True):
-        # filter barcodes that have less than umi_min or more than umi_max UMIs
+        # Mark cells (rows) whose total UMI count falls outside (umi_min, umi_max)
+        # for exclusion. If target_cells is given, umi_min is instead derived so
+        # that (after already-excluded top cells above umi_max) exactly
+        # target_cells cells remain - i.e. keep the top target_cells cells by UMI
+        # count. Updates self.filtered_obj in place; does not modify self.m.
         data_mat = self.m
         umi_count = np.sum(data_mat, axis=1)
         num_cells_above_max = np.sum(umi_count > umi_max)
@@ -56,8 +87,10 @@ class AnnMat:
             plt.show()
 
     def filter_by_gene_dispersion(self, min_dispersion=1, target_number=None, plot=True):
-        # filter genes that have a dispersion<1
-        # if target_number is not None, filter the top target_number genes with the highest dispersion
+        # Mark genes (columns) below min_dispersion for exclusion, using only the
+        # currently-filtered cells (self.filtered_obj) to compute mean/variance.
+        # If target_number is given, min_dispersion is instead set so exactly the
+        # target_number genes with the highest dispersion survive.
         data_mat = self.m[self.filtered_obj, :]
         # get mean along matrix columns
         mean = np.mean(data_mat, axis=0)
@@ -74,6 +107,9 @@ class AnnMat:
         filter_ind = dispersion > min_dispersion
         self.filtered_var = np.logical_and(filter_ind, self.filtered_var)
         # plot gene cv, color genes that are filtered out in red
+        # note: excluded (red) points use sqrt(dispersion) but kept (blue) points use
+        # sqrt(sqrt(dispersion)) - a 4th root, not a square root - so the two point
+        # sets are not on the same y-scale; see FINDINGS in logs/src/data_functions.txt.
         if plot:
             plt.scatter(mean[np.invert(filter_ind)], np.sqrt(dispersion[np.invert(filter_ind)]), color='r')
             plt.scatter(mean[filter_ind], np.sqrt(np.sqrt(dispersion[filter_ind])), color='b')
@@ -87,8 +123,9 @@ class AnnMat:
 
 
     def filter_by_mean_expression(self, min_mean=1e-2, target_number=None, plot=True):
-        # filter genes that have a low mean expression
-        # if target_number is not None, filter the top target_number genes with the highest dispersion
+        # Mark genes (columns) with mean expression below min_mean for exclusion
+        # (over currently-filtered cells). If target_number is given, min_mean is
+        # instead set so exactly the target_number highest-mean genes survive.
         data_mat = self.m[self.filtered_obj, :]
         # get mean along matrix columns
         mean = np.mean(data_mat, axis=0)
@@ -114,7 +151,8 @@ class AnnMat:
             plt.show()
 
     def get_gene_stats(self):
-        # get the mean and median number of genes per cell
+        # mean/median number of distinct genes detected (non-zero) per cell, over
+        # currently-filtered cells - a standard scRNA-seq QC summary statistic
         data_mat = self.m[self.filtered_obj, :]
         # binarize the matrix
         bin_mat = np.zeros(data_mat.shape)
@@ -125,7 +163,9 @@ class AnnMat:
         return mean_genes, median_genes
 
     def remove_highly_expressed_genes(self, percentile=90):
-        # remove genes that are in the top percentile of expression
+        # Mark genes whose mean expression is at or above the given percentile for
+        # exclusion (e.g. percentile=90 drops the top 10% most highly expressed
+        # genes) - used to down-weight the influence of a few dominant genes.
         data_mat = self.m[self.filtered_obj, :]
         mean_expression = np.mean(data_mat, axis=0)
         max_val = np.percentile(mean_expression, percentile)
@@ -134,19 +174,25 @@ class AnnMat:
 
 
     def get_filtered_matrix(self):
-        # return annotated matrix with filters applied
+        # Materialize a new AnnMat containing only the rows/columns currently
+        # marked True in filtered_obj/filtered_var (the lazy filters are applied
+        # here, once). Note: batch is not carried over to the returned AnnMat
+        # (it defaults to None) even though self.batch may hold per-row labels -
+        # see FINDINGS in logs/src/data_functions.txt.
         m = self.m[self.filtered_obj, :][:, self.filtered_var]
         obj_names = self.obj_names[self.filtered_obj]
         var_names = self.var_names[self.filtered_var]
         return AnnMat(m, obj_names, var_names)
 
     def reset_filters(self):
-        # reset the filter
+        # clear both filters back to "everything included"
         self.filtered_obj = np.full(len(self.obj_names), True)
         self.filtered_var = np.full(len(self.var_names), True)
 
 
     def sort_names_by_expression(self):
+        # gene names among currently-filtered cells, ordered from highest to lowest
+        # mean expression
         data_mat = self.m[self.filtered_obj, :]
         mean_expression = np.mean(data_mat, axis=0)
         # return the sorted gene names
@@ -157,7 +203,12 @@ class AnnMat:
 
 
     def random_knockout(self):
-        # randomly knock out 1 read from each cell
+        # For each currently-filtered cell with more than 10 detected genes,
+        # remove exactly one read, chosen at random with probability proportional
+        # to each gene's share of that cell's counts (i.e. higher-expressed genes
+        # are more likely to lose a read) - used to test robustness of downstream
+        # statistics to a small, expression-weighted perturbation of the counts.
+        # Cells with <=10 detected genes are left untouched.
         data_mat = self.m[self.filtered_obj, :]
         for i in range(data_mat.shape[0]):
             # get the indices of non-zero elements
@@ -171,8 +222,11 @@ class AnnMat:
         return AnnMat(data_mat, self.obj_names[self.filtered_obj], self.var_names[self.filtered_var], self.batch)
 
 def read_from_csv(path):
-    # function to load the annotated matrix from a csv file
-    # set the delimiter according to the file
+    # Load a previously-saved AnnMat (e.g. written by AnnMat.to_csv) back from a
+    # delimited text file: first column = object (cell) names, first row =
+    # variable (gene) names. Any NaN cell (e.g. from a ragged/missing entry) is
+    # treated as zero counts. Delimiter is guessed from the path: '.csv' -> comma,
+    # anything else -> tab.
     if 'csv' in path:
         df = pd.read_csv(path, index_col=0)
     else:
@@ -185,12 +239,18 @@ def read_from_csv(path):
 
 
 def transpose_matrix(amat):
-    # transpose the annotated matrix
+    # swap rows/columns of an AnnMat (e.g. to treat genes as objects and cells as
+    # variables); the transposed matrix's filters are reset to "all included"
     return AnnMat(amat.m.T, amat.var_names, amat.obj_names)
 
 
 def gene_id(val):
-    # function to extract unique gene identifier from probe ID
+    # Collapse a probe/feature ID down to its shared gene identifier. Probe IDs
+    # from this platform are of the form '<gene>_<probe-number>' when the probed
+    # gene has multiple probes (trailing '_xx' token is purely numeric) - that
+    # numeric suffix is stripped so all probes for one gene are counted together.
+    # If the last '_'-separated token is not numeric, val is assumed to already be
+    # a plain gene id and is returned unchanged.
     x = re.split('_', val)
     if bool(re.findall(r'\d+', x[-1:][0])):
         return '_'.join(x[:-1])
@@ -199,7 +259,11 @@ def gene_id(val):
 
 
 def get_annotated_data(path, method='max_probe'):
-    # create a cell-gene matrix from a probe count file
+    # Build a dense cell x gene AnnMat from a raw per-probe count CSV (one row per
+    # cell-barcode/probe/UMI-count observation). method controls how multiple
+    # probes mapping to the same gene (see gene_id) are combined:
+    #   'max_probe'   - take the probe with the highest UMI count for that gene
+    #   'sum_probes'  - sum UMI counts across all probes for that gene
     df = pd.read_csv(path)
     df.columns = ['cell_barcode', 'Feature_ID', 'Feature_name', 'Feature_type', 'UMI_count']
     # create list of cell barcodes
@@ -219,6 +283,7 @@ def get_annotated_data(path, method='max_probe'):
         cell_index = cell_bar.index(df.cell_barcode[i])
         gene_index = features.index(gene_id(df.Feature_ID[i]))
         if method == 'max_probe':
+            # keep the highest-count probe seen so far for this (cell, gene) pair
             if M[cell_index, gene_index] < df.at[i, 'UMI_count']:
                 M[cell_index, gene_index] = df.at[i, 'UMI_count']
         elif method == 'sum_probes':
@@ -231,14 +296,20 @@ def get_annotated_data(path, method='max_probe'):
 
 
 def plot_eig_dist(pcs, pcs1, N, x_max, y_max, n_bins, ax=None, x_label=True, y_label=True):
-    # plot the eigenvalue distribution of the normalized filtered matrix
-    # define limits and bin number
+    # Plot the empirical eigenvalue distribution (pcs, from the real data) against
+    # the scrambled/null distribution (pcs1) and the analytic Marchenko-Pastur
+    # density (analysis_functions.mp_distribution), as stacked-area histograms.
+    # pcs / pcs1 are the eigenvalue arrays returned by analysis_functions.get_eig_dist;
+    # N is the number of cells (rows) of the matrix they were computed from.
     P = len(pcs)
     scale = 1 # scale factor for the Marchenko-Pastur distribution
     edges = np.linspace(-0.1, x_max, num=n_bins)
 
     # remove zeros in pcs and pcs1
-    # if alpha>1 adjust the scale factor to match theoretical results
+    # aspect ratio P/N > 1 (more genes than cells): MP density is defined for the
+    # p/n <= 1 convention, so genes/cells are swapped (scale = N/P) and the
+    # structural zero eigenvalues (rank-deficient directions) are dropped before
+    # histogramming, matching the analytic MP formula's normalization.
     if P/N > 1:
         scale = N/P
         pcs = pcs[pcs != 0]
@@ -278,7 +349,10 @@ def plot_eig_dist(pcs, pcs1, N, x_max, y_max, n_bins, ax=None, x_label=True, y_l
 
 
 def pcs_to_csv(amat, output_dir, file_name, norm='sum', log=False, norm_method='sum', norm_sum=1):
-    # save the principal components to a csv file
+    # Compute the empirical eigenvalue spectrum of amat and write its histogram
+    # (as an X/Y density table) to <output_dir>/<file_name>_N<N>_P<P>.csv.
+    # NOTE: get_eig_dist returns a 3-tuple (pcs, pcs1, fraction_non_zero) - see
+    # FINDINGS in logs/src/data_functions.txt, this unpacking is broken as written.
     m = amat.m
     N, P = m.shape
     pcs, pcs1 = af.get_eig_dist(m, norm=norm, log=log, norm_method=norm_method, norm_sum=norm_sum)
@@ -304,9 +378,16 @@ def pcs_to_csv(amat, output_dir, file_name, norm='sum', log=False, norm_method='
 
 
 def equate_dims(amat1, amat2, target_cells):
-    # equate the dimensions of two annotated matrices
-    # output matrices should be of dimension target_cells x target_genes
-    # genes must be the same in both matrices
+    # Make two AnnMat datasets directly comparable by restricting both to their
+    # shared genes (via set intersection, not a precondition of equality) and
+    # subsampling both to the same number of cells, target_cells (capped by
+    # whichever input has fewer cells/genes to draw from). Filters are set on the
+    # input objects in place; the *filtered* matrices are returned, unmaterialized
+    # copies of amat1/amat2 remain in their original, now-mutated filter state.
+    # np.random.seed(0) is called once, globally, before both cell draws - this
+    # makes the subsample reproducible run-to-run, but also resets the global
+    # numpy RNG state as a side effect for any unseeded random call made
+    # afterwards elsewhere in the same process.
     target_cells = min(len(amat1.obj_names), len(amat2.obj_names), target_cells)
     # get the intersection of the gene names
     intersect, indices1, indices2 = np.intersect1d(amat1.var_names, amat2.var_names, return_indices=True)
@@ -324,6 +405,12 @@ def equate_dims(amat1, amat2, target_cells):
 
 
 def remove_non_protein_coding_genes(amat):
+    # Drop genes that are not protein-coding (or pseudogenes) according to a
+    # biotype/synonym lookup table, matched case-insensitively and after
+    # stripping a known probe-name prefix ('lelobekk_'). Assumes the process's
+    # current working directory's *parent* contains a filtered_data/ folder with
+    # biotype_map_syn.csv (see bulk_functions.py's similar metadata/ assumption in
+    # CLAUDE.md - run notebooks from scripts/ so this path resolves correctly).
     dir = os.path.join(os.path.dirname(os.getcwd()), 'filtered_data')
     file_name = 'biotype_map_syn.csv'
     path = os.path.join(dir, file_name)
@@ -346,6 +433,10 @@ def remove_non_protein_coding_genes(amat):
 
 
 def get_gene_type(gene, biotype_map, synonym_array):
+    # Look up gene's biotype (e.g. 'protein_coding') by finding which row of
+    # synonym_array contains it (any synonym or the canonical name matches), and
+    # reading biotype_map at that row index. Returns 'not found' if no row
+    # contains the gene, or if any other lookup error occurs (broad except).
     gene = gene.casefold()
     try:
         index = np.where(synonym_array == gene)[0][0]
@@ -357,7 +448,11 @@ def get_gene_type(gene, biotype_map, synonym_array):
 
 
 def get_synonym_array(biotype_map):
-    # this function gets the biotype map with synonyms and returns a numpy array for efficient search
+    # Turn biotype_map (one row per gene, with a comma-separated 'synonym' column
+    # and a 'gene' column) into a dense 2-D object array, one row per gene, where
+    # each row lists that gene's synonyms plus its canonical name (all casefolded)
+    # padded with zeros to the longest row - so get_gene_type can search it with a
+    # single vectorized np.where(synonym_array == gene) instead of per-row parsing.
     # convert to list of lists:
     list_of_lists = []
     for i in range(len(biotype_map)):
@@ -374,7 +469,11 @@ def get_synonym_array(biotype_map):
 
 
 def project_on_pcs(amat, n_pcs=50):
-    # project the annotated matrix on the first n_pcs principal components
+    # Project amat.m onto its own top n_pcs principal components: normalize rows
+    # to a fixed total (target_sum=1e4, a standard scRNA-seq CPM-style depth
+    # normalization), log-transform, z-transform columns, then take the SVD and
+    # keep the leading n_pcs right-singular directions. Returns an
+    # (n_cells x n_pcs) score matrix used as the input to UMAP in get_umap.
     data = af.normalize(amat.m, method='sum', target_sum=1e4)
     data = af.log_transform(data)
     data = af.z_transform(data)
@@ -383,7 +482,9 @@ def project_on_pcs(amat, n_pcs=50):
 
 
 def get_umap(amat, n_neighbors=15, min_dist=0.1, n_components=2, n_pcs=50):
-    # get UMAP embedding of an annotated matrix
+    # 2-D (by default) UMAP embedding of amat's cells, computed on their top n_pcs
+    # PCA coordinates (see project_on_pcs) rather than on the raw gene matrix -
+    # the usual scRNA-seq practice of denoising via PCA before UMAP.
     data = project_on_pcs(amat, n_pcs=n_pcs)
     reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components)
     embedding = reducer.fit_transform(data)
@@ -391,10 +492,19 @@ def get_umap(amat, n_neighbors=15, min_dist=0.1, n_components=2, n_pcs=50):
 
 
 def concat_datasets(datasets):
-    # concatenate a list of annotated matrices
-    # if a gene is not present in a dataset, add it with zeros
-    # permit a maximum number of cells
-    # get the full set of gene names:
+    # Stack multiple AnnMat datasets into one, on the union of their gene sets
+    # (a gene absent from a given dataset is filled with zeros for that
+    # dataset's cells). Returns a single AnnMat whose `batch` array records
+    # which input dataset (0-indexed, in `datasets` order) each cell came from.
+    #
+    # IMPORTANT: gene_names = np.union1d(...) is always alphabetically sorted, and
+    # each dataset's rows are written into gene_names-sorted column positions via
+    # np.isin/np.where - this only lines up correctly with dataset.m's own column
+    # order if dataset.var_names is *also* already sorted (true for AnnMat objects
+    # built by get_annotated_data, which sorts `features` before building M, and
+    # preserved by get_filtered_matrix's boolean masking). Passing a dataset whose
+    # var_names are not sorted will silently misassign gene values into the wrong
+    # columns - see FINDINGS in logs/src/data_functions.txt.
     gene_names = np.array([])
     for dataset in datasets:
         gene_names = np.union1d(gene_names, dataset.var_names)
@@ -412,6 +522,8 @@ def concat_datasets(datasets):
     cell_names = np.array([])
     for dataset in datasets:
         for i in range(len(dataset.obj_names)):
+            # cell_index can never reach n_cells here since M/n_cells is sized to
+            # exactly the sum of all datasets' cell counts - this check is inert
             if cell_index == n_cells:
                 break
             cell_names = np.append(cell_names, dataset.obj_names[i])
@@ -426,6 +538,10 @@ def concat_datasets(datasets):
 
 
 def get_histogram_data(pcs,N,P):
+    # Turn an eigenvalue array pcs (from analysis_functions.get_eig_dist, for an
+    # N-cell x P-gene matrix) into a density-histogram DataFrame (X = bin center,
+    # Y = density), applying the same P/N>1 rescaling as plot_eig_dist / pcs_to_csv
+    # so it is directly comparable to the analytic Marchenko-Pastur curve.
     pcs = pcs[pcs > 0]
     # get histogram values of pcs
     scale = 1  # scale factor for the Marchenko-Pastur distribution

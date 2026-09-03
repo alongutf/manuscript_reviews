@@ -53,9 +53,17 @@ os.makedirs(os.path.join(OUT_DIR, "go"), exist_ok=True)
 
 
 def clean_gene(col):
+    """Strip a leading 'probe-index_' prefix from a column/gene name, e.g.
+    '3_dnaA' -> 'dnaA'; names with no underscore are returned unchanged.
+    """
     return col.split("_", 1)[1] if "_" in col else col
 
 
+# METRICS points at test8.csv -- see the log for this file: repo convention as of the
+# most recent data_metrics update is that data_metrics.csv is current and testN.csv
+# files (including test8.csv) are stale scramble realisations with different
+# sum_denoised_ev values; this only affects the GMP-Cor value printed in the summary
+# text below, not the coordination-score computation itself
 metrics = pd.read_csv(METRICS, index_col=0)
 cat_map = dict(zip(metrics["file_name"], metrics["category"]))
 gmp_map = dict(zip(metrics["file_name"], metrics["sum_denoised_ev"]))
@@ -83,6 +91,9 @@ if RUN_GO:
 
 
 def names_to_ids(names):
+    """Map cleaned, lowercased gene names to GO-database IDs via the GTF-derived
+    conversion table; names with no match are silently dropped.
+    """
     conv = _go["conv"]
     out = []
     for g in names:
@@ -93,6 +104,12 @@ def names_to_ids(names):
 
 
 def go_for_genes(study_genes, background_genes, out_path):
+    """Run GO enrichment of `study_genes` (top-scoring genes) against
+    `background_genes` (all genes kept in the signal subspace for that
+    condition) and write the significant, enriched terms to `out_path`.
+    Returns the result DataFrame, or None if there is too little data to
+    test or nothing survives FDR correction.
+    """
     bg_ids = names_to_ids(background_genes)
     study_ids = names_to_ids(study_genes)
     if len(study_ids) < 3 or len(bg_ids) < 10:
@@ -102,6 +119,8 @@ def go_for_genes(study_genes, background_genes, out_path):
         propagate_counts=False, alpha=0.05, methods=["fdr_bh"],
     )
     res = goea.run_study(study_ids, prt=None)
+    # keep only over-represented ("e" = enriched, not "p" = purified) terms below the
+    # BH-FDR threshold
     sig = [r for r in res if r.enrichment == "e" and r.p_fdr_bh < 0.05]
     sig.sort(key=lambda r: r.p_fdr_bh)
     if not sig:
@@ -131,8 +150,13 @@ for fname in files:
     genes = np.array(df.columns)
     m = df.values.astype(float)
 
+    # threshold is the scrambled-null cutoff (lambda_max^scr); kept_cols are the genes
+    # that survived af's own filtering, so `genes[kept_cols]` re-aligns names to columns
     eigvals, eigvecs, threshold, kept_cols = af.get_eig_vectors(m, n_top=None)
     kept_genes = genes[kept_cols]
+    # per-gene coordination score: contribution of every above-threshold ("signal")
+    # eigenmode to that gene's diagonal, weighted by how far above threshold each
+    # mode's eigenvalue sits -- see the module docstring for the formula
     score = af.coordination_score(eigvals, eigvecs, threshold)
     n_signal = int(np.sum(eigvals > threshold))
 
@@ -190,6 +214,9 @@ corr_df.to_csv(os.path.join(OUT_DIR, "score_correlation.csv"))
 # regulated-vs-regulated, dis-vs-dis, regulated-vs-dis mean correlations
 cats = np.array([cat_map.get(f, "?") for f in mat.columns])
 def block_mean(a, b):
+    """Mean pairwise Spearman correlation between every condition in category `a`
+    and every condition in category `b` (excluding self-pairs when a == b).
+    """
     vals = []
     cols = list(mat.columns)
     for i in range(len(cols)):

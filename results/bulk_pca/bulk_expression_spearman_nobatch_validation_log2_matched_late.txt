@@ -1,0 +1,37 @@
+bulk_expression_correlation_panel.py  2026-09-03 18:07:59
+args: {'no_dendrogram': True, 'cmap': 'viridis', 'n_pairs': 2, 'suffix': '_log2_matched_late'}
+
+input   bulk_normalized_counts_log2_matched_late.csv
+        3824 genes x 12 samples, log10(normalised count + 1)
+batch   design rank 3 / 3 columns; per-gene timecourse offset: mean +0.031, mean |.| 0.166, sd 0.214
+
+--- validation ---------------------------------------------------------------
+  [ok] scipy.stats.spearmanr                          max |diff| = 3.33e-16
+  [ok] Pearson on explicit per-sample ranks           max |diff| = 3.33e-16
+  [ok] per-gene refit of the batch term (200 genes)   max |diff| = 8.88e-16
+  [ok] condition contrast preserved by the correction max |diff| in per-gene Reg - Dis = 2.22e-15
+  [ok] raw matrix vs bulk_lfc_correlation.py CSV      12 x 12 cells, max |diff| = 1.11e-16
+  [ok] Spearman invariant to log10(x + 1)             max |diff| = 0.00e+00
+  [ok] symmetric, unit diagonal, within [-1, 1]       off-diagonal range 0.7911 - 0.9928
+
+  mean off-diagonal rho, before -> after batch correction
+    same condition, same batch  0.9712 -> 0.9712  (n=12)
+    same condition, diff batch  0.9289 -> 0.9616  (n=18)
+    diff condition, same batch  0.8714 -> 0.8706  (n=18)
+    diff condition, diff batch  0.8552 -> 0.8875  (n=18)
+
+  top split of the tree vs condition: clean
+    condition  Dis-Arrest  Reg-Arrest
+    row_0                            
+    1                   0           6
+    2                   6           0
+
+--- pair scatters ------------------------------------------------------------
+  Dis-Arrest2 rep1t7         vs Dis-Arrest2 rep1t8          heatmap rho = 0.9928, scatter rho = 0.9928, Pearson r = 0.9918
+  Reg-Arrest1 rep3           vs Dis-Arrest1 rep1            heatmap rho = 0.7911, scatter rho = 0.7911, Pearson r = 0.7671
+
+7/7 checks passed
+
+wrote C:\Users\owner\Documents\Projects\manuscript_reviews\results\bulk_pca\bulk_expression_spearman_nobatch_log2_matched_late.{svg,png}
+wrote C:\Users\owner\Documents\Projects\manuscript_reviews\results\bulk_pca\bulk_expression_pair_scatter_log2_matched_late.{svg,png}
+wrote C:\Users\owner\Documents\Projects\manuscript_reviews\results\bulk_pca\bulk_expression_spearman_nobatch_log2_matched_late.csv

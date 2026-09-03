@@ -54,6 +54,12 @@ RUN_GO = True      # GO enrichment on top-loading genes of each mode
 GO_N_GENES = 50    # genes (by |loading|) fed to GO per mode
 
 DATA_DIR = os.path.join(ROOT, "data_for_paper")
+# NOTE: test8.csv is an older, 15-dataset metrics table; results/data_metrics/data_metrics.csv
+# is the current 18-dataset table (also the only one carrying permutation_p / gmp_cor_ci).
+# The category/GMP-Cor values pulled from test8.csv here are used only for display in the
+# per-mode text summary (block header, summary.csv "GMP_Cor" column) -- they do not affect
+# which eigenvectors are computed -- but they are stale relative to the paper's current
+# numbers and 3 datasets present in data_metrics.csv are entirely absent here. See FINDINGS.
 METRICS = os.path.join(ROOT, "results", "data_metrics", "test8.csv")
 OUT_DIR = os.path.join(ROOT, "results", "eigenvector_analysis")
 os.makedirs(os.path.join(OUT_DIR, "top_genes"), exist_ok=True)

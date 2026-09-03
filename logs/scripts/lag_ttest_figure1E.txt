@@ -1,0 +1,105 @@
+================================================================================
+scripts/lag_ttest_figure1E.py
+103 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Statistical backup for Figure 1E: tests whether colony lag time (time to
+    detectable growth after antibiotic exposure, from scanlag survival
+    curves) differs between the "Dis-Arrest" (dysregulated arrest, serine
+    hydroxamate) condition and each of "Reg-Arrest" (chloramphenicol) and
+    "Exponential" (untreated control). Answers whether the qualitative
+    separation visible in Figure 1E is statistically supported, using
+    biological replicate as the unit of replication rather than pooling all
+    colonies.
+
+INPUTS
+    - scanlag_data/exp2/*.csv - one file per (replicate, condition) plate,
+      each an empirical survival curve with columns X (colony appearance
+      time, minutes) and Y (fraction of colonies not yet appeared, starting
+      at 1 and stepping down by 1/N per colony). Filenames encode replicate
+      and condition, e.g. REP1SHX_t31756Min_ax1.csv.
+    - scanlag_data/exp2/REP3EXP_t00Min_ax1.csv specifically, used to derive
+      the normalization constant t0.
+    - Assumes it is run with cwd = scripts/ (REPO = parent of os.getcwd()),
+      per the repo convention in CLAUDE.md.
+
+OUTPUTS
+    Console output only (no files written): t0, per-replicate mean lag
+    times, replicate-level mean +/- SD/SEM per condition, and Welch's and
+    Student's t-test statistics/p-values for Dis-Arrest vs Reg-Arrest and
+    Dis-Arrest vs Exponential.
+
+HOW IT WORKS
+    t0 is computed as the median appearance time (column X) in the REP3
+    exponential-phase survival curve; this matches the normalization used in
+    figure1.py's panel_E (confirmed: figure1.py line 172 also uses
+    np.median on the same file). Because t0 is a single constant subtracted
+    from every group, it shifts all means equally and does not affect any SD
+    or t-test result - it is applied purely so the numbers reported here
+    match the plotted, normalized axis.
+
+    For each CSV, the script reconstructs individual colony lag times from
+    the survival curve: since Y drops by 1/N at each colony's appearance, X
+    values after the first row (which is the Y=1 baseline, not a colony) are
+    exactly the per-colony lag times. These are shifted by t0 and averaged
+    to a single per-plate mean, keyed by replicate id (parsed from the
+    filename prefix) and condition (matched by substring: EXP, CASP, SHX).
+
+    Because colonies on the same plate are not independent replicates, the
+    script deliberately collapses each plate to one number before testing,
+    so the t-test compares 3 replicate means against 3 replicate means per
+    condition rather than pooling all colonies (which would inflate n and
+    understate variance). rep_ttest() runs both Welch's t-test
+    (equal_var=False, does not assume equal variance - used as the primary
+    result) and Student's pooled-variance t-test (equal_var=True, shown for
+    comparison) via scipy.stats.ttest_ind, and prints both.
+
+KEY PARAMETERS AND CONSTANTS
+    t0 - median appearance time of REP3EXP_t00Min_ax1.csv; a normalization
+        offset, not a fitted or tunable parameter. Comment notes it changed
+        from minimum to median in a 2026 revision of figure1.py to reduce
+        sensitivity to a single earliest colony.
+    groups mapping ("EXP"/"CASP"/"SHX" -> condition label) - depends on the
+        scanlag_data/exp2 filenames continuing to embed these exact
+        substrings; a renamed file with a different tag would silently drop
+        out of every group (see FINDINGS).
+    ddof=1 throughout - sample (not population) standard deviation, correct
+        for the small-n (n=3) replicate-level statistics reported here.
+
+FINDINGS
+    [1] RISK - a file that doesn't contain any of "EXP"/"CASP"/"SHX" is
+        silently dropped, not flagged
+        Location: lines 61-63 (the `for condition, tag in groups.items()`
+        loop inside the main file loop)
+        What the code does: for every CSV in scanlag_data/exp2/, it checks
+        which of the three tag substrings appears in the filename and stores
+        a replicate mean only for a match; there is no `else` branch or
+        assertion that every file matched exactly one condition.
+        Why that is a problem: a mis-named or unrelated file in that
+        directory is silently ignored rather than raising an error, so a
+        missing replicate (e.g. an expected REP2 that never gets added to
+        rep_means) would not be caught here - it would only surface as a
+        smaller sample size in the printed n, easy to miss.
+        Suggested fix: assert len(rep_means[condition]) == 3 for each
+        condition before running the t-tests, or collect and report any
+        unmatched filenames.
+
+    [2] SMELL - replicate id parsing is fragile string-splitting
+        Location: line 59, `f.split("EXP")[0].split("CASP")[0].split("SHX")[0]`
+        What the code does: derives the replicate id by chaining three
+        .split() calls, relying on the condition tag being a contiguous
+        substring that appears exactly once and only as the condition
+        marker.
+        Why that is a problem: purely cosmetic/robustness concern, not
+        currently wrong for the observed filenames (e.g. "REP1SHX_..." ->
+        "REP1"), but would misparse if a replicate id itself ever contained
+        one of those three substrings.
+
+RELATED FILES
+    - scripts/figures/figure1.py, panel_E (around line 172) - plots the same
+      scanlag_data/exp2 curves with the same t0 = median(REP3EXP...)
+      normalization that this script reproduces for the statistical test.
+      Confirmed consistent as of this review.
+    - scanlag_data/exp2/*.csv - raw survival-curve data, also potentially
+      used by other scanlag-related scripts/notebooks.

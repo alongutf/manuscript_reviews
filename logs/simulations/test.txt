@@ -1,0 +1,142 @@
+================================================================================
+simulations/test.py
+91 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    An exploratory scratch script simulating a synthetic gene-regulatory network:
+    N_TRAJ independent trajectories of N_FEATURES genes evolve under a random
+    activator/repressor interaction network with a saturating, competitive-binding
+    style update rule, linear decay, and additive Gaussian noise, integrated with a
+    fixed-step Euler scheme. It is not referenced by CLAUDE.md's documented
+    pipeline and is not called by any other script or notebook in the repo. It
+    reads no data and is meant to be run interactively (the leftover PyCharm
+    "Press Shift+F10" comments confirm this) to sanity-check the dynamics before
+    such a model is used for anything downstream.
+
+INPUTS
+    None. All parameters (N_TRAJ, N_FEATURES, N_STEPS, J, degradation_rate,
+    noise_amp, seeds) are hard-coded module-level constants near the bottom of the
+    file.
+
+OUTPUTS
+    results\sim_test_J-<J>.npy - float32 array, shape (N_TRAJ, N_FEATURES,
+        N_STEPS), the full simulated trajectories. Written with a relative path,
+        so it lands wherever "results" resolves under the current working
+        directory when the script is run, and the directory is not created by the
+        script (it must already exist).
+    A matplotlib plot of gene 0's trajectory for every 20th simulated trajectory,
+        shown interactively via plt.show() (not saved to disk).
+
+HOW IT WORKS
+    generate_interaction_matrix(J, n_features) draws one shared random weight
+    matrix W (absolute standard normal scaled by J/sqrt(n_features), diagonal
+    removed) and an independent Bernoulli(0.5) mask A, then splits W into an
+    activating half W_1 = W*A and a repressing half W_2 = W*(1-A). Because the two
+    halves come from the same underlying weights, a given gene pair's interaction
+    is either purely activating or purely repressing, never both.
+
+    regenerate_interaction_matrix() partially redraws a network in place (used
+    nowhere in this script; dead code here, though a variant is used with a
+    genuine subpopulation-mixing ratio in simulations/subpopulations.py).
+
+    competitive_binding(n_trajectories, n_features, n_steps, dt, random_state)
+    is the core numba-parallel (prange) simulation loop. Every trajectory starts
+    from x=1 for all genes, draws its own fresh interaction network inside the
+    parallel loop (so trajectories differ in both network and noise, not noise
+    alone), and is integrated forward n_steps with the update
+        dx = dt * ( -DEG*x + RATE*(W_act@x)/(1 + W_rep@x + W_act@x) + NOISE*xi )
+    followed by clipping x at 0. DEG and NOISE are read from the enclosing module's
+    global degradation_rate/noise_amp rather than being passed as arguments -
+    numba's njit closes over the values present at compile time, so changing those
+    globals after the function has been JIT-compiled does not change its behavior
+    until the process/module is reloaded.
+
+    The bottom of the file times a single run (seeds=[None], so unseeded), prints
+    the output shape and elapsed time, plots a quick sanity-check trace per
+    trajectory, and saves the result.
+
+KEY PARAMETERS AND CONSTANTS
+    N_TRAJ = 500, N_FEATURES = 1000, N_STEPS = 1000 - simulation size; increasing
+        these scales runtime roughly linearly (trajectories, parallelized) times
+        quadratically in n_features (matrix-vector product per step).
+    J = 2 - interaction-strength scale; larger J means each gene's inputs from
+        generate_interaction_matrix are larger, pushing the dynamics into a more
+        strongly coupled / potentially saturating regime.
+    degradation_rate = 2, noise_amp = 1 - linear decay rate and additive noise
+        amplitude; both are consumed as numba-closed-over globals (DEG, NOISE)
+        inside competitive_binding, see HOW IT WORKS.
+    dt = 0.01 (passed positionally in the call at the bottom) - Euler step size;
+        too large relative to degradation_rate/RATE risks numerical instability
+        since there is no adaptive step-size control.
+    seeds = [None] - a single unseeded run; the surrounding for-loop is scaffolding
+        for sweeping multiple seeds that is not currently used.
+    source = 0 - assigned but never referenced anywhere in the file.
+
+FINDINGS
+    [1] SMELL - near-duplicate of simulations/competitive_binding.py
+        Location: whole file.
+        What the code does: generate_interaction_matrix, regenerate_interaction_
+            matrix, and competitive_binding here are structurally the same model
+            as the equivalently named functions in simulations/competitive_
+            binding.py (a sibling script in the same directory), down to the
+            update equation and the reused global DEG/NOISE pattern.
+        Why that is a problem: two independent copies of the same physics/model
+            code exist in the repo. A fix or parameter change made in one is not
+            guaranteed to be made in the other, so results between them could
+            silently diverge for a specification that is supposed to be identical.
+        Suggested fix: if this file's scratch experimentation is done, either
+            delete it or replace its body with a thin import from simulations/
+            competitive_binding.py's functions plus whatever ad hoc tweak this
+            script was being used to try.
+
+    [2] INCONSISTENCY - output path does not follow the CLAUDE.md simulation
+        output convention
+        Location: line with np.save(f"results\\sim_test_J-{J}.npy", results).
+        What the code does: writes to a bare relative "results\" directory, and
+            does not create it if missing.
+        Why that is a problem: CLAUDE.md's Workflow section states "Always use
+            these paths when creating new simulation runners" for results under
+            results/simulation_results/{figures,raw,logs}/, with a documented
+            naming convention (<experiment_name>_<timestamp>.<ext>) and a
+            requirement to log every parameter for reproducibility (in logs/*.json).
+            This script writes to a different, undocumented location with a bare
+            filename, no timestamp, and no parameter log file, and will crash with
+            FileNotFoundError if "results\" does not already exist in the current
+            working directory.
+        Suggested fix: not necessary to fix if this stays a personal scratch file
+            outside the documented pipeline; otherwise route through the same
+            results/simulation_results/ convention used by simulations/
+            subpopulation_mixing_run.py and friends.
+
+    [3] RISK - reproducibility of random_state is not guaranteed
+        Location: competitive_binding(), the np.random.seed(random_state) call and
+            the per-trajectory network draw inside the prange loop.
+        What the code does: only numpy's global RNG (used for the shared
+            noise_block) is seeded via random_state; the per-trajectory
+            interaction-network draw inside generate_interaction_matrix runs
+            inside numba's own RNG state, executed in parallel (prange) across
+            trajectories with no explicit per-trajectory sub-seed.
+        Why that is a problem: even with random_state fixed, exact reproducibility
+            of a run depends on numba's parallel scheduling assigning loop
+            iterations to threads in a deterministic order, which is not
+            guaranteed across runs, machines, or numba/thread-pool versions.
+        Suggested fix: not critical for a scratch/interactive file; if this model
+            were promoted to a published simulation, seed each trajectory's network
+            draw explicitly (e.g. via a per-i numpy Generator) as the more careful
+            sibling scripts (e.g. subpopulation_mixing_run.py) already appear to do
+            for their published numbers.
+
+RELATED FILES
+    simulations/competitive_binding.py - near-duplicate model implementation, see
+        Finding 1.
+    simulations/subpopulations.py, simulations/sparse_network.py,
+        simulations/symetric.py - further variants of the same competitive-binding
+        model family with different tweaks (subpopulation mixing, sparse networks,
+        symmetric interactions).
+    simulations/subpopulation_mixing_run.py - the CLAUDE.md-documented, actually
+        published simulation runner that does follow the results/simulation_
+        results/ output convention this script does not.
+    src/simulations.py - the library-level synthetic scRNA-seq generator actually
+        used by scripts/simulated_data.ipynb; this script is unrelated exploratory
+        code, not an alternate entry point into that pipeline.

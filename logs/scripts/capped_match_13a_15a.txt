@@ -1,0 +1,152 @@
+================================================================================
+scripts/capped_match_13a_15a.py
+159 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A depth-matching diagnostic comparing GMP-Cor between two "dysregulated
+    arrest" replicates, sample 13a (dis1) and sample 15a (dis2). It tests an
+    alternative cell-selection scheme to the uniform-draw approach used
+    elsewhere (equate_dims_*): rather than drawing uniformly from each
+    sample's usable pool (which leaves the shallower-pooled sample 15a with
+    a lower average depth than 13a), it caps 15a's eligible cells at 13a's
+    single deepest cell, then takes the top 1000 cells below that cap from
+    each sample. The intent is to remove 15a's extreme high-depth tail
+    before selection so the two samples' depth distributions are matched
+    going into GMP-Cor. This is exploratory revision-support analysis (part
+    of the GMP-Cor depth-confound investigation), not a script feeding a
+    published figure directly.
+
+INPUTS
+    - <rnaseq_correlations repo>/data/sample_13a_unfiltered.csv and
+      sample_15a_unfiltered.csv - full unfiltered barcode x gene count
+      matrices. Not part of this repo; read from a hard-coded sibling-repo
+      path (see FINDINGS, same issue as scripts/locate_paper_cells.py).
+    - <rnaseq_correlations repo>/filtered_data/k12_biotype_map.csv - gene ->
+      biotype table used to restrict to protein-coding genes.
+    - results/cluster_gmp_cor/barcode_stats/{dis1,dis2}.npz - pre-built
+      per-barcode depth caches (must already contain an 'mrna' array and a
+      'barcode' array per sample); built by some other script in this
+      family (not this one - this script only reads them).
+
+OUTPUTS
+    - results/cluster_gmp_cor/capped_match_<timestamp>.csv - one row per
+      (sample, metric) with n_cells, n_genes, mean/median total expression,
+      mean genes detected, lambda_max, lambda_max_scrambled, gmp_cor.
+    - results/cluster_gmp_cor/capped_match_<timestamp>.json - the same
+      results plus the run parameters (n_cells, detection_frac, norm_sum,
+      seed), for reproducibility.
+    - console output: selection summary (depth range/median per sample),
+      common gene set size, and a final comparison table.
+
+HOW IT WORKS
+    main() loads the cached per-barcode mRNA-count arrays for both samples.
+    For the (currently only) 'mrna' metric, it sets `cap` to 13a's single
+    deepest cell's count, selects 13a's own top 1000 cells by mRNA count
+    (unconstrained, since it defines the cap), and selects 15a's top 1000
+    cells among only those strictly below the cap - i.e. after discarding
+    any 15a cell deeper than 13a's deepest cell. This directly targets the
+    depth-confound concern noted in project memory (GMP-Cor scales with
+    sequencing depth p): if 15a's tail is deeper than anything 13a has, a
+    uniform draw would leave 15a systematically deeper on average, inflating
+    its GMP-Cor relative to 13a for reasons unrelated to biology.
+
+    load_rows() then streams each sample's unfiltered CSV in chunks,
+    restricting to the selected barcodes and to protein-coding gene columns
+    (protein_coding_mask(), which also strips a probe-naming prefix that the
+    biotype map does not carry). The two samples' gene sets are intersected
+    to genes detected in at least DETECTION_FRAC of retained cells in BOTH
+    samples, so both samples are analyzed on an identical gene axis - a
+    requirement for comparing GMP-Cor values across samples, otherwise
+    differences in gene set size alone could shift the sum.
+
+    gmp_cor() calls af.get_eig_dist (the shared eigenvalue-spectrum routine
+    from src/analysis_functions.py) on each sample's matrix, row-normalized
+    to NORM_SUM total counts per cell. GMP-Cor is the sum of the positive
+    excess of the observed eigenvalue spectrum over the maximum of the mean
+    scrambled (permuted) spectrum - the same "signal above random-shuffle
+    noise ceiling" definition used throughout the pipeline. Results per
+    sample are collected into a table and written to CSV/JSON with the run
+    parameters attached for reproducibility.
+
+KEY PARAMETERS AND CONSTANTS
+    N_CELLS = 1000 - cells drawn per sample after capping; a round-number
+        choice matched to other GMP-Cor comparisons in this family of
+        scripts, not derived from either sample's pool size.
+    DETECTION_FRAC = 0.05 - a gene needs >=5% detection in BOTH samples'
+        retained cells to stay in the shared gene set.
+    NORM_SUM = 50 - per-cell target sum for row normalization before the
+        eigenvalue decomposition; must match the normalization convention
+        used by other scripts computing GMP-Cor for it to be comparable.
+    SEED = 0 - fixes np.random before calling af.get_eig_dist, whose 10
+        repeated column scrambles (see get_eig_dist's `rep=10` loop) draw on
+        the global numpy RNG; without a fixed seed, gmp_cor's scrambled
+        threshold (and hence GMP-Cor) would vary slightly between runs.
+    'mrna' metric only - see FINDINGS [1]; the docstring's claimed
+        total-count variant is not implemented.
+
+FINDINGS
+    [1] INCONSISTENCY - module docstring promises a total-count selection
+        variant that the code does not compute
+        Location: module docstring lines 8-10 vs. the metric loop at
+        `for metric in ['mrna']:` (line ~92 after edits)
+        What the code does: the docstring states "Selection is done on mRNA
+        counts (rRNA/tRNA dropped first) as the primary variant, with a
+        total-count variant reported alongside since the original pipeline
+        thresholded on totals." The actual loop iterates over
+        `['mrna']` only - no 'total' metric is ever selected on or reported.
+        Why that is a problem: a reader of the docstring (or of any output
+        table) would expect a second row/column set comparing selection-by-
+        total-count against selection-by-mRNA-count, matching how the
+        original pipeline thresholded cells; that comparison is simply
+        absent from both the console output and the written CSV/JSON. This
+        could mean the total-count variant was removed during iteration and
+        the docstring not updated, or that it was never finished.
+        Suggested fix: either add 'total' back into the metric loop (the
+        cached .npz files would need a 'total' array analogous to 'mrna'),
+        or trim the docstring to describe only the mRNA-based selection that
+        is actually run.
+
+    [2] RISK - hard-coded, machine-specific absolute path to a sibling repo
+        Location: OTHER (near top of file)
+        What the code does: reads the unfiltered matrices and biotype map
+        from `C:\Users\owner\Documents\Projects\rnaseq_correlations`, a
+        directory outside this repo and outside version control.
+        Why that is a problem: same issue as scripts/locate_paper_cells.py -
+        the script cannot run on another machine/checkout without that
+        exact sibling directory present. Not independently re-verified here
+        beyond confirming the path exists on this machine (see
+        locate_paper_cells.txt for the direct check).
+        Suggested fix: make the path configurable rather than hard-coded.
+
+    [3] RISK - depends on an externally-built cache with an undocumented
+        contract
+        Location: `st = {s: dict(np.load(... f'{s}.npz' ...))}` near the top
+        of main()
+        What the code does: assumes results/cluster_gmp_cor/barcode_stats/
+        {dis1,dis2}.npz already exist and contain 'mrna' and 'barcode' keys
+        aligned index-for-index; this script does not build that cache
+        itself and has no fallback or validation if it is missing, stale, or
+        built with a different barcode-truncation convention.
+        Why that is a problem: if the cache was built by a different script
+        (not part of this batch) with a different filtering/definition of
+        "mrna" (e.g. including or excluding different biotypes than this
+        script's own protein_coding_mask), the depth-matching logic here
+        would silently use an inconsistent definition without any error.
+        Not verified against the cache-building script since it is outside
+        this review batch.
+
+RELATED FILES
+    - results/cluster_gmp_cor/barcode_stats/{dis1,dis2}.npz - external
+      dependency; the script that builds these was not in this review batch
+      and should be checked for consistency with this script's own
+      protein_coding_mask()/mRNA definition.
+    - scripts/locate_paper_cells.py - same hard-coded sibling-repo path and
+      the same protein_coding_mask()/'lelobekk_' prefix-stripping pattern,
+      duplicated rather than shared via src/.
+    - src/analysis_functions.py:get_eig_dist - the shared eigenvalue-vs-
+      scrambled routine this script relies on for GMP-Cor; also used
+      throughout scripts/figures and the simulations/ scripts in this batch.
+    - documents/gmp_cor_provenance_analysis.md, documents/
+      subsampling_analysis.md - narrative documentation of the GMP-Cor
+      depth-confound question this script is investigating.

@@ -1,0 +1,118 @@
+================================================================================
+scripts/supplementary_figures/scanlag_1cdf.py
+66 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A standalone plotting utility (not part of the manuscript's figure-numbering
+    scheme, judging by its name and its hard-coded external-drive input path) that
+    draws a 1-CDF ("fraction of non-growing bacteria" vs. lag time) plot from
+    ScanLag data for an ad-hoc use (the output path comment in the source data
+    location references "GRC conference figures"), for an arbitrary number of
+    conditions read directly out of one Excel sheet. It performs the same kind of
+    lag-time CCDF computation as figure_s9.py's panel A, but from a different,
+    differently-laid-out source file and with its own from-scratch CCDF formula.
+
+INPUTS
+    G:\Other computers\My MacBook Air\Alon\PhD\documents\GRC conference\figures\
+        scanlag_data.xlsx (hard-coded absolute path, DATA) - fixed-layout sheet:
+        row 0 = condition name per column, row 2 = t0 (numeric, not a "t0="
+        string), rows 4+ = raw lag-time measurements (minutes), one column per
+        condition.
+    No CLI arguments; no other files read.
+
+OUTPUTS
+    scanlag_1cdf.svg (transparent background), written into the same directory as
+        the input Excel file (OUT_DIR = dirname(DATA)).
+    scanlag_1cdf_preview.png, written next to this script instead (a different
+        directory from the .svg).
+
+HOW IT WORKS
+    The whole script runs at module scope, no functions defined. It reads the
+    sheet with pd.read_excel(header=None), pulling condition labels from row 0 and
+    t0 (already numeric here, unlike figure_s9.py's "t0=<value>" string format in
+    casp+shx.xlsx) from row 2.
+
+    For each condition column: raw lag values (rows 4+) are coerced to numeric,
+    NaNs dropped, and shifted by that column's t0. Non-positive values are dropped
+    (required for the log y-axis; also implicitly required because sorting +
+    ranking assumes all values are on the same, positive, side of zero). The
+    complementary CDF is computed as `1 - rank/n` (rank starting at 1) - note this
+    omits the "+1/n" finite-sample correction used in figure_s8.py's CCDF - then a
+    synthetic leading point (x=xmin=10, y=1) is prepended so every step curve
+    starts flat at y=1 from the left edge of the plot rather than at whichever lag
+    time happens to be smallest for that condition.
+
+    Styling: the condition literally named 'Reg-Arrest' (exact string match after
+    stripping whitespace) is always drawn in steelblue; every other condition
+    cycles through three preset dark-to-light red shades and three line styles
+    (solid/dashed/dotted), assigned in the order columns appear in the sheet.
+
+KEY PARAMETERS AND CONSTANTS
+    xmin = 10 - left edge of the plotted x-range and the x-value used for the
+        synthetic leading (x, y=1) point; also hard-coded again as ax.set_xlim(left=10).
+    RED_SHADES / RED_STYLES - three entries each; see Finding 1.
+    ax.set_yscale('log') with ax.set_xscale('log') commented out - x-axis stays
+        linear, presumably (by analogy with figure_s9.py) to keep any negative,
+        t0-shifted values visible, though no comment in this file states that
+        reasoning explicitly.
+
+FINDINGS
+    [1] RISK - the number of "other" (non-Reg-Arrest) conditions in the input
+        sheet is assumed to be at most 3, with no check.
+        Location: lines ~44-49 (red_i indexing into RED_SHADES / RED_STYLES)
+        What the code does: every column whose stripped label is not exactly
+            'Reg-Arrest' consumes the next element of RED_SHADES/RED_STYLES (both
+            length 3) via `RED_SHADES[red_i]`, incrementing red_i each time.
+        Why that is a problem: if the sheet at DATA ever contains more than 3 non-
+            Reg-Arrest columns, this raises an uncaught IndexError and the script
+            crashes; since DATA lives outside the repository (an external drive,
+            not version-controlled), this could change without the script's
+            history reflecting it.
+        Suggested fix: derive the color/style cycle length from
+            min(len(RED_SHADES), n_other_conditions), or use
+            itertools.cycle(zip(RED_SHADES, RED_STYLES)) so extra conditions repeat
+            styles instead of crashing.
+
+    [2] RISK - hard-coded, machine-specific absolute input path; the script cannot
+        run unmodified on any machine other than the one it was written on, and
+        its data source is not tracked in this repository.
+        Location: line ~17 (DATA = r'G:\Other computers\...')
+        What the code does: DATA is an absolute Windows path onto what appears to
+            be a cloud-synced folder for a specific external drive/user account.
+        Why that is a problem: this makes the script non-reproducible for anyone
+            else (or the same author on a different machine), and OUT_DIR (derived
+            from DATA) means the primary .svg output is written outside the repo
+            entirely - it will not appear in git history or be discoverable by a
+            collaborator, only the PNG preview (saved next to the script) is.
+        Suggested fix: move scanlag_data.xlsx into the repo's scanlag_data/
+            directory (as casp+shx.xlsx already is, for the equivalent figure_s9.py
+            panel) and reference it with the same repo-root-relative path pattern
+            used by the other supplementary-figure scripts.
+
+    [3] INCONSISTENCY - the CCDF formula here differs from the one used for the
+        structurally identical computation elsewhere in the repository.
+        Location: line ~41 (y = 1.0 - np.arange(1, len(x) + 1) / len(x))
+        What the code does: computes the complementary CDF as `1 - rank/n`, with no
+            correction term.
+        Why that is a problem: figure_s8.py's _plot_ccdf computes the analogous
+            eigenvalue-CCDF as `1 - rank/n + 1/n` (the standard "+1/n" finite-sample
+            correction, which keeps the largest point's CCDF value just under 1
+            rather than exactly at the discontinuity). The two conventions agree
+            almost everywhere but differ visibly at the extreme points on a log
+            axis; since this script computes materially the same kind of quantity
+            (a lag-time CCDF, directly comparable to figure_s9.py's plot of the
+            same underlying measurement type), using a different formula from a
+            sibling script for the same statistic is worth reconciling, or at least
+            documenting as a deliberate choice.
+        Suggested fix: align this script's CCDF formula with figure_s8.py's (or
+            vice versa) unless the difference is intentional, and if so, say why
+            in a comment.
+
+RELATED FILES
+    scripts/supplementary_figures/figure_s9.py - computes and plots an equivalent
+        lag-time CCDF from a different (repo-tracked) source file, with a
+        different formula (see Finding 3) and a different, dynamic condition-color
+        mapping instead of this file's fixed 3-shade cycle (see Finding 1).
+    scripts/supplementary_figures/figure_s8.py - source of the "+1/n" CCDF
+        convention this file's formula is compared against.

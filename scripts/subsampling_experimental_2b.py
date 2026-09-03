@@ -98,6 +98,7 @@ STEM = 'subsampling_experimental_2b'
 # ── Data ─────────────────────────────────────────────────────────────────────
 
 def load_matrix():
+    """Read sample_2b_filtered.csv and drop non-gene / reporter columns."""
     d = pd.read_csv(DATA_FILE, index_col=0).fillna(0.0)
     drop = [c for c in d.columns
             if str(c).lower().startswith('unnamed') or str(c).startswith('INTR_')
@@ -109,7 +110,12 @@ def load_matrix():
 
 
 def subsample_curve(pool, label, sizes, n_repeats, seed_base):
-    """GMP-Cor over cell subsamples of a fixed-gene matrix."""
+    """GMP-Cor over cell subsamples of a fixed-gene matrix.
+
+    `pool` is cells x genes; the gene panel is never subsampled here, only cells,
+    so the resulting curve isolates the effect of cell number alone (Experiment 4
+    of the synthetic subsampling analysis, see module docstring).
+    """
     records = []
     for n in sizes:
         for rep in range(n_repeats):
@@ -130,6 +136,8 @@ def subsample_curve(pool, label, sizes, n_repeats, seed_base):
 
 
 def simulated_pool(n_cells, n_genes):
+    """Generate the calibrated (rho=0.7) synthetic arm, matched to the experimental
+    matrix's cell/gene dimensions so its scaling is directly comparable."""
     sigma = generate_gram_hub_matrix(n_genes, SIM_RHO, SIM_SHAPE, SIM_HUB_PROB,
                                      seed=SIM_SIGMA_SEED)
     mu = draw_gene_means(n_genes, seed=SIM_MU_SEED, inv_gamma_scale=SIM_INV_GAMMA_SCALE)
@@ -140,7 +148,13 @@ def simulated_pool(n_cells, n_genes):
 
 
 def published_sim_curve():
-    """The rho=0.9 synthetic curve from the existing run log."""
+    """The rho=0.9 synthetic curve from the existing run log.
+
+    Read from disk rather than regenerated, so this arm reflects exactly the run the
+    existing write-up cites; it is NOT dimension- or sparsity-matched to sample_2b
+    (see the module docstring caveat), so treat it as an illustrative third curve,
+    not a controlled comparison.
+    """
     if not os.path.exists(PUBLISHED_SIM_LOG):
         print(f'! published sim log not found: {PUBLISHED_SIM_LOG}')
         return []
@@ -153,6 +167,12 @@ def published_sim_curve():
 # ── Summary ──────────────────────────────────────────────────────────────────
 
 def summarize(df):
+    """Per-arm, per-size summary, each arm normalised to its own value at n=1000.
+
+    GMP-Cor is extensive in gene count and its noise threshold depends on matrix
+    shape, so the three arms (different gene panels, different generative models)
+    are only comparable as a ratio to their own reference point, not in raw units.
+    """
     rows = []
     for arm, g_arm in df.groupby('arm', sort=False):
         ref = g_arm[g_arm['n_cells'] == REFERENCE_SIZE]['gmp_cor'].mean()
@@ -239,6 +259,7 @@ def make_figure(summary, path_svg, path_png):
 
 
 def write_summary(summary, pool_shape, paths, timestamp):
+    """Build the human-readable .txt report (design, per-arm tables, scaling comparison)."""
     lines, w = [], None
     out = []
     w = out.append
@@ -307,6 +328,8 @@ def write_summary(summary, pool_shape, paths, timestamp):
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
+    """Run all three arms (experimental, calibrated simulation, published simulation),
+    summarise, plot, and write the json/txt/csv/svg outputs."""
     for d in (_FIG_DIR, _RAW_DIR, _LOG_DIR):
         os.makedirs(d, exist_ok=True)
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')

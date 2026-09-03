@@ -43,20 +43,20 @@ from src.analysis_functions import get_eig_dist  # noqa: E402
 
 # ── Parameters (identical pool/seeds to the top-only run) ─────────────────────
 
-RHO            = 0.9
-CELL_SIZES     = [200, 400, 600, 800, 1000]
-RATIO          = 0.5
+RHO            = 0.9                                            # regulated regime (high shared-variance)
+CELL_SIZES     = [200, 400, 600, 800, 1000]                     # subsample sizes swept
+RATIO          = 0.5                                             # cell:gene ratio held fixed across sizes
 GENE_SIZES     = [int(round(c / RATIO)) for c in CELL_SIZES]   # 400..2000
 
-N_CELLS_POOL   = 1200
-N_GENES_POOL   = 2400
+N_CELLS_POOL   = 1200            # size of the master pool cells are drawn from without replacement
+N_GENES_POOL   = 2400            # must be >= max(GENE_SIZES) so every draw is possible
 
-N_REPEATS      = 5
-DROPOUT_RATE   = 1.0
-SHAPE          = 1.5
-HUB_PROB       = 0.2
-SIGMA_SEED     = 31
-COUNT_SEED     = 0
+N_REPEATS      = 5               # independent repeats per (method, size) for mean/SD
+DROPOUT_RATE   = 1.0             # passed through to simulate_scRNA_data
+SHAPE          = 1.5             # Pareto cluster-size shape for generate_gram_hub_matrix
+HUB_PROB       = 0.2             # hub connectivity probability for generate_gram_hub_matrix
+SIGMA_SEED     = 31              # RNG seed for the pool's correlation (hub-network) matrix
+COUNT_SEED     = 0               # RNG seed for the pool's count sampling
 SUBSAMPLE_SEED = 1000          # base for CELL draws (matches earlier run)
 GENE_RNG_BASE  = 2_000_000     # base for RANDOM gene draws (separate stream)
 
@@ -80,12 +80,18 @@ PNG_FIG  = os.path.join(_FIG_DIR, f'subsampling_genecmp_rho09_{_ts}.png')
 
 
 def gmp_cor(observed):
+    # GMP-Cor for one cells x genes count matrix: sum of eigenvalue excess above the
+    # scrambled-matrix noise ceiling (get_eig_dist already row-normalizes to norm_sum=100
+    # and z-transforms columns internally; norm_sum here need not match other scripts'
+    # choice since GMP-Cor is compared only within this run).
     pcs, pcs1, _ = get_eig_dist(observed, norm=True, log=False, norm_sum=100)
     return float(np.sum(np.maximum(pcs - pcs1.max(), 0)))
 
 
 # ── Generate the pool (same seeds → identical to the earlier run) ─────────────
 
+# One large synthetic dataset (fixed hub-network topology, fixed count draw) that every
+# cell size / repeat below subsamples from, so all comparisons share the same ground truth.
 print(f'Generating pool: {N_CELLS_POOL} cells x {N_GENES_POOL} genes at rho={RHO} ...')
 sigma_pool = generate_gram_hub_matrix(N_GENES_POOL, RHO, SHAPE, HUB_PROB, seed=SIGMA_SEED)
 _, pool = simulate_scRNA_data(
@@ -110,8 +116,11 @@ for n_cells, n_genes in zip(CELL_SIZES, GENE_SIZES):
 
         for method in METHODS:
             if method == 'top':
+                # highest total-count genes first, as in subsampling_robustness_rho09_run.py
                 gene_idx = np.argsort(gene_totals)[::-1][:n_genes]
             else:  # random
+                # independent RNG stream (GENE_RNG_BASE) so gene choice never overlaps
+                # with the cell-draw RNG stream above
                 gene_rng = np.random.default_rng(GENE_RNG_BASE + 1000 * n_cells + rep)
                 gene_idx = gene_rng.choice(pool.shape[1], size=n_genes, replace=False)
 
@@ -173,6 +182,9 @@ sep = '-' * 72
 
 
 def _spread(xs):
+    # Range as a percentage of the mean — a scale-free measure of how much a series
+    # varies across the sweep; used below to judge whether the per-gene GMP-Cor index
+    # is effectively flat (size-invariant) across the 5x cell-size range.
     xs = list(xs)
     return (max(xs) - min(xs)) / np.mean(xs) * 100 if np.mean(xs) else float('nan')
 
@@ -237,6 +249,9 @@ for rt, rr in zip(summary['top'], summary['random']):
 top_pg = [r['mean_per_gene'] for r in summary['top']]
 rnd_pg = [r['mean_per_gene'] for r in summary['random']]
 FLAT_THRESH = 15.0   # % spread below which the per-gene index is "size-invariant"
+# NOTE: top_flat / rnd_flat are computed but the INTERPRETATION text below is a fixed
+# narrative that always asserts "top is flat, random is not" rather than branching on
+# these flags — see the log file's FINDINGS section.
 top_flat = _spread(top_pg) < FLAT_THRESH
 rnd_flat = _spread(rnd_pg) < FLAT_THRESH
 rnd_fold = max(rnd_pg) / min(rnd_pg) if min(rnd_pg) > 0 else float('inf')
@@ -254,6 +269,9 @@ lines += [
         width=72, initial_indent='  ', subsequent_indent='  ',
     ),
     '',
+    # "0.09x -> 0.77x" below is a literal, hand-written figure, not derived from the
+    # `ratio` values computed and printed in the PER-GENE INDEX table above — it will
+    # go stale if the underlying simulation numbers change on a re-run.
     *textwrap.wrap(
         f'The apparent per-gene scale-invariance therefore DOES depend on '
         f'retaining informative, highly-expressed genes. A random panel is '
@@ -289,6 +307,9 @@ with open(TEXT_LOG, 'w', encoding='utf-8') as fh:
 print('\n' + summary_text)
 
 # ── Figure ───────────────────────────────────────────────────────────────────
+# Two panels: (A) raw GMP-Cor vs. cell count, both methods, showing extensivity;
+# (B) per-gene GMP-Cor vs. cell count, the scale-free index this script is testing
+# for size-invariance under each gene-selection rule.
 
 STYLE = {
     'top':    dict(color='#67000d', marker='o', label='top expression'),

@@ -78,6 +78,9 @@ bulk = clean_ids(pd.read_csv(os.path.join(DATA, "bulk_count_data.csv"), index_co
 shx = clean_ids(pd.read_csv(os.path.join(DATA, "time_in_shx_count_data.csv"), index_col=0))
 casp = clean_ids(pd.read_csv(os.path.join(DATA, "time_in_casp_count_data.csv"), index_col=0))
 
+# keep only the CASP/Disrupted arrest samples (drop the EXP_* exponential controls);
+# unlike bulk_lfc_pca.py, technical replicates (biorep1a/1b/1c) are NOT collapsed here,
+# so each one enters the PCA as its own column/sample
 bulk = bulk[[c for c in bulk.columns if c.startswith(("CASP", "Disrupted"))]]
 shx = shx[[c for c in shx.columns if c.rstrip().endswith(("t6", "t7", "t8"))]]
 casp = casp[[c for c in casp.columns if c.startswith("CASP")]]
@@ -107,6 +110,10 @@ meta["sample"] = [c.split("|")[1] for c in counts.columns]
 
 
 def condition(name):
+    """Condition label for a "<dataset>|<sample>" column name: CASP/Disrupted for the
+    bulk dataset, the SHX time point suffix for the shx dataset, or a single
+    "CASP_time" label for every casp time-course sample.
+    """
     ds, s = name.split("|")
     if ds == "bulk":
         return "CASP" if s.startswith("CASP") else "Disrupted"
@@ -134,6 +141,10 @@ meta["biogroup"] = np.where(meta["label"].str.startswith("Reg"),
 meta["batch"] = np.where(meta["dataset"] == "bulk", "bulk", "timecourse")
 
 # ------------------------------------------------------------------ VST
+# variance-stabilising transform on absolute counts (not fold changes -- contrast
+# with bulk_lfc_pca.py, which additionally normalises by size factor and subtracts
+# each sample's own exponential control before PCA); no low-count gene filter is
+# applied here, unlike bulk_lfc_pca.py's --min-count
 dds = DeseqDataSet(counts=counts.T, metadata=meta, design_factors="condition",
                    refit_cooks=False, quiet=True)
 dds.vst(use_design=False)  # blind VST: dispersion trend fit on the mean only
@@ -151,6 +162,8 @@ if args.remove_batch:
     X = np.column_stack([keep, batch.values])
     if np.linalg.matrix_rank(X) < X.shape[1]:
         raise SystemExit("design is rank-deficient: batch and biogroup are confounded")
+    # rcond=None selects numpy's current default (machine-precision-based) cutoff for
+    # treating small singular values as zero, rather than the deprecated fixed cutoff
     coefs, *_ = np.linalg.lstsq(X, vst.values, rcond=None)
     batch_fit = batch.values @ coefs[keep.shape[1]:]
     vst = pd.DataFrame(vst.values - batch_fit, index=vst.index, columns=vst.columns)
@@ -158,9 +171,12 @@ if args.remove_batch:
           f"{X.shape[1]} coefficients)")
 
 # ------------------------------------------------------- HVG selection + PCA
+# top N_HVG genes by variance across all samples/experiments; PCA on those (rather
+# than all shared genes) so PC1/PC2 are driven by the genes that actually vary
 hvg = vst.var(axis=0).sort_values(ascending=False).index[:N_HVG]
 X = vst[hvg].values
-X = X - X.mean(axis=0)
+X = X - X.mean(axis=0)     # explicit centring (redundant with, but harmless alongside,
+                           # sklearn PCA's own internal centring)
 
 pca = PCA(n_components=min(5, X.shape[0]))
 pcs = pca.fit_transform(X)
@@ -186,6 +202,9 @@ for lab in ORDER:
                zorder=3)
 # short per-point tags: replicate id (bulk) or time point (time course)
 def tag(s):
+    """Compact point-annotation label: strip the dataset-specific sample prefix and
+    abbreviate '...min' time points to "...'" so labels fit next to scatter points.
+    """
     s = s.replace("Disrupted_biorep", "").replace("CASP_biorep", "")
     return s.replace("CASP biorep1 ", "").replace("min", "'")
 

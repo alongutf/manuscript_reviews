@@ -1,0 +1,126 @@
+================================================================================
+scripts/fetch_regulondb_sigma38.py
+133 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A one-off data-retrieval utility, not part of the eigenvalue/GMP-Cor analysis
+    pipeline itself: it downloads the current sigma-38 (RpoS) sigmulon gene list
+    from RegulonDB and writes it to metadata/ so downstream analyses (e.g. gene-set
+    scoring or annotation of stress-response genes) can reference a fixed,
+    versioned gene list without re-querying the database each time. It stands in
+    for RegulonDB's old flat-file downloads, which are no longer available.
+
+INPUTS
+    Network access to https://regulondb.ccg.unam.mx/graphql (RegulonDB's GraphQL
+    API). No CLI arguments, no local input files.
+    Assumes an `openssl` executable is available on PATH (used to parse the AIA
+    extension out of the server's leaf certificate and to convert the fetched
+    intermediate certificate from DER to PEM).
+    Assumes the `certifi` package is installed (imported lazily inside
+    _ca_bundle()).
+
+OUTPUTS
+    metadata/regulondb_sigma38_regulon.txt - one sorted, de-duplicated gene name
+        per line, preceded by a provenance header: the GraphQL endpoint and query
+        used, the sigmulon's RegulonDB id and sigma factor name, the RegulonDB
+        release version/date/EcoCyc version/genome version, the retrieval date,
+        and the gene count.
+
+HOW IT WORKS
+    _ca_bundle() first tries to complete a normal TLS handshake to
+    regulondb.ccg.unam.mx using certifi's standard CA bundle. If that succeeds
+    (the server started sending its intermediate certificate, or certifi already
+    trusts a matching root directly), that bundle path is returned unchanged. If
+    verification fails, it falls back to an unverified TLS handshake purely to
+    retrieve the server's leaf certificate in DER form, extracts the "CA Issuers"
+    URI from the leaf's Authority Information Access (AIA) X.509 extension via
+    `openssl x509 ... -ext authorityInfoAccess`, downloads the referenced
+    intermediate certificate, converts it to PEM, and concatenates it onto a copy
+    of the certifi bundle. It then re-verifies a fresh handshake against that
+    patched bundle and raises if that still fails, so a broken patch fails loudly
+    rather than silently disabling verification.
+
+    gql(query, ctx) is a thin GraphQL client: POST the query as JSON to the API
+    endpoint using the given SSL context, parse the JSON response, and raise if
+    the response carries a top-level "errors" array.
+
+    main() resolves metadata/regulondb_sigma38_regulon.txt relative to the repo
+    root, builds the patched SSL context, and issues two queries: getDatabaseInfo
+    for the release metadata used in the provenance header, and
+    getSigmulonBy(search:"RpoS") for the sigmulon records. Because the free-text
+    search can match sigma factors/sigmulons other than the intended one, it picks
+    out the specific record whose sigmaFactor.abbreviatedName is exactly "sigma38".
+    The gene list is deduplicated and sorted (by name) for a stable, diffable
+    output across reruns, with a sanity check comparing the deduplicated count
+    against the API's own reported gene count and printing a note if they differ
+    (this is a soft check only - it does not abort the write).
+
+KEY PARAMETERS AND CONSTANTS
+    API = "https://regulondb.ccg.unam.mx/graphql", HOST = "regulondb.ccg.unam.mx"
+        - the GraphQL endpoint and the hostname used for the manual TLS handshakes
+          in _ca_bundle(); must stay in sync if either ever changes independently.
+    timeouts: 30s for the two TLS handshake attempts, 60s for downloading the
+          intermediate certificate, 300s for the GraphQL requests themselves - the
+          longer GraphQL timeout suggests the sigmulon query can be slow.
+    "sigma38" - the exact abbreviatedName string the script filters the search
+          results down to; if RegulonDB ever renames this field's values, the
+          next() call raises StopIteration with no informative message.
+
+FINDINGS
+    No logical errors or inconsistencies found relative to the project memory note
+    ("RegulonDB flat files are dead; use the /graphql endpoint, and patch the
+    missing intermediate cert"): this script already queries /graphql exclusively
+    (no flat-file download code path exists) and already implements the AIA
+    intermediate-certificate patch documented in that note, rather than disabling
+    TLS verification. No discrepancy to report there.
+
+    [1] RISK - hard dependency on an external `openssl` executable on PATH
+        Location: _ca_bundle(), the two subprocess.run(["openssl", ...]) calls.
+        What the code does: shells out to the `openssl` CLI to read the AIA
+            extension from the leaf certificate and to convert the fetched
+            intermediate certificate from DER to PEM, with check=True.
+        Why that is a problem: on a machine without openssl on PATH (plausible on
+            a bare Windows install, since this repo otherwise targets a conda
+            environment per README.md and doesn't list openssl as a dependency),
+            this raises FileNotFoundError/CalledProcessError with a low-level
+            traceback rather than a clear message about what's missing, only in
+            the (currently necessary, per the module docstring) case where the
+            server's certificate chain doesn't verify against the default bundle.
+        Suggested fix: either document the openssl CLI dependency (e.g. in
+            environment.yml comments or the module docstring) or replace the two
+            subprocess calls with the `cryptography` package, which the SDK
+            already likely pulls in via other dependencies and would avoid the
+            external-binary dependency entirely.
+
+    [2] RISK - unguarded next() over an empty/mismatched sigmulon search result
+        Location: main(), rec = next(r for r in data if
+            r["sigmaFactor"]["abbreviatedName"] == "sigma38").
+        What the code does: assumes the RpoS search always returns at least one
+            record with abbreviatedName exactly "sigma38".
+        Why that is a problem: if RegulonDB's naming or search behavior changes,
+            or the search returns zero RpoS-related sigmulons for any reason, this
+            raises a bare StopIteration (or, in newer Python, a somewhat opaque
+            RuntimeError from generator protocol changes) with no message
+            indicating what went wrong or what was actually returned.
+        Suggested fix: raise a SystemExit with the list of abbreviatedName values
+            actually found, so a future maintainer immediately sees what changed.
+
+    [3] RISK - releases[0] assumes getDatabaseInfo returns a non-empty list
+        Location: main(), rel = releases[0].
+        What the code does: takes the first element of the getDatabaseInfo
+            response with no length check.
+        Why that is a problem: an empty response (e.g. an API change) would raise
+            an unhelpful IndexError rather than a clear error about what query
+            failed.
+        Suggested fix: low priority given this is a stable, simple query; add a
+            length check with a clear message if this script is revisited.
+
+RELATED FILES
+    metadata/regulondb_sigma38_regulon.txt - the file this script produces; already
+        present in the repo, meaning it has been run successfully before and this
+        is presumably a re-run/refresh utility rather than a one-time script.
+    README.md - documents the RegulonDB GraphQL API + TLS workaround expectation
+        (per the project memory note); this script is consistent with it.
+    No other script in scripts/ or src/ appears to call or import this file; it is
+        a standalone CLI utility (python scripts/fetch_regulondb_sigma38.py).

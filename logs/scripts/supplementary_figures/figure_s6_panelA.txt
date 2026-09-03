@@ -1,0 +1,103 @@
+================================================================================
+scripts/supplementary_figures/figure_s6_panelA.py
+114 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Renders panel A of Supplementary Figure S6 as a standalone file: violin plots
+    of segmented-cell area (from microscopy) for three conditions - Dis-Arrest
+    (SHX), VapC 24h, and Reg-Arrest - each annotated with n, mean and coefficient
+    of variation. It exists separately from the rest of figure S6 so this one
+    panel can be re-rendered at a different size/aspect without regenerating the
+    whole multi-panel figure.
+
+INPUTS
+    microscopy/all_positions_vapc.csv - per-cell microscopy measurements including
+        'condition' ('VapC' or 'Reg-Arrest'), 'kept' (bool QC mask) and 'area_px'.
+    microscopy/all_positions_shx.csv - per-cell measurements including 'condition'
+        ('SHX' or 'CASP'), 'kept' and 'area_px'.
+    scripts/figures/figure_functions.py - PanelFigure layout helper.
+    No CLI arguments.
+
+OUTPUTS
+    figure_s6_panelA.svg (transparent background) and figure_s6_panelA_preview.png,
+    written next to this script (run from scripts/supplementary_figures/).
+
+HOW IT WORKS
+    Both CSVs are loaded and filtered to `kept == True`, the upstream segmentation
+    QC mask; only cells that passed QC contribute to the area statistics. Each
+    filtered table's 'condition' column is remapped to a display label
+    ('SHX'->'Dis-Arrest\n(SHX)', 'CASP'->'Reg-Arrest', 'VapC'->'VapC 24h'); note
+    that all_positions_vapc.csv also contains a 'Reg-Arrest' condition, which is
+    never mapped or used - only its 'VapC' rows feed the figure. area_data collects
+    the three area_px arrays keyed by display label, in a fixed plotting order
+    (Dis-Arrest first and last-cool Reg-Arrest, VapC 24h between).
+
+    _violin_with_stats does the actual drawing: a matplotlib violinplot per
+    condition (medians and extrema hidden, drawn manually instead), an IQR bar
+    (25th-75th percentile) with a median marker on top, then a per-violin text
+    block (n, mean, CV) placed above the violin. Because that text needs vertical
+    room, the axis y-limit is deliberately extended 40% beyond matplotlib's
+    automatic range before the text is drawn, and axis spines are simplified
+    (top/right hidden) to match the rest of the paper's plot style.
+
+KEY PARAMETERS AND CONSTANTS
+    DIS_COLOR / REG_COLOR - fixed colors; DIS_COLOR is reused for both Dis-Arrest
+        (SHX) and VapC 24h, grouping them visually as the two "dis-arrest-family"
+        conditions against the single Reg-Arrest control.
+    PANEL_A_ORDER - the fixed left-to-right violin order; changing it does not
+        require touching area_data or the color list, only this one list, but the
+        parallel PANEL_A_COLORS list must be kept in sync by hand (positional, not
+        keyed by label - see FINDINGS).
+    y_pad = 4% of the (matplotlib-computed) y-range - vertical gap between a
+        violin's max value and its annotation text.
+    text_top headroom = 40% of the y-range - chosen empirically to fit the
+        three-line annotation; too small and it would overlap the violin above it
+        (not applicable here, single row) or run off the top of the axes.
+
+FINDINGS
+    [1] RISK - PANEL_A_COLORS is a plain list matched to PANEL_A_ORDER by position,
+        not by a dict keyed on the same labels used everywhere else in the file.
+        Location: lines 50-51 (PANEL_A_ORDER / PANEL_A_COLORS)
+        What the code does: PANEL_A_ORDER = ['Dis-Arrest\n(SHX)', 'VapC 24h',
+            'Reg-Arrest'] and PANEL_A_COLORS = [DIS_COLOR, DIS_COLOR, REG_COLOR]
+            are zipped together purely by index inside _violin_with_stats.
+        Why that is a problem: every other condition-to-attribute mapping in this
+            file (the .map({...}) calls, area_data) is a dict keyed by label, which
+            is reorder-safe. PANEL_A_COLORS is not: reordering PANEL_A_ORDER (e.g.
+            to change the plotting order) without also reordering PANEL_A_COLORS
+            in lockstep silently assigns the wrong color to a condition, with no
+            error raised.
+        Suggested fix: replace the two parallel lists with a single dict, e.g.
+            PANEL_A_COLORS = {'Dis-Arrest\n(SHX)': DIS_COLOR, 'VapC 24h': DIS_COLOR,
+            'Reg-Arrest': REG_COLOR}, and look up colors by label inside
+            _violin_with_stats instead of by position.
+
+    [2] SMELL - all_positions_vapc.csv's 'Reg-Arrest' condition rows are loaded
+        but never used (only 'VapC' rows are mapped and plotted); this file's own
+        Reg-Arrest panel data instead comes from all_positions_shx.csv's 'CASP'
+        rows.
+        Location: lines ~44-48 (vapc_filt / shx_filt construction)
+        What the code does: vapc_filt['label'] = vapc_filt['condition'].map({'VapC':
+            'VapC 24h'}) leaves the 'Reg-Arrest' rows in all_positions_vapc.csv as
+            label=NaN, and area_data never reads them.
+        Why that is a problem: not a bug (the figure is correct as drawn), but it
+            means there are two independently-measured Reg-Arrest cell populations
+            in the microscopy data (one in each CSV) and the script silently
+            chooses one without comment on why, or whether they agree.
+        Suggested fix: none required for correctness; if the two Reg-Arrest
+            measurements are meant to be reconcilable, a brief note on why
+            all_positions_shx.csv's CASP rows were chosen as the reference would
+            help a future reader.
+
+    No BUG findings: the QC filter, area statistics (mean, std, CV) and violin/IQR
+    computation are standard and were checked against the loaded data's dtypes
+    (kept is boolean, area_px numeric) with no coercion issues found.
+
+RELATED FILES
+    Supplementary Figure S6's other panels (not present as a separate reviewed
+        file in this batch) - this script renders only panel A in isolation.
+    microscopy/all_positions_vapc.csv, microscopy/all_positions_shx.csv - the two
+        source measurement tables (see Finding 2 for the unused Reg-Arrest rows in
+        the VapC file).
+    scripts/figures/figure_functions.py - PanelFigure.

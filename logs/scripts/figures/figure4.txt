@@ -1,0 +1,198 @@
+================================================================================
+scripts/figures/figure4.py
+406 lines (413 after documentation pass)  |  reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Builds the four-panel Figure 4 of the manuscript, which supports the claim that
+    the disrupted-arrest and regulated-arrest conditions differ at the level of
+    specific GO-annotated gene programs (chemotaxis / motility) and in how strongly
+    and how quickly those programs are down-regulated, plus a phenotypic (scanlag
+    regrowth-lag) readout across an SHX exposure time course. It is a downstream
+    consumer of the bulk_analysis.ipynb DESeq2/GO pipeline described in CLAUDE.md,
+    not itself a computation of differential expression or enrichment.
+
+INPUTS
+    results/deseq_results/from counts/deseq2_results_{disrupted,regulated}.csv
+        DESeq2 output tables, gene x {log2FoldChange, padj, ...}, indexed by gene name.
+    metadata/genomic.gtf
+        used twice: by get_gene_dict() (panel A) to map gene name -> gene ID, via a
+        positional parse of the GTF 'attributes' column that duplicates
+        src/bulk_functions.get_ID_conversion (see FINDINGS [2]).
+    metadata/go-basic.obo, metadata/ecocyc.gaf
+        GO DAG and gene-GO associations, loaded fresh inside get_GO_gene_list().
+    scripts/figures/figure4/GO_ID_name.csv
+        GO ID -> display name lookup for panel A's side brackets.
+    results/GO_results/from_counts/GOATOOLS_GO_enrichment_results_{disrupted,regulated}_down.csv
+        GOATOOLS enrichment tables (down-regulated gene sets) for panel B.
+    scripts/figures/figure4/GO_diff_pvals.csv
+        precomputed per-GO-term significance of the Dis-Arrest vs Reg-Arrest FDR
+        difference; NOT computed by this script, only read for the panel B
+        significance brackets.
+    results/GO_results/time_series11/GOATOOLS_GO_enrichment_results_time_series{1..8}.csv
+        GO enrichment at 8 SHX time points for panel C.
+    scanlag_data/bulk time in shx/*.csv
+        one file per SHX exposure time, columns X (lag time) and Y (survival
+        function value), filename encoding the time as "t<N>Min...csv".
+
+OUTPUTS
+    figure4.pdf, figure4_preview.png, written to the current working directory
+    (not an absolute results/ path) by the PanelFigure.save() calls at the bottom.
+
+HOW IT WORKS
+    get_gene_dict() and get_GO_gene_list() are shared helpers: the former builds a
+    gene-name -> gene-ID map from the GTF, the latter returns every gene annotated
+    (directly or via a descendant term) to a given GO ID, using goatools' obo_parser
+    and read_gaf.
+
+    panel_A(ax) merges the two DESeq2 tables on gene name (inner join, so only genes
+    scored in both conditions survive), tags each gene with whichever of
+    GO_terms_to_plot it belongs to (only one term is ever passed: chemotaxis,
+    GO:0006935), keeps only tagged genes, then within that one group performs a
+    1-D hierarchical clustering (by Reg-Arrest log2FoldChange) purely to order genes
+    so that similar fold changes sit next to each other. It draws a seaborn heatmap
+    of log2FoldChange for both conditions with an asymmetric [-4, 2] diverging color
+    range (down-regulation dominates this term), and hand-draws GO-term brackets and
+    rotated labels to the left of the heatmap.
+
+    panel_B(ax) intersects the down-regulated GOATOOLS results of the two
+    conditions, pulls out FDR, term name and background gene-set size for each
+    common term, and draws paired bars of -log10(FDR) per term, sorted by the
+    Reg-Arrest ("Casp") value. Significance brackets above each bar pair come from
+    the externally precomputed GO_diff_pvals.csv, not from a test run in this
+    script. An inset boxplot then compares the full (not just common-term)
+    enrichment-score distributions of the two conditions, truncated to equal length
+    by keeping only the top n = min(n1, n2) strongest terms from each (see
+    FINDINGS [3]), and annotates the pair with a two-sided Mann-Whitney U p-value.
+
+    panel_C(ax) intersects GO terms significant at every one of 8 SHX time points,
+    keeps only those already significant at t1 (FDR < 1e-6), converts each term's
+    FDR trajectory to -log10(FDR) and re-baselines it to its own t1 value so the
+    plot reads as "change in enrichment relative to the first time point." It plots
+    every term's trajectory faintly in grey plus the mean trajectory with an error
+    ribbon; the ribbon half-width uses a Student-t critical value at the 0.84
+    quantile, which gives roughly a one-standard-error band rather than a
+    conventional 95% CI.
+
+    panel_D(ax) reads one scanlag CSV per SHX exposure time, infers the time from
+    the filename, and plots each sample's lag-time survival function (log y-scale),
+    colour-coded by exposure time on a Reds colormap normalized to a fixed
+    [-400, 2200] range chosen so no curve renders as pure white or pure black. All
+    curves are shifted on x by the median start time (t0) of the time-0 sample.
+
+    The bottom "Build figure" block sets shared globals (fsize, lw; marker_size is
+    defined but unused by any panel), computes root_dir from the process's current
+    working directory (assumes the script is launched from scripts/figures/, unlike
+    most sibling scripts which derive it from __file__), constructs a PanelFigure,
+    places the four panels at hand-tuned normalized rects, and saves a PDF and a
+    PNG preview.
+
+KEY PARAMETERS AND CONSTANTS
+    GO_terms_to_plot = ['GO:0006935'] (panel A) - the single GO term (chemotaxis)
+        plotted; the surrounding code supports a list but only one entry is used.
+    vmin=-4, vmax=2 (panel A heatmap) - asymmetric clip range around the
+        center=0 diverging colormap, chosen to match the observed skew toward
+        down-regulation in this term.
+    get_asterisks thresholds 0.001 / 0.01 / 0.05 (panel B) - conventional
+        significance stars.
+    bar_width=0.35, h=0.1 (panel B) - bar geometry and the vertical step used to
+        stack the significance bracket above each bar pair.
+    t_crit = stats.t.ppf(0.84, df=n_terms-1) (panel C) - error-ribbon multiplier;
+        0.84 gives an approximately +/-1 SE band, not a 95% CI. Changing to 0.975
+        would give a conventional two-sided 95% CI and roughly double the ribbon.
+    common_go_df['t1'] < 1e-6 (panel C) - early-response filter; raising this
+        threshold would admit more, weaker-signal GO terms into the trajectory plot.
+    v_min=-400, v_max=2200 (panel D) - colorbar normalization range for the Reds
+        colormap; deliberately wider than the observed time range (0-2000 min) so
+        curves near the endpoints are not rendered as pure white/black.
+    root_dir = os.path.dirname(os.path.dirname(os.getcwd())) - repo root, valid only
+        when the process cwd is scripts/figures/.
+
+FINDINGS
+
+    [1] RISK - panel_D's t0 is only defined if a t=0 file happens to be processed
+        first
+        Location: panel_D, the "for file in os.listdir(data_dir)" loop
+        What the code does: `t0` is set from `np.median(data['X'])` only inside the
+            `if time_point == 0:` branch, but every iteration's `ax.plot(...)` call
+            (including the very call that would set t0) references `t0`.
+            os.listdir() does not guarantee any particular (e.g. sorted) file order.
+        Why that is a problem: if the directory listing does not happen to yield the
+            t=0 file first, the first plot call raises UnboundLocalError, or, on
+            filesystems that happen to return matching but different orders across
+            OSes/runs, this could silently succeed or fail depending on
+            environment.  It currently "works" only by the accident of the observed
+            listing order.
+        Suggested fix: compute t0 up front from the known t=0 file
+            (e.g. by filtering the directory listing for "t0Min" or sorting by
+            time_point before the loop) rather than relying on iteration order.
+
+    [2] SMELL - get_gene_dict() duplicates src/bulk_functions.get_ID_conversion
+        Location: get_gene_dict(), and src/bulk_functions.py's
+            get_ID_conversion(path_to_gtf)
+        What the code does: both functions read metadata/genomic.gtf, filter to CDS
+            rows, and parse the 'attributes' column by the same fixed
+            ';'-then-' '-split positions ([2] for gene ID, [4] for gene name) into a
+            {gene_name.lower(): gene_id} dict. The logic is copy-pasted rather than
+            imported, even though src.bulk_functions is already used elsewhere in
+            the paper's GO pipeline (e.g. scripts/eigenvector_go_cutoffs.py imports
+            it directly as bf.get_ID_conversion(bf.GTF_FILE)).
+        Why that is a problem: a future change to the GTF's attribute ordering (or a
+            bugfix to the shared parser) would need to be made in two places; the
+            local copy could silently drift from the "real" one.
+        Suggested fix: import and call src.bulk_functions.get_ID_conversion(GTF_FILE)
+            instead of re-implementing it here. Not changed in this pass (comments
+            only).
+
+    [3] SMELL - inset boxplot in panel_B truncates both samples to equal length by
+        magnitude rather than pairing
+        Location: panel_B, "n = np.minimum(len(sample1), len(sample2))" and the two
+            following lines
+        What the code does: each condition's full sorted (descending) list of
+            -log10(FDR) values is truncated to the smaller sample's length, keeping
+            each condition's own strongest n terms -- the two truncated samples are
+            not the same GO terms, since sample1/sample2 are independent term sets.
+        Why that is a problem: this changes the compared distributions (it discards
+            the weakest terms from whichever condition found more significant
+            terms), which can bias the Mann-Whitney U result toward finding the two
+            conditions more similar (or dissimilar) than the full data would show.
+            Mann-Whitney U does not require equal sample sizes, so the truncation is
+            not a statistical necessity.
+        Suggested fix: either use the full, untruncated samples in
+            stats.mannwhitneyu (equal length is not required), or document the
+            truncation's intended interpretation explicitly if it is deliberate. Not
+            changed in this pass.
+
+    [4] SMELL - unused import
+        Location: "import textwrap" near the top of the file
+        What the code does: imports the textwrap module.
+        Why that is a problem: nothing in the file calls textwrap; dead import.
+        Suggested fix: remove it.
+
+    [5] SMELL - marker_size global is set but never used
+        Location: "marker_size=2.5" in the "Build figure 1" block
+        What the code does: defines a module-level marker_size alongside fsize and
+            lw, but none of panel_A..panel_D reference it (they hard-code their own
+            markersize values, e.g. markersize=6 / 4 in panel_C, markersize inside
+            inset boxplot props).
+        Why that is a problem: suggests either an intended-but-unwired styling knob,
+            or leftover from a refactor; harmless but slightly misleading.
+        Suggested fix: remove, or wire it into the panels that draw markers.
+
+RELATED FILES
+    scripts/figures/figure_functions.py - PanelFigure, used for all panel placement
+        and labeling in this script (see that file's own log for a bug in its
+        label_style handling, which would also silently affect this figure if it
+        ever tried to pass a custom label_style -- it currently does not).
+    src/bulk_functions.py - defines GO_OBO, GAF_FILE, GTF_FILE and
+        get_ID_conversion/run_go_enrichment, which this script's get_gene_dict/
+        get_GO_gene_list duplicate rather than reuse (see FINDINGS [2]).
+    scripts/eigenvector_go_cutoffs.py - a sibling script that does reuse
+        src.bulk_functions (bf.GO_OBO, bf.GAF_FILE, bf.get_ID_conversion) for the
+        same kind of GO/gene-ID setup, underscoring that figure4.py's local copy is
+        avoidable duplication.
+    scripts/figures/figure4/GO_ID_name.csv, GO_diff_pvals.csv,
+        GO_terms_heatmap.csv - small precomputed lookup tables specific to this
+        figure; GO_terms_heatmap.csv is present in that directory but not read by
+        this script (not verified further; may be used by a notebook or an older
+        version of this script).

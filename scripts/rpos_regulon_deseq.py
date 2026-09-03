@@ -50,6 +50,12 @@ def contrast_files():
 
 
 def load_regulon(path):
+    """Parse the regulon gene list file.
+
+    The file is one gene name per line, with a leading block of '#'-prefixed
+    comment lines; any comment line of the form '# key: value' is captured as
+    provenance metadata (e.g. RegulonDB release). Returns (gene set, header dict).
+    """
     header = {}
     genes = []
     with open(path) as fh:
@@ -73,6 +79,7 @@ def main():
 
     files = contrast_files()
 
+    # ---- per-contrast: intersect regulon with tested genes, test for shift ---
     rows, summary = [], []
     for path in files:
         tag = os.path.relpath(path, DESEQ).replace(os.sep, "/")
@@ -87,7 +94,10 @@ def main():
 
         bg = d[~hit]
         sig = sub[sub.padj < alpha]
-        # Is the regulon shifted relative to every other tested gene?
+        # Is the regulon shifted relative to every other tested gene? A two-sided
+        # Mann-Whitney U on log2FoldChange asks whether regulon genes' fold
+        # changes are systematically higher or lower than the background's,
+        # without assuming a particular direction or a normal distribution.
         if len(sub) and len(bg):
             u_p = stats.mannwhitneyu(sub.log2FoldChange, bg.log2FoldChange,
                                      alternative="two-sided").pvalue
@@ -107,6 +117,7 @@ def main():
             mannwhitney_p=u_p,
         ))
 
+    # ---- write outputs ---------------------------------------------------
     allrows = pd.concat(rows)
     cols = ["contrast", "gene", "baseMean", "log2FoldChange", "lfcSE",
             "pvalue", "padj"]
@@ -117,7 +128,9 @@ def main():
     with pd.option_context("display.width", 200):
         print(S.to_string(index=False))
 
-    # Which regulon genes are absent from the count matrices at all?
+    # Which regulon genes are absent from the count matrices at all? Uses just the
+    # first contrast file per folder, assuming every contrast within a folder was
+    # run on the same gene set (true for a shared DESeq2 dataset per folder).
     for folder in FOLDERS:
         f = sorted(glob.glob(os.path.join(DESEQ, folder, "*.csv")))[0]
         idx = set(pd.read_csv(f, index_col=0).index)

@@ -1,0 +1,158 @@
+================================================================================
+scripts/dis_arrest_cluster_test.py
+678 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Tests whether the two leiden clusters found within the "dis-arrest" scRNA-seq
+    samples (sample_13a and sample_15a) are a real transcriptional distinction or
+    just a proxy for sequencing depth, and whether GMP-Cor (the paper's global
+    correlation index) is a meaningful quantity to compute within each cluster once
+    cell number is matched. This is a reviewer-response style analysis: it sits
+    downstream of the published cell-calling/gene-filtering pipeline
+    (analysis_notebook.ipynb -> data_for_paper/*.csv) and reuses the published UMAP
+    embedding recipe (scanpy_analysis.ipynb) restricted to just the two dis samples.
+
+INPUTS
+    data_for_paper/sample_13a_filtered.csv and sample_15a_filtered.csv - cells x
+    genes count matrices (index = cell barcode, columns = gene names), which share
+    a single 2042-gene panel by construction; the script still recomputes the
+    intersection defensively.
+    No CLI-required inputs; all analysis parameters (embedding hyperparameters,
+    resolution search bounds, permutation/repeat counts, seeds) are argparse flags
+    with defaults documented inline (see KEY PARAMETERS below).
+
+OUTPUTS
+    results/dis_arrest_clusters/logs/<stem>_<timestamp>.json
+        every parameter and every computed number (leiden trace, depth tests,
+        per-group GMP-Cor, dGMP table, marker genes).
+    results/dis_arrest_clusters/logs/<stem>_<timestamp>_cells.csv
+        one row per cell: batch, leiden label, total_counts, n_detected, UMAP/PC
+        coordinates, and the derived high-depth/low-depth cluster label.
+    results/dis_arrest_clusters/raw/<stem>_<timestamp>.txt
+        human-readable narrative summary (also printed to stdout).
+    results/dis_arrest_clusters/figures/<stem>_<timestamp>.svg / .png
+        six-panel summary figure (see make_figure docstring).
+
+HOW IT WORKS
+    Loading. The two dis-sample CSVs are read, row-indexed by "<barcode>-<key>" to
+    keep cells from the two samples distinguishable, and restricted to their shared
+    gene panel.
+
+    Embedding. build_embedding() runs the published scanpy recipe (normalize_total,
+    log1p, filter_genes, HVG selection, scale, PCA, neighbors, UMAP) and then
+    bisects the leiden resolution parameter between res_lo and res_hi until exactly
+    two clusters come back, recording every resolution tried in a trace. The
+    cluster with the higher median total_counts is relabeled "high-depth" so every
+    downstream AUC comes out with a consistent sign.
+
+    Question 1 (is the split just depth?). For total_counts and n_detected
+    separately: median ratio, rank-AUC separating the clusters, Cohen's d, and a
+    Mann-Whitney p-value. A 5-fold cross-validated logistic regression on
+    log10(depth) alone is also scored by AUC/accuracy to see how well depth alone
+    predicts cluster membership. UMAP/PC coordinates are Spearman-correlated
+    against log-depth, and a cluster-vs-batch contingency table plus its AUC checks
+    whether the split is really just separating the two samples.
+
+    Question 2 (is within-cluster GMP-Cor meaningful?). GMP-Cor is recomputed from
+    first principles here (gmp_cor(), _z(), _spectrum(), _scramble()) rather than
+    calling src.analysis_functions.get_eig_dist() directly, explicitly to match its
+    preprocessing and threshold definition (rep=10 column scrambles, threshold =
+    mean of the scrambled leading eigenvalue) while working through the smaller
+    Gram matrix (n x n instead of p x p) so repeated evaluation is affordable. For
+    every candidate group (both clusters, all cells, a depth median split, a random
+    split, and each batch alone) the helper matched() draws `repeats` independent,
+    seeded, matched-n cell subsets and reports the mean/SD/range of GMP-Cor across
+    those draws, plus a formal permutation test (permutation_null(), same logic as
+    scripts/add_permutation_metrics.py) on one canonical draw per group, plus the
+    participation ratio of the leading eigenmode (leading_mode_concentration()) as
+    a diagnostic for whether that mode is dominated by a handful of outlier cells.
+    Separately, dGMP quantifies how much of the pooled GMP-Cor is explained purely
+    by the between-group mean difference: gmp_cor_centered() subtracts each group's
+    own mean before recomputing GMP-Cor, and dGMP = 1 - centered/raw.
+
+    Markers. A rank-sum (Wilcoxon) statistic per gene between the two clusters
+    identifies the top 50 differentially expressed genes, mostly to eyeball whether
+    the "cluster" markers look like depth artifacts or biology.
+
+    Output. Everything is assembled into a JSON log and a formatted text summary
+    (built as a list of strings) with an automatic "Reading:" interpretation block
+    that classifies the depth confound strength and reports which groups clear
+    their own permutation null. make_figure() renders the six-panel SVG/PNG.
+
+KEY PARAMETERS AND CONSTANTS
+    --target-sum 3507   per-cell normalization target for the embedding; stated to
+                         be the published value used for the dis samples specifically.
+    --min-cells 3, --n-hvg 2000, --n-comps 50, --n-neighbors 40, --n-pcs 40,
+    --min-dist 0.3      standard scanpy preprocessing/UMAP hyperparameters, matched
+                         to the published notebook's recipe.
+    --umap-seed 0, --leiden-seed 0, --seed 0
+                         fixed for reproducibility of a single published run; not
+                         varied to check embedding/clustering stability.
+    --res-lo 0.01, --res-hi 2.0, --max-res-steps 30
+                         bisection bounds/budget for finding a leiden resolution
+                         that yields exactly two clusters; raises RuntimeError if
+                         none is found within the budget.
+    --permutations 200  B for the per-group lambda_1 permutation test (0 skips it).
+    --repeats 5         independent seeded cell draws per group for the matched-n
+                         GMP-Cor spread.
+    --norm-sum 1.0       row-normalization target before the z-transform for
+                         GMP-Cor; the z-transform makes the result scale-free, so
+                         this mostly only matters for numerical conditioning.
+    rep=10 (inside gmp_cor/_z/_scramble machinery)
+                         hard-matches src.analysis_functions.get_eig_dist's own
+                         hard-coded rep=10, so the noise threshold definition is
+                         identical between this script and the published pipeline.
+    alpha = 0.05 (line ~520) significance threshold used only for the prose verdict
+                         in the text summary, not for any numeric output.
+
+FINDINGS
+    [1] RISK - per-rep scramble seed is shared across different groups in matched()
+        Location: matched() (around line 333-339), the call
+            r = gmp_cor(X[take], norm_sum=args.norm_sum, seed=args.seed + rep)
+        What the code does: the cell subset "take" is drawn with a seed unique to
+            (group, rep) via seed_offset, but the internal scramble RNG passed into
+            gmp_cor() for the noise-threshold computation only depends on `rep`
+            (args.seed + rep), not on the group. So for a fixed rep index, every
+            group's GMP-Cor draw reuses the identical scramble permutation stream
+            inside gmp_cor's rep=10 loop.
+        Why that is a problem: this does not bias any single group's GMP-Cor value
+            (the scrambled matrix still differs because the underlying cell subset
+            differs), but it means the noise realizations used for different
+            groups at the same rep index are correlated rather than fully
+            independent. Any structure that happens to be shared across groups'
+            scrambled thresholds at a given rep could inflate apparent similarity
+            between groups' matched-n GMP-Cor spreads. This does not affect the
+            formal permutation_null() test, which is independently seeded per group
+            (args.seed + seed_offset).
+        Suggested fix: seed gmp_cor's internal scramble with a value that also
+            depends on seed_offset, e.g. seed=args.seed + 1000*seed_offset + rep,
+            matching the convention already used for the cell-draw seed two lines
+            above.
+
+    [2] SMELL - fold_change and fold-range divisions are not zero-guarded
+        Location: depth_tests fold_change (~line 310) and gmp_cor_fold_range
+            (~line 358-359).
+        What the code does: fold_change divides median(v[y==1]) by
+            median(v[y==0]) with no check for a zero denominator; gmp_cor_fold_range
+            is guarded (checks vals.min() > 0) but fold_change is not.
+        Why that is a problem: total_counts/n_detected medians are extremely
+            unlikely to be exactly zero after cell-calling filtering, so this is
+            low risk in practice, but it is an inconsistency in how the two similar
+            "fold" quantities handle the same failure mode.
+        Suggested fix: low priority; guard fold_change the same way if the script
+            is ever run on a dataset with sparser depth.
+
+RELATED FILES
+    src/analysis_functions.py - get_eig_dist(), z_transform(), normalize(),
+        scramble() are the canonical implementations this script's gmp_cor()/_z()/
+        _spectrum()/_scramble() are built to exactly reproduce (verified: same
+        filtering order, same rep=10, same threshold definition).
+    scripts/add_permutation_metrics.py - the published permutation-test
+        methodology (p_empirical formula, gmp_cor_ci = sqrt(N)*sigma) that
+        permutation_null() reimplements per-group here; formulas match.
+    scripts/scanpy_analysis.ipynb - source of the published embedding recipe that
+        build_embedding() mirrors (normalize_total/log1p/HVG/scale/PCA/neighbors/
+        UMAP), restricted here to the two dis samples only.
+    data_for_paper/sample_13a_filtered.csv, sample_15a_filtered.csv - the two input
+        matrices.

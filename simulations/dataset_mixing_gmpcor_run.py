@@ -80,6 +80,8 @@ def parse_args():
 # ── Data loading ─────────────────────────────────────────────────────────────
 
 def load_matrix(path, fname, case_fold=True, drop_nongene=True):
+    # Read one cells x genes CSV (index_col=0 -> cell id as the row index).
+    # Missing entries become 0 counts, not NaN, so downstream sums/means are well defined.
     d = pd.read_csv(path, index_col=0).fillna(0.0)
     if drop_nongene:
         drop = [c for c in d.columns
@@ -96,6 +98,8 @@ def load_matrix(path, fname, case_fold=True, drop_nongene=True):
 
 
 def top_cells(d, n):
+    # Select the n cells (rows) with the highest total counts, i.e. deepest-sequenced /
+    # most-detected cells, capping at the number of cells actually available.
     n = min(n, d.shape[0])
     keep = d.sum(axis=1).sort_values(ascending=False).index[:n]
     return d.loc[keep]
@@ -104,12 +108,18 @@ def top_cells(d, n):
 # ── CCDF plot (figure-3 style) ───────────────────────────────────────────────
 
 def plot_ccdf(ax, data1, data2, title, fsize=12, signal_color='steelblue'):
+    # Log-log complementary CDF of the empirical (data1) vs. scrambled (data2)
+    # eigenvalue spectra, matching the style used in the paper's figure 3. Eigenvalues
+    # above lambda_max^scr (the scrambled spectrum's ceiling) are the "signal" that
+    # GMP-Cor sums; everything below is indistinguishable from permutation noise.
     data1 = data1[data1 > 0]
     data2 = data2[data2 > 0]
-    x2 = float(np.max(data2))
+    x2 = float(np.max(data2))  # lambda_max^scr: the scrambled-spectrum noise ceiling
     d1s = np.sort(data1)
     d2s = np.sort(data2)
     p1 = len(d1s)
+    # CCDF(x_k) = P(X > x_k); the "+ 1/p" term avoids a zero right-tail value for the
+    # largest point so it still shows up on the log-log axis.
     ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
     p2 = len(d2s)
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
@@ -156,6 +166,9 @@ def main():
     genes1, genes2 = set(df1.columns), set(df2.columns)
     shared = genes1 & genes2
     only1, only2 = genes1 - genes2, genes2 - genes1
+    # 'shared': only genes measured in both datasets are compared (no zero-fill needed
+    # for dataset-specific genes). 'union': all genes from either dataset are kept, so a
+    # gene absent from one dataset is filled with 0 for every cell of that dataset below.
     gene_space = sorted(shared) if shared_only else sorted(genes1 | genes2)
     gene_mode = 'SHARED-ONLY (intersection)' if shared_only else 'UNION'
 
@@ -171,25 +184,34 @@ def main():
     print(f'only in dataset 2 : {len(only2)}')
     print(f'gene space size   : {len(gene_space)}')
 
-    # Cell selection: top total-count cells from each dataset, on the gene space
+    # Cell selection: top total-count cells from each dataset, on the gene space.
+    # reindex(..., fill_value=0.0) brings both selections onto the common gene_space
+    # columns, zero-filling any gene one dataset doesn't have (relevant for 'union' mode).
     sel1 = top_cells(df1, args.n_cells_per_dataset).reindex(columns=gene_space, fill_value=0.0)
     sel2 = top_cells(df2, args.n_cells_per_dataset).reindex(columns=gene_space, fill_value=0.0)
     combined = pd.concat([sel1, sel2], axis=0)
     print(f'\nselected {sel1.shape[0]} + {sel2.shape[0]} cells; '
           f'combined {combined.shape[0]} cells x {combined.shape[1]} genes')
 
-    # Gene selection: top n_genes by Fano factor (var / mean)
+    # Gene selection: top n_genes by Fano factor (var / mean) computed on the combined,
+    # selected cells -- keeps the genes that vary the most relative to their own mean,
+    # i.e. the most informative genes for correlation structure, rather than simply the
+    # most highly expressed ones.
     mat = combined.to_numpy(dtype=float)
     mean = mat.mean(axis=0)
     var = mat.var(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
+        # genes with zero mean (never detected) get Fano factor 0 so they sort last
         fano = np.where(mean > 0, var / mean, 0.0)
     n_genes = min(args.n_genes, mat.shape[1])
-    top_idx = np.sort(np.argsort(fano)[::-1][:n_genes])
+    top_idx = np.sort(np.argsort(fano)[::-1][:n_genes])  # re-sort ascending to keep column order stable
     final = mat[:, top_idx]
     print(f'final matrix: {final.shape[0]} cells x {final.shape[1]} genes')
 
-    # GMP-Cor
+    # GMP-Cor: get_eig_dist row-normalizes (sum to norm_sum) and z-transforms columns
+    # internally, then returns the empirical eigenvalue spectrum (pcs) and the mean
+    # spectrum of 10 column-scrambled copies (pcs1), whose max is the noise ceiling
+    # lambda_max^scr. GMP-Cor is the total eigenvalue mass above that ceiling.
     pcs, pcs1, frac_nonzero = af.get_eig_dist(
         final, norm=True, log=False, norm_method='sum', norm_sum=1)
     max_ev = float(np.max(pcs))

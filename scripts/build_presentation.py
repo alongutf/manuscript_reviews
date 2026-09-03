@@ -22,8 +22,11 @@ os.makedirs(OUT_DIR, exist_ok=True)
 OUT = os.path.join(OUT_DIR, "dysregulated_persistence_physics_talk.pptx")
 
 def P(*parts):
+    """Join path parts onto the repo root."""
     return os.path.join(REPO, *parts)
 
+# figure PNGs already produced by the figureN.py / simulation scripts; keys are the
+# slide "image_key" values used by content_slide() below
 FIG = {
     "intro":     P("scripts", "figures", "figure1", "experiment illustration.png"),
     "theory":    P("scripts", "figures", "figure2_preview.png"),
@@ -50,6 +53,7 @@ BLANK = prs.slide_layouts[6]
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 def add_slide():
+    """New blank slide (BLANK layout, no placeholders) with a solid white background."""
     s = prs.slides.add_slide(BLANK)
     bg = s.background.fill
     bg.solid()
@@ -74,12 +78,16 @@ def textbox(s, l, t, w, h, lines, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP):
     return tb
 
 def bar(s, color=ACCENT, h=Inches(0.12)):
+    """Full-width flat color bar across the top of the slide (autoshape type 1 =
+    MSO_SHAPE.RECTANGLE); used as the accent stripe under the title band and as the
+    top/bottom frame bars on the title slide."""
     sp = s.shapes.add_shape(1, 0, 0, SW, h)  # rectangle
     sp.fill.solid(); sp.fill.fore_color.rgb = color
     sp.line.fill.background()
     return sp
 
 def title_band(s, title, kicker=None):
+    """Accent bar + optional small caps "kicker" label + slide title, top-left."""
     bar(s, ACCENT)
     lines = []
     if kicker:
@@ -98,15 +106,19 @@ def fit_image(s, path, box_l, box_t, box_w, box_h, align="center"):
     ar = iw / ih
     bw, bh = box_w, box_h
     box_ar = bw / bh
+    # letterbox to the tighter dimension: if the image is relatively wider than the
+    # box, width is the binding constraint (and height is derived), else height is
     if ar > box_ar:
         w = bw; h = int(bw / ar)
     else:
         h = bh; w = int(bh * ar)
+    # center the scaled image inside the box on both axes
     l = box_l + (bw - w) // 2
     t = box_t + (bh - h) // 2
     return s.shapes.add_picture(path, l, t, width=Emu(int(w)), height=Emu(int(h)))
 
 def caption(s, l, t, w, txt, color=MUTE):
+    """Small centered caption line, e.g. below a figure."""
     textbox(s, l, t, w, Inches(0.5),
             [(txt, 13, False, color, 0)], align=PP_ALIGN.CENTER)
 
@@ -116,6 +128,12 @@ def content_slide(title, kicker, image_key, bullets, cap=None, img_side="right")
     title_band(s, title, kicker)
     img_w = Inches(7.1); img_h = Inches(5.2)
     txt_w = Inches(4.5)
+    # NOTE: despite the parameter name, img_side="right" places the image on the LEFT
+    # (img_l=0.55) with text on the right, and img_side="left" places the image on the
+    # right-hand portion of the slide (img_l=5.75) with text on the left -- the two
+    # branches are swapped relative to what "img_side" suggests. See log file for
+    # this script (logs/scripts/build_presentation.txt) for details; left as-is here
+    # since this is a comments-only documentation pass.
     if img_side == "right":
         img_l = Inches(0.55); txt_l = Inches(8.0)
     else:
@@ -310,5 +328,8 @@ textbox(s, Inches(0.7), Inches(1.7), Inches(12.0), Inches(5.4), [
 prs.save(OUT)
 print("Saved:", OUT)
 print("Slides:", len(prs.slides._sldIdLst))
+# report which figure inputs were actually found on disk; fit_image() already falls
+# back to a "[missing figure: ...]" placeholder textbox at build time, so a MISSING
+# line here just flags the slide(s) that shipped with a placeholder instead of an image
 for k, v in FIG.items():
     print(("  OK  " if os.path.exists(v) else "  MISSING  "), k, "->", os.path.relpath(v, REPO))

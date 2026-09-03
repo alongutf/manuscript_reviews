@@ -41,10 +41,18 @@ DEFAULT_B = 2000
 
 
 def run(B=DEFAULT_B, samples=None):
+    """Rerun the permutation null at high B for `samples` (default: DEFAULT_SAMPLES,
+    the boundary-|z_1| cases), reusing the exact preprocessing/spectrum/scramble
+    routines from eigenvalue_permutation_test.py. Writes CSV/txt/json outputs
+    tagged with a fresh timestamp; does not touch the original B=100 run's files.
+    """
     samples = samples or DEFAULT_SAMPLES
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     tag = 'eigenvalue_permutation_highB_' + stamp
     titles = pd.read_excel(os.path.join(EV_DIR, 'titles.xlsx')).set_index('file_name')
+    # SEED+1 keeps this run's null draws independent of (and non-reproducing) the base
+    # script's B=100 stream, but it is still a single stream shared sequentially across
+    # `samples` here too -- same order-dependence as eigenvalue_permutation_test.py
     rng = np.random.default_rng(SEED + 1)
 
     rows, per_sample, draws_store = [], {}, {}
@@ -79,6 +87,8 @@ def run(B=DEFAULT_B, samples=None):
 
         # Wilson interval on the empirical p, so the Monte Carlo uncertainty of the
         # count-based answer is explicit
+        # (despite the comment name, this is the exact Clopper-Pearson beta interval,
+        # the same construction used in eigenvalue_permutation_full_B2000.py)
         from scipy.stats import beta as _beta
         lo = _beta.ppf(0.025, n_exceed + 1, B - n_exceed) if n_exceed >= 0 else 0.0
         hi = _beta.ppf(0.975, n_exceed + 1, B - n_exceed)

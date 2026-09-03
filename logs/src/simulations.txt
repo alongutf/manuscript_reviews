@@ -1,0 +1,251 @@
+================================================================================
+src/simulations.py
+936 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Generates synthetic bacterial scRNA-seq count data with a known ground-truth
+    gene-gene correlation structure, and computes the same GMP-Cor eigenvalue-
+    spectrum statistic used on real data (see analysis_functions.get_eig_dist) on
+    that synthetic data. It exists to validate the GMP-Cor metric against cases
+    where the "true" answer is known by construction, and to answer specific
+    reviewer questions (e.g. can mixing two internally-regulated but distinct
+    sub-populations look like loss of regulation?) that cannot be tested on the
+    real experimental matrices alone. It is the library backing the standalone
+    runner scripts under simulations/.
+
+INPUTS
+    No files are read directly. All functions take in-memory numpy arrays /
+    pandas DataFrames as arguments and, where relevant, an RNG seed. The
+    experiment runners (rho_sweep, subpopulation_mixing,
+    inverted_subpopulation_mixing) accept an optional log_file path to write a
+    JSON parameter/results log; if omitted they print to stdout instead. Callers
+    (scripts under simulations/) are responsible for choosing that path, per the
+    results/simulation_results/ convention documented in CLAUDE.md.
+
+OUTPUTS
+    No files are written by this module itself except the optional JSON log
+    written by rho_sweep / subpopulation_mixing when log_file is given. All
+    other functions return numpy arrays, dicts or pandas DataFrames to the
+    caller, or (validate_*, calculate_entropy, plot_volcano) draw matplotlib
+    figures via plt.show() / sns.clustermap for interactive inspection.
+
+HOW IT WORKS
+    generate_gram_hub_matrix builds an n x n gene-gene correlation matrix from a
+    factor model: each gene gets an idiosyncratic-noise loading
+    (sqrt(1 - alpha)), genes are partitioned into clusters of Pareto-distributed
+    size that share a "cluster factor" loading, and a random subset of cluster
+    hubs additionally loads onto one global "hub factor". The loading matrix A is
+    turned into a correlation matrix via C = A A^T normalized by its diagonal.
+    Larger alpha and hub_probability produce a more strongly, more globally
+    correlated gene set.
+
+    simulate_scRNA_data turns that correlation matrix into count data. It draws
+    correlated latent Gaussian variables (mean 0, covariance sigma), maps each
+    to a uniform variable via the standard normal CDF (a Gaussian copula), then
+    inverts each gene's negative-binomial CDF at that uniform value
+    (nbinom.ppf) to get correlated NB counts. Per-gene NB means are drawn from
+    an inverse-Gamma prior (heavy right tail, matching typical scRNA-seq
+    expression skew) unless an explicit gene_mu profile is supplied. Cell-level
+    library-size variation is applied by multiplying by a lognormal amplitude
+    per cell, and expression-dependent dropout removes each count with
+    probability exp(-dropout_rate * count) (so lowly-expressed entries are
+    dropped much more often than highly-expressed ones, mimicking scRNA-seq
+    capture inefficiency).
+
+    The validate_* functions (validate_cell_expression_distribution,
+    validate_gene_expression_distribution, validate_dropout_rate,
+    validate_count_distribution, validate_correlation_structure) each check one
+    qualitative property of the simulated data against what is expected of real
+    scRNA-seq data: heavy-tailed per-cell/per-gene totals (via a CCDF plot and a
+    KS test against an exponential null - rejection is the desired outcome,
+    since real expression is heavier-tailed than exponential), a plausible
+    dropout-vs-expression relationship, overdispersion of per-gene counts
+    (variance > mean, expected under a negative binomial), and recovery of the
+    designed correlation structure sigma from the empirical correlation of a
+    gene subsample. run_validation runs all of them and prints a summary; it is
+    exploratory/diagnostic rather than part of the published pipeline.
+
+    rho_sweep repeatedly builds a hub-correlation matrix at a series of rho
+    (shared-variance) values, simulates counts from it (independent RNG per
+    repeat, same sigma per rho), computes the GMP-Cor eigenvalue spectrum via
+    analysis_functions.get_eig_dist, and reports GMP-Cor = sum of
+    (eigenvalue - scrambled-eigenvalue-threshold) over eigenvalues exceeding
+    that threshold. This checks whether GMP-Cor tracks the known ground-truth
+    correlation strength.
+
+    subpopulation_mixing addresses a specific reviewer scenario: does mixing two
+    internally well-regulated (high-rho) but topologically distinct
+    sub-populations (different hub networks via seed_a vs seed_b) produce a
+    combined matrix whose GMP-Cor looks like a single dysregulated (low-rho)
+    population, i.e. a false read of "loss of regulation"? It runs the
+    computation for a "dysregulated" condition (both sub-pops at rho_low) and a
+    "regulated" condition (both at rho_high), each pooled from two distinct
+    networks, and reports GMP-Cor for each sub-population alone and combined.
+
+    The block starting at draw_gene_means / invert_gene_means /
+    gmp_cor / _preprocess / cell_scores / group_centered / separation_metrics
+    builds toward a harder, more realistic version of the same question:
+    inverted_subpopulation_mixing constructs two sub-populations that are
+    genuinely different in *which* genes are expressed (B's expression profile
+    is A's with the gene ranking reversed via invert_gene_means, so the marginal
+    expression distribution - and hence dropout, depth, sparsity - is identical
+    between them; only the gene identities differ) while sharing (sigma_mode=
+    'shared') or not sharing (sigma_mode='distinct') the same regulatory/hub
+    network. It sweeps mixing ratios, and at each ratio reports: gmp_cor (raw),
+    the same after group_centered removes each sub-population's own gene-mean
+    profile (isolating within-group coordination from the between-group mean
+    shift - the "dGMP" diagnostic: d_gmp = 1 - centered_gmp_cor / raw_gmp_cor
+    is close to 1 when the raw GMP-Cor was driven mostly by the two populations'
+    mean difference rather than genuine within-cell coordination), and
+    separation_metrics, which quantifies how strongly the two populations
+    separate along the direction connecting their mean profiles (the "group
+    axis") rather than assuming that direction is PC1 - important because a
+    strongly coordinated population can push the group-separating direction to
+    PC2 or PC3, in which case a PC1-only readout would wrongly report "no
+    separation" for two perfectly separated populations. A single dysregulated
+    (rho_low) population is included as a reference point for genuine loss of
+    coordination, for comparison against the mixture curve.
+
+    calculate_entropy, run_de_analysis and plot_volcano are a separate,
+    independent toolset (graphical-lasso covariance-entropy estimation and a
+    plain Welch's t-test differential-expression pipeline with BH-FDR
+    correction) used from simulations/notebook.ipynb; they do not feed the
+    GMP-Cor eigenvalue-spectrum analysis and are not called from any of the
+    scripts under simulations/ or scripts/.
+
+KEY PARAMETERS AND CONSTANTS
+    alpha / rho (generate_gram_hub_matrix, simulate_scRNA_data) - shared-variance
+        fraction; higher values put more of each gene's variance into shared
+        (cluster/hub) factors rather than idiosyncratic noise, i.e. stronger
+        correlation. rho_low=0.1 / rho_high=0.8-0.9 are the two regimes used
+        throughout as "dysregulated" vs "regulated" stand-ins.
+    shape=1.5 (Pareto shape for cluster sizes) - smaller values give a heavier
+        tail, i.e. occasional very large gene clusters; changing it changes how
+        concentrated the correlation structure is among few vs many genes.
+    hub_probability=0.2 - fraction of cluster hubs that also load onto the
+        single global hub factor; controls how much of the structure is
+        "global" (all clusters correlated with each other) vs purely local.
+    dropout_rate (default 2 in simulate_scRNA_data, 1 or 1.0 in the sweep/mixing
+        runners) - exponent in exp(-dropout_rate * count); larger values drop
+        more low-count entries, i.e. sparser observed data.
+    inv_gamma_shape=1.5, inv_gamma_scale=0.01 (default) / 0.04
+        (inverted_subpopulation_mixing) - shape/scale of the inverse-Gamma prior
+        on per-gene NB means. The larger 0.04 scale used in
+        inverted_subpopulation_mixing is explicitly calibrated (per its
+        docstring) to give ~85 detected genes per cell, matching the real
+        experimental matrices; at the module default (0.01) the simulated data
+        are too sparse for a between-population separating mode to form.
+    gene_r=0.5 (simulate_scRNA_data, hard-coded) - negative-binomial dispersion
+        parameter, described as "typical of scRNA-seq"; not exposed as an
+        argument, so every simulated gene shares the same overdispersion
+        regardless of its mean.
+    seed / seed_a / seed_b vs count_seed_a / count_seed_b - two separate seed
+        roles used throughout: the "seed" family fixes the correlation-matrix
+        (sigma) topology, the "count_seed" family fixes the NB/dropout sampling
+        noise on top of it. Keeping these separate is what lets repeats vary
+        only the sampling noise while holding the ground-truth structure fixed.
+    norm_sum=50 / 100 - target row-sum used by analysis_functions.normalize
+        before z-transforming and computing eigenvalues; rho_sweep and
+        subpopulation_mixing use 100, gmp_cor/inverted_subpopulation_mixing
+        default to 50. This differs from norm_sum=1 used elsewhere in the
+        codebase for the real experimental data (see analysis_functions.py log)
+        - see FINDINGS.
+    n_genes_sample=500 (validate_correlation_structure) - gene subsample size
+        for the empirical-vs-true correlation check, for speed on large gene
+        counts.
+
+FINDINGS
+    [1] INCONSISTENCY - validate_cell_expression_distribution docstring described
+        the wrong quantity (fixed in this pass)
+        Location: function validate_cell_expression_distribution (originally
+        around line 145-151)
+        What the code does: computes cell_totals = counts.sum(axis=1) (per-cell
+        totals) and labels the plot 'cell totals'.
+        Why that is a problem: the docstring was copy-pasted from
+        validate_gene_expression_distribution and said "Plots the empirical CCDF
+        of gene totals", contradicting the actual per-cell computation. Also,
+        both this and the gene-level docstring claimed the plot "overlays a
+        reference power-law slope", which plot_ccdf does not do - it plots only
+        the empirical CCDF.
+        Suggested fix: already corrected in this documentation pass (docstring
+        text only, no logic changed); no code change needed.
+
+    [2] SMELL - unused parameter n_sample in validate_gene_expression_distribution
+        Location: function validate_gene_expression_distribution, line ~165
+        What the code does: accepts n_sample=200 but never uses it - the function
+        always plots the full gene set (gene_totals), not a sample of n_sample
+        genes.
+        Why that is a problem: the name and default suggest sub-sampling occurs
+        for speed, which is misleading; a caller passing n_sample expecting it to
+        take effect is silently ignored.
+        Suggested fix: either wire n_sample into a random subsample of
+        gene_totals, or drop the parameter.
+
+    [3] RISK - run_de_analysis assumes at least two distinct condition values
+        Location: function run_de_analysis, ~line 900 (groups[test_time])
+        What the code does: groups = metadata[condition_col].unique(); then
+        indexes groups[0] and groups[test_time] (test_time defaults to 1).
+        Why that is a problem: if metadata[condition_col] has fewer than
+        test_time + 1 unique values (e.g. a single condition, or test_time set
+        too high for the number of timepoints), this raises an IndexError. There
+        is no validation of the number of groups before indexing.
+        Suggested fix: assert len(groups) > test_time with a clear error message
+        before indexing.
+
+    [4] SMELL - duplicated GMP-Cor computation across three call sites
+        Location: rho_sweep (~line 381), subpopulation_mixing's inner _gmp_cor
+        (~line 475-477), and the module-level gmp_cor function (~line 564-583)
+        What the code does: all three independently reimplement
+        "call get_eig_dist, take pcs1.max() as threshold, sum(max(pcs-threshold,
+        0))" - gmp_cor is the most complete version (adds gmp_cor_per_gene,
+        lambda_max, n_modes_above_threshold, fraction_non_zero) but is only used
+        by inverted_subpopulation_mixing, not by the two earlier functions.
+        Why that is a problem: three independent implementations of the same
+        published quantity increase the chance of them silently drifting apart
+        (e.g. only gmp_cor guards against p_kept == 0). No drift was found in
+        this review - all three currently agree - but the duplication is a
+        maintenance risk.
+        Suggested fix: have rho_sweep and subpopulation_mixing call the
+        module-level gmp_cor() helper instead of reimplementing it inline.
+
+    [5] INCONSISTENCY - norm_sum differs between this module and the real-data
+        pipeline
+        Location: rho_sweep (norm_sum=100), subpopulation_mixing (norm_sum=100,
+        hard-coded in the inner _gmp_cor), gmp_cor/inverted_subpopulation_mixing
+        (norm_sum=50 default), vs. src/analysis_functions.get_eig_dist's own
+        default (norm_sum=1) and src/data_functions.py callers using norm_sum=1
+        or norm_sum=50 for real data (see analysis_functions.txt / documents/
+        gmp_cor_provenance_analysis.md for the norm_sum=50 provenance note).
+        Why that is a problem: GMP-Cor's magnitude is sensitive to the target
+        row-sum used before z-transforming (it changes the effective count
+        depth), so simulated and real-data GMP-Cor values are only comparable if
+        computed with a matching norm_sum. rho_sweep and subpopulation_mixing use
+        100 rather than the 50 used by gmp_cor()/inverted_subpopulation_mixing or
+        the values used on real data; this was not flagged as wrong by itself
+        (each function is internally consistent) but readers combining results
+        across these functions and the real-data figures should check norm_sum
+        matches before comparing magnitudes directly.
+        Suggested fix: document (or standardize) the norm_sum used for
+        cross-comparable GMP-Cor numbers.
+
+RELATED FILES
+    src/analysis_functions.py - get_eig_dist, normalize, z_transform are called
+        directly (rho_sweep, subpopulation_mixing) or via local re-imports
+        (gmp_cor, _preprocess) to compute the eigenvalue spectrum this module
+        validates against synthetic ground truth.
+    src/data_functions.py - get_umap / project_on_pcs use the same
+        normalize -> log/no-log -> z_transform -> SVD pipeline that
+        inverted_subpopulation_mixing's example-ratio UMAP branch replicates
+        manually (its docstring says "matching data_functions.get_umap").
+    simulations/*.py (subpopulation_mixing_run.py,
+        inverted_subpopulation_mixing_run.py, dataset_mixing_ratio_run.py,
+        subsampling_*_run.py, utils.py) - standalone runner scripts that call
+        into this module and write results under results/simulation_results/,
+        per the CLAUDE.md convention.
+    simulations/notebook.ipynb - the only caller of calculate_entropy,
+        run_de_analysis and plot_volcano.
+    documents/reviewer1_subpopulation_analysis_plan.md,
+        documents/reviewer1_response_plan.md, documents/figure_s2_details.md -
+        narrative context for why subpopulation_mixing /
+        inverted_subpopulation_mixing exist (Reviewer #1 response).

@@ -1,0 +1,134 @@
+================================================================================
+scripts/eigenvalue_permutation_highB.py
+152 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A focused follow-up to eigenvalue_permutation_test.py: for the handful of
+    samples whose z_1 sits close to the null (small |z_1|, so the parametric
+    tail fit is unreliable/contested), this script raises the permutation
+    count from B=100 to B=2000 so the empirical (assumption-free) p-value can
+    resolve without needing a fitted tail distribution at all. It exists
+    because for samples with a huge z_1 no realistic B changes the
+    conclusion, so effort is spent only where a resolved p-value would
+    actually change the reading.
+
+INPUTS
+    data_for_paper/*.csv, ev_data/*.npy, ev_data/titles.xlsx
+        same per-sample inputs as eigenvalue_permutation_test.py, read via
+        the imported load_matrix/prep/spec/scramble/validate functions.
+    scripts/eigenvalue_permutation_test.py
+        supplies load_matrix, prep, spec, scramble, perm_pvalue, validate and
+        the shared constants (DATA_DIR, EV_DIR, OUT, SEED, K, TRACKER_GENES,
+        NORM_METHOD, NORM_SUM, LOG, MIN_CELLS, MIN_GENES) by direct import;
+        this script has no independent preprocessing logic.
+    scripts/null_distribution_fit.py (ndf)
+        parametric_pvalue, gpd_tail_p and calibration_check for the
+        parametric/tail-fit cross-check reported alongside the empirical p.
+    CLI args: `python eigenvalue_permutation_highB.py [B] [sample ...]`
+        B defaults to 2000; sample list defaults to DEFAULT_SAMPLES.
+
+OUTPUTS
+    results/permutation_test/raw/<tag>.csv
+        one row per rerun sample with lambda_1, z_1, empirical p and its
+        Clopper-Pearson interval, plus the parametric and GPD-tail p for
+        comparison.
+    results/permutation_test/raw/<tag>_null_draws.npz
+        per-sample (B, K) array of scrambled top-K eigenvalues.
+    results/permutation_test/raw/<tag>.txt
+        human-readable report explaining how to read the empirical vs.
+        parametric vs. GPD columns.
+    results/permutation_test/logs/<tag>.json
+        full log: parameters, per-sample detail, environment, runtime.
+    (does not write a figure; no make_figure call in this script)
+
+HOW IT WORKS
+    DEFAULT_SAMPLES hard-codes the three samples judged closest to the
+    decision boundary in the B=100 run: 'SHX_biorep2B', 'sample_13a_filtered',
+    'sample_15a_filtered'. For each requested sample, the script reloads and
+    re-preprocesses the matrix via the imported load_matrix/prep pipeline,
+    recomputes the observed spectrum with spec(), and re-validates against
+    the stored ev_data/*.npy spectrum exactly as the base script does (only
+    the repo-pipeline check is asserted here; the preprocessing-match
+    assertion from the base script is not repeated).
+
+    B replicates of the column-scrambled null are drawn from a single shared
+    Generator seeded at SEED+1 (distinct from the base script's SEED, so this
+    run's numbers are an independent Monte Carlo replicate rather than an
+    extension of the B=100 draws) and progress is printed every 250
+    replicates since B=2000 is comparatively slow. From the null, the script
+    computes the null mean/sd (ddof=0, matching the base script's
+    convention), z_k, the empirical per-rank p-value via
+    eigenvalue_permutation_test.perm_pvalue, and specifically for rank 1: the
+    raw exceedance count, a parametric MLE tail fit (ndf.parametric_pvalue),
+    a generalized-Pareto tail fit (ndf.gpd_tail_p, a peaks-over-threshold
+    method suited to extreme-tail estimation), and a held-out calibration
+    check. A 95% exact (Clopper-Pearson) interval on the empirical p is also
+    computed from the exceedance count, using the scipy beta quantile
+    function -- this makes explicit how much Monte Carlo uncertainty remains
+    in the empirical answer even at B=2000.
+
+    Results are collected into a DataFrame and written to CSV, together with
+    an npz of the raw null draws (for later refitting without recomputation),
+    a text report, and a JSON log recording every parameter and per-sample
+    result. There is no figure output; this script is a numeric supplement to
+    the base run, not a new presentation panel.
+
+KEY PARAMETERS AND CONSTANTS
+    DEFAULT_B = 2000
+        the raised replicate count; brings the empirical p-value floor down
+        to 1/2001 ~= 0.0005, twenty times finer than the base B=100 run.
+    DEFAULT_SAMPLES
+        the three boundary samples; hard-coded based on a judgment call made
+        from the B=100 results, not recomputed here, so if the underlying
+        data or preprocessing changes this list could go stale silently (see
+        RISK finding).
+    SEED + 1
+        deliberately offset from the base script's SEED so this run is an
+        independent Monte Carlo draw, not a continuation of the same stream;
+        but still one stream shared sequentially across the (small, fixed)
+        sample list -- see the matching RISK noted for the base script.
+    K
+        imported unchanged from eigenvalue_permutation_test.py (=20); ranks
+        reported here mirror the base script's top-K definition exactly.
+
+FINDINGS
+    [1] RISK - hard-coded DEFAULT_SAMPLES can silently drift out of date
+        Location: line 39 (`DEFAULT_SAMPLES = [...]`)
+        What the code does: fixes, by name, the three samples judged
+        boundary-|z_1| at the time this script was written.
+        Why that is a problem: if a future B=100 rerun (new data, changed
+        preprocessing, a bug fix upstream) shifts which samples sit near the
+        decision boundary, this script keeps refining the old, possibly now-
+        irrelevant, set unless someone remembers to update the list by hand;
+        nothing in the script re-derives "boundary" from the latest results.
+        Suggested fix: optionally derive the sample list from the most recent
+        eigenvalue_permutation_test.py output (e.g. |z_1| below some
+        threshold) with DEFAULT_SAMPLES as a documented fallback.
+
+    [2] INCONSISTENCY (minor) - misleading label on the confidence interval
+        Location: line ~80-84 (comment "Wilson interval on the empirical p")
+        What the code does: the comment calls the interval a Wilson score
+        interval, but the code (`_beta.ppf(0.025, n_exceed+1, B-n_exceed)` /
+        `0.975, ...`) computes the exact Clopper-Pearson beta interval, the
+        same construction eigenvalue_permutation_full_B2000.py labels
+        correctly as Clopper-Pearson. The two intervals are numerically
+        different methods (Wilson is a normal-approximation score interval;
+        Clopper-Pearson is exact/beta-based), though they usually agree
+        closely away from p near 0 or 1.
+        Suggested fix: fix the comment to say "Clopper-Pearson", as the
+        sibling script does (a comment-only fix, made in this pass).
+
+RELATED FILES
+    scripts/eigenvalue_permutation_test.py
+        source of load_matrix/prep/spec/scramble/perm_pvalue/validate and the
+        shared constants this script imports directly; see that file's log
+        for the B=100 baseline run and the ddof/seed inconsistencies that
+        also apply here.
+    scripts/eigenvalue_permutation_full_B2000.py,
+    scripts/eigenvalue_permutation_append.py
+        the all-sample, parallelized, independently-seeded, ddof=1 B=2000
+        family; this script is the older, single-process, three-sample
+        precursor to that approach.
+    scripts/null_distribution_fit.py
+        supplies parametric_pvalue, gpd_tail_p, calibration_check.

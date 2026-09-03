@@ -14,12 +14,17 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# machine-specific absolute path (a GRC-conference working copy of the scanlag
+# data, not tracked in the repo) - this script only runs as-is on that machine;
+# point DATA elsewhere to reuse it against another scanlag_data.xlsx
 DATA = r'G:\Other computers\My MacBook Air\Alon\PhD\documents\GRC conference\figures\scanlag_data.xlsx'
 OUT_DIR = os.path.dirname(DATA)
 
 # ------------------------------------------------------------------
 # Load
 # ------------------------------------------------------------------
+# fixed-layout sheet, one column per condition: row 0 = condition name,
+# row 2 = t0 (subtracted from every value in that column), rows 4+ = lag times
 raw = pd.read_excel(DATA, header=None)
 labels = raw.iloc[0].tolist()
 t0 = raw.iloc[2].astype(float).tolist()
@@ -31,7 +36,7 @@ RED_SHADES = ['#8B0000', '#D62728', '#F08080']   # dark -> light red
 RED_STYLES = ['-', '--', ':']                     # solid / dashes / dots
 
 fig, ax = plt.subplots(figsize=(5, 4))
-xmin = 10
+xmin = 10   # left edge of the plotted x-range; also used to anchor the CCDF's leading y=1 point
 red_i = 0
 for j, name in enumerate(labels):
     vals = pd.to_numeric(raw.iloc[4:, j], errors='coerce').dropna().values - t0[j]
@@ -39,11 +44,15 @@ for j, name in enumerate(labels):
     x = np.sort(vals)
     # complementary CDF: fraction of bacteria with lag time > x
     y = 1.0 - np.arange(1, len(x) + 1) / len(x)
+    # prepend (xmin, 1) so the step curve starts flat at y=1 from the left edge
+    # of the plot instead of at the first observed lag time
     x = np.append(xmin, x)
     y = np.append(1,y)
     if str(name).strip() == 'Reg-Arrest':
         ax.step(x, y, where='post', color='steelblue', lw=2, label=name)
     else:
+        # cycles through the 3 red shades/styles in column order; assumes at
+        # most 3 non-Reg-Arrest conditions are present in the sheet
         ax.step(x, y, where='post', color=RED_SHADES[red_i], lw=2,
                 linestyle=RED_STYLES[red_i], label=name)
         red_i += 1
@@ -58,6 +67,8 @@ ax.spines['right'].set_visible(False)
 ax.set_xlim(left=10)
 fig.tight_layout()
 
+# final SVG is written back next to the source data (OUT_DIR, on the external
+# drive); a PNG preview is additionally kept next to this script for quick viewing
 out = os.path.join(OUT_DIR, 'scanlag_1cdf.svg')
 fig.savefig(out, transparent=True)
 fig.savefig(os.path.join(

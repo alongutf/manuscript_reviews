@@ -88,6 +88,7 @@ LABELS = {"bulk": {"Disrupted": "Dis-Arrest1", "CASP": "Reg-Arrest1"},
 
 
 def annotate(col):
+    """Split a 'dataset|sample' column name into condition/batch/label metadata."""
     ds, s = col.split("|")
     if ds == "bulk":
         label = LABELS["bulk"]["CASP" if s.startswith("CASP") else "Disrupted"]
@@ -98,7 +99,7 @@ def annotate(col):
             "batch": "bulk" if ds == "bulk" else "timecourse"}
 
 
-meta = pd.DataFrame([annotate(c) for c in lfc.columns], index=lfc.columns)
+meta = pd.DataFrame([annotate(c) for c in lfc.columns], index=lfc.columns)  # index = sample column names
 
 
 def short(row):
@@ -108,7 +109,7 @@ def short(row):
     return "%s %s" % (row["label"], s)
 
 
-NAME = {c: short(r) for c, r in meta.iterrows()}
+NAME = {c: short(r) for c, r in meta.iterrows()}   # sample column -> compact axis label
 
 
 # ------------------------------------------------------------- batch removal
@@ -132,6 +133,8 @@ def remove_batch(mat):
     return pd.DataFrame((y - fit).T, index=mat.index, columns=meta.index)
 
 
+# (panel tag, panel title, source matrix, whether to batch-correct) -- the four
+# panels described in the module docstring's 2x2 table
 PANELS = [("A", "Log fold change", lfc, False),
           ("B", "Log fold change, batch-corrected", lfc, True),
           ("C", "Absolute expression", expr, False),
@@ -229,9 +232,13 @@ for (tag, title, mat, debatch), cell in zip(PANELS, gs):
     ax_a.tick_params(length=0)
 
     # two-cluster cut: does the top split of the tree recover the condition?
+    # (computed from Z regardless of args.no_dendrogram, since it is cheap and
+    # independent of whether the tree itself is drawn)
     cut = pd.Series(fcluster(Z, 2, criterion="maxclust"), index=rho.index)
     clusters["%s_%s" % (tag, "nobatch" if debatch else "raw")] = cut
     tab = pd.crosstab(cut, meta["condition"])
+    # "clean" iff every cluster is made up of a single condition (no cluster mixes
+    # Reg-Arrest and Dis-Arrest samples)
     pure = bool((tab.max(axis=1) == tab.sum(axis=1)).all())
     print("  top split vs condition: %s" % ("clean" if pure else "mixed"))
     print("    " + tab.to_string().replace("\n", "\n    "))

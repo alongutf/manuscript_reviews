@@ -1,3 +1,16 @@
+"""
+Pure numerical routines for the gene-gene correlation / eigenvalue-spectrum
+analysis described in CLAUDE.md: matrix preprocessing (normalization,
+log/z-transforms, column scrambling), principal-component / eigenvalue
+computation, the empirical-vs-scrambled eigenvalue spectrum comparison that
+GMP-Cor is built on (get_eig_dist), the analytic Marchenko-Pastur null density
+(mp_distribution) it is compared against, and a handful of per-mode diagnostics
+(coordination_score, participation_ratio, eigenvector_entropy) used to
+interpret which genes drive a given eigenmode. Everything here operates on
+plain numpy arrays (no I/O) and is imported as `src.analysis_functions`
+(conventionally aliased `af`) by data_functions.py, simulations.py and the
+scripts/ notebooks and figure scripts - it is not run directly.
+"""
 import numpy as np
 import pandas as pd
 from numba.np.arraymath import np_average
@@ -6,7 +19,11 @@ from sklearn.decomposition import SparsePCA
 from scipy.stats import rankdata
 
 def scramble(m):
-    # Scramble the column indices in each row of a matrix m
+    # Independently permute the *cell* (row) values within each gene (column),
+    # i.e. destroy any gene-gene correlation while preserving each gene's own
+    # marginal distribution across cells. This is the "scrambled" null model
+    # get_eig_dist compares the real eigenvalue spectrum against: a matrix with
+    # the same per-gene marginals but no cross-gene structure.
     #m = np.array([np.random.permutation(row) for row in m])
     # Scramble the row indices in each column of a matrix m
     m = np.array([np.random.permutation(row) for row in m.T]).T
@@ -14,7 +31,12 @@ def scramble(m):
 
 
 def normalize(m, method='norm', target_sum=1):
-    # Normalize the rows of a matrix m by norm or by sum
+    # Rescale each row (cell) of m to a common total: method='sum' divides by the
+    # row sum (library-size / depth normalization, the usual scRNA-seq choice),
+    # any other method value divides by the row's Euclidean norm instead. Both
+    # are then scaled to target_sum. Rows that summed/normed to zero produce a
+    # 0/0 division -> NaN, which is reset to 0 (an all-zero cell stays all-zero
+    # rather than propagating NaN into downstream computations).
     if method == 'sum':
         m = target_sum*m / m.sum(axis=1)[:, None]
     else:
@@ -23,24 +45,41 @@ def normalize(m, method='norm', target_sum=1):
     return m
 
 def spearman_ranking(m):
+    # Replace each gene's (column's) values across cells with their ranks
+    # (ties handled by scipy.stats.rankdata's default averaging), i.e. convert m
+    # to a Spearman-rank representation before correlation. Not called by
+    # get_eig_dist itself - available for callers who want a rank-based rather
+    # than Pearson-style (z-transform-based) eigenvalue spectrum.
     m = np.array([rankdata(row) for row in m.T]).T
     return m
 
 
 def z_transform(m):
-    # Z-transform the columns of a matrix m
+    # Standardize each gene (column) to zero mean, unit variance across cells -
+    # this is what makes the subsequent SVD/eigenvalues equivalent to an
+    # eigendecomposition of the gene-gene Pearson correlation matrix rather than
+    # the raw covariance. Constant (zero-variance) columns give 0/0 -> NaN,
+    # reset to 0 so they contribute no variance rather than corrupting the SVD.
     m = (m - m.mean(axis=0)) / m.std(axis=0)
     m[np.isnan(m)] = 0
     return m
 
 
 def log_transform(m):
-    # Log-transform the elements of a matrix m
+    # log1p-style transform (log(m + 1), so log(0) = 0 rather than -inf) to
+    # reduce the influence of a small number of very highly expressed genes.
     return np.log(m + 1)
 
 
 def get_pcs(m):
-    # Get the principal components of a matrix m
+    # Eigenvalues of the gene-gene correlation/covariance structure of m
+    # (n_cells x p_genes), via the singular values of m itself rather than
+    # forming the p x p covariance matrix explicitly. Returned as a length-p
+    # array (eigenvalue_i = singular_value_i**2 / n_cells) padded with zeros
+    # for the min(n, p) .. p-1 structurally-zero directions when p > n (more
+    # genes than cells, the usual regime for this data) - la.svd(m) with the
+    # default full_matrices=True still returns only min(n, p) singular values,
+    # so this padding keeps the returned array's length equal to p regardless.
     n = m.shape[0]
     p = m.shape[1]
     pcs = np.zeros(p)
@@ -49,18 +88,42 @@ def get_pcs(m):
 
 
 def get_sparse_pcs(m, n_components, alpha=0.5):
-    # Get the principal components of a matrix m using sparse PCA
+    # Sparse-PCA gene loadings for m (n_cells x p_genes): n_components components,
+    # each a p-length loading vector with an L1 penalty (alpha) encouraging most
+    # entries to be exactly zero, i.e. each component driven by relatively few
+    # genes. Returned as (n_components, p_genes); not used by get_eig_dist, which
+    # uses the dense SVD (get_pcs) instead.
     spca = SparsePCA(n_components=n_components, alpha=alpha)
     spca.fit(m)
     return spca.components_
 
 
 def get_eig_dist(m, norm=True, log=False, norm_method='sum', norm_sum=1):
-    # get the eigenvalue distribution of the normalized matrix m
-    # scramble the matrix m, and get the eigenvalue distribution of the normalized matrix
+    # Core GMP-Cor computation: return the empirical eigenvalue spectrum of m's
+    # gene-gene correlation structure alongside the null spectrum obtained by
+    # scrambling away gene-gene correlations, so the two can be compared (the
+    # excess of empirical eigenvalues above the scrambled maximum is GMP-Cor -
+    # see src/simulations.py's gmp_cor() and analysis notebooks).
+    #
+    # m : (n_cells x p_genes) raw count matrix.
+    # norm / norm_method / norm_sum : passed to normalize() - row (per-cell)
+    #     normalization applied before z-transforming, if norm is True.
+    # log : whether to log_transform after normalizing and before z-transforming.
+    #
+    # Returns
+    #   pcs             : (p_kept,) empirical eigenvalues of the (filtered,
+    #                      preprocessed) matrix, see get_pcs.
+    #   pcs1            : (p_kept,) eigenvalues of the scrambled matrix, averaged
+    #                      over `rep` independent scrambles to reduce noise in the
+    #                      null spectrum (and in particular in its maximum, the
+    #                      GMP-Cor threshold).
+    #   fraction_non_zero: scalar, fraction of non-zero entries in m after the
+    #                      zero-gene/zero-cell filter below (a sparsity diagnostic).
     #m = log_transform(m)  # z-transform the matrix m
     rep=10
     # remove zero genes:
+    # drop genes with no detected counts in any cell, and cells with no detected
+    # genes - both would otherwise contribute rows/columns of all-zero variance
     gene_sums = (m>0).sum(axis=0)
     min_cells = 1
     m = m[:,gene_sums >= min_cells]

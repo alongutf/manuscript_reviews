@@ -1,0 +1,124 @@
+================================================================================
+scripts/build_presentation.py
+314 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Builds a 12-minute physics-audience conference-talk slide deck (PPTX) that
+    presents the paper's random-matrix-theory framework as an analogy to the
+    Sherrington-Kirkpatrick spin glass: it frames the gene-gene correlation
+    structure as an order parameter (GMP-Cor / rho) that collapses a
+    high-dimensional regulatory network onto one number. It is a presentation
+    generator, not an analysis script -- it does not compute anything new, it only
+    lays out already-produced figures (PNG previews from the figureN.py scripts and
+    from the simulation pipeline) into slides with title text, bullet points and
+    captions written by hand into the script.
+
+INPUTS
+    - PNG figure previews already produced elsewhere in the repo, referenced by the
+      FIG dict:
+        scripts/figures/figure1/experiment illustration.png
+        scripts/figures/figure2_preview.png
+        scripts/supplementary_figures/figure_s2_preview.png
+        results/simulation_results/figures/rho_sweep_calibration.png
+        scripts/figures/figure3_preview.png
+        results/simulation_results/figures/
+          subpopulation_mixing_rho09_50_50_20260615_111850.png
+        scripts/figures/figure4_preview.png
+      (all confirmed present on disk at review time). No CSVs, notebooks, or
+      environment variables are read; no CLI arguments are accepted.
+    - Run from anywhere: `python scripts/build_presentation.py` (paths are resolved
+      from __file__, not from cwd, unlike most other scripts in this repo).
+
+OUTPUTS
+    - presentations/dysregulated_persistence_physics_talk.pptx
+      An 11-slide, 16:9 PowerPoint deck. presentations/ is created if missing.
+    - stdout: confirmation of the save path, slide count, and an OK/MISSING check
+      per figure file referenced by FIG (a placeholder textbox is embedded in the
+      slide itself for any MISSING figure, so a missing PNG degrades gracefully
+      rather than crashing the build).
+
+HOW IT WORKS
+    The script is linear, not organized into functions per slide: a small set of
+    layout helpers is defined once (add_slide, textbox, bar, title_band, fit_image,
+    caption, content_slide), then 11 slide blocks run top to bottom at module level,
+    each calling those helpers with slide-specific text and figure keys.
+
+    add_slide() creates a blank-layout slide with a solid white background;
+    textbox() adds a multi-line, multi-style text box from a list of
+    (text, size, bold, color, space_after) tuples, one per paragraph; bar() draws a
+    full-width flat-color rectangle (used as the accent stripe under every slide
+    title and as the top/bottom frame bars on the title slide); title_band()
+    combines a bar with an optional small-caps "kicker" label and the slide title.
+
+    fit_image() letterboxes a PNG into a bounding box while preserving its aspect
+    ratio (constrained by width or height, whichever the image's own aspect ratio
+    would otherwise overflow) and centers it in the box; if the file does not exist
+    it substitutes a warm-colored "[missing figure: ...]" placeholder rather than
+    raising, so a build with an unrendered figure still produces a complete deck.
+
+    content_slide() is the workhorse for the "standard" split-layout slides used for
+    7 of the 11 slides: a title band, a figure on one side of the slide and a bullet
+    list on the other, with an optional caption under the figure. Its img_side
+    parameter is inverted relative to its name -- see FINDINGS [1].
+
+    The remaining 4 slides (title, the SK-analogy framing slide, the "what rho
+    means microscopically" slide, and the closing slide) are built directly at
+    module level with textbox() calls rather than going through content_slide(),
+    since they are full-width text layouts without a paired figure.
+
+    At the end, the presentation object is saved to OUT, and the script prints a
+    per-figure existence check by re-testing os.path.exists() against every entry in
+    FIG -- this is a diagnostic echo of what fit_image() already decided during the
+    build, not a second independent check.
+
+KEY PARAMETERS AND CONSTANTS
+    prs.slide_width/height = 13.333in x 7.5in
+                              Standard 16:9 widescreen PowerPoint dimensions.
+    INK/ACCENT/WARM/MUTE/BG  Fixed hex color palette: ACCENT (steelblue) is used for
+                              "regulated / high rho" framing, WARM (coral) for
+                              "dysregulated / low rho" -- the color coding is a
+                              narrative device, not derived from any data.
+    add_shape(1, ...) in bar()
+                              Magic number 1 is python-pptx's MSO_SHAPE.RECTANGLE
+                              autoshape type; not imported as a named constant.
+    content_slide() geometry  img_w=7.1in, img_h=5.2in, txt_w=4.5in, top=1.6in --
+                              hand-tuned layout constants for the 13.333x7.5in canvas;
+                              changing the slide size would require re-tuning these.
+
+FINDINGS
+    [1] INCONSISTENCY - content_slide()'s img_side parameter is inverted relative to
+        its name
+        Location: content_slide(), the "if img_side == 'right': ... else: ..." block
+        What the code does: when img_side="right" is passed, img_l is set to 0.55in
+        (near the LEFT margin of the slide) and txt_l to 8.0in (near the right
+        margin) -- so the figure actually renders on the LEFT and the bullets on the
+        RIGHT. When img_side="left" is passed, img_l is set to 5.75in (the
+        right-hand portion of the slide) and txt_l to 0.55in -- so the figure
+        renders on the RIGHT and the bullets on the LEFT. Both branches place the
+        image on the side opposite to what the argument name says.
+        Why that is a problem: every one of the 6 content_slide() calls in this file
+        passes an explicit img_side, presumably chosen by looking at the rendered
+        deck and picking whichever value produced the desired layout -- so the deck
+        itself is not visually broken. But the parameter is a booby trap for any
+        future edit: someone reading the call site (e.g. content_slide(..., "climax",
+        [...], img_side="left")) would reasonably expect the figure on the left, and
+        will get it on the right, then either "fix" a working slide or add a second,
+        compensating inversion elsewhere.
+        Suggested fix: swap the two branches so img_side documents the true image
+        position, and flip the img_side= arguments at each of the 6 call sites to
+        keep the rendered deck identical; not fixed here since this pass is
+        comments-only.
+
+RELATED FILES
+    - scripts/figures/figure1.py..figure4.py, scripts/supplementary_figures/
+      figure_s2.py - produce the *_preview.png files this script embeds.
+    - results/simulation_results/figures/ - source of the rho-sweep calibration and
+      subpopulation-mixing PNGs (see CLAUDE.md's "results/simulation_results/" naming
+      convention: <experiment_name>_<timestamp>.<ext>); this script hard-codes one
+      specific timestamped filename
+      (subpopulation_mixing_rho09_50_50_20260615_111850.png), so a re-run of that
+      simulation under a new timestamp will silently leave this deck pointing at a
+      stale/missing file until FIG is updated by hand.
+    - No src/ modules are used; this script is presentation-only and does not touch
+      any of the paper's numerical pipeline.

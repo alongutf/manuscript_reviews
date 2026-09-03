@@ -1,0 +1,171 @@
+================================================================================
+simulations/subsampling_genecmp_rho09_run.py
+354 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Follow-up robustness check for a reviewer comment (Reviewer #1, comment 2.3) on
+    whether GMP-Cor (the paper's global correlation index) depends on how many cells
+    are subsampled. An earlier script, subsampling_robustness_rho09_run.py, showed
+    that the per-gene GMP-Cor index is stable across cell counts when genes are
+    always chosen by highest total expression. This script asks whether that
+    stability is real or an artefact of always keeping the most informative genes:
+    it repeats the identical subsampling sweep with genes chosen either the same way
+    ("top") or uniformly at random ("random"), on the same synthetic cell pool and
+    the same paired cell draws, so gene-selection method is the only thing that
+    varies. It sits in the "simulations/" standalone-runner layer of the pipeline
+    described in CLAUDE.md, downstream of nothing (self-contained synthetic data)
+    and feeding only the manuscript's reviewer-response material.
+
+INPUTS
+    None from disk. All data is synthetic, generated in-process by
+    src.simulations.generate_gram_hub_matrix (builds a rho=0.9 gene-gene correlation
+    matrix with cluster/hub structure) and src.simulations.simulate_scRNA_data
+    (draws negative-binomial counts with dropout from that correlation structure).
+    All simulation parameters are hard-coded module constants (see KEY PARAMETERS).
+
+OUTPUTS (results/simulation_results/, all timestamped with the run's start time)
+    - logs/subsampling_genecmp_rho09_<timestamp>.json
+        Full parameter dump plus every per-repeat GMP-Cor value ('per_repeat') and
+        the per-size mean/SD/CV summaries for both methods ('per_size'). Satisfies
+        CLAUDE.md's requirement to log every simulation parameter for
+        reproducibility.
+    - raw/subsampling_genecmp_rho09_<timestamp>.txt
+        Human-readable table of results plus a hand-written INTERPRETATION section
+        (see FINDINGS [1] for a caveat about that section).
+    - figures/subsampling_genecmp_rho09_<timestamp>.svg / .png
+        Two-panel figure: (A) raw GMP-Cor vs. cell count for both gene-selection
+        methods; (B) per-gene GMP-Cor (GMP-Cor / n_genes) vs. cell count.
+
+HOW IT WORKS
+    A single large synthetic "pool" (N_CELLS_POOL=1200 cells x N_GENES_POOL=2400
+    genes) is generated once at rho=0.9 (SIGMA_SEED=31 for the hub-network
+    covariance, COUNT_SEED=0 for count sampling). This pool is large enough that
+    every subsample requested below is a genuine draw without replacement from a
+    fixed ground truth.
+
+    For each target cell count in CELL_SIZES = [200, 400, 600, 800, 1000], the
+    matching gene count is GENE_SIZES = round(n_cells / RATIO) with RATIO=0.5, i.e.
+    genes are always twice the cell count. Holding this aspect ratio fixed keeps the
+    Marchenko-Pastur noise edge (and hence the scrambled-null threshold GMP-Cor is
+    measured against) comparable across sizes, so raw GMP-Cor values at different
+    sizes are meaningfully comparable rather than confounded by matrix shape alone.
+
+    For each of N_REPEATS=5 repeats per size, a common set of cells is drawn from
+    the pool (cell_rng seeded by SUBSAMPLE_SEED + 1000*n_cells + rep -- identical
+    formula to subsampling_robustness_rho09_run.py, so the "top" branch here
+    reproduces that earlier run's numbers exactly). From that SAME cell draw, genes
+    are then chosen two ways: 'top' takes the highest total-count genes (as before);
+    'random' draws n_genes uniformly at random using an independent RNG stream
+    (GENE_RNG_BASE=2,000,000-offset seed) so the two methods are compared on exactly
+    the same cells, isolating gene selection as the only variable. GMP-Cor is
+    computed for each resulting matrix via the local gmp_cor() helper, which calls
+    src.analysis_functions.get_eig_dist(observed, norm=True, log=False,
+    norm_sum=100): get_eig_dist drops all-zero genes/cells, row-normalizes to sum
+    norm_sum, z-transforms columns, then compares the empirical eigenvalue spectrum
+    to the mean spectrum of 10 column-scrambled copies. GMP-Cor is the sum of
+    eigenvalue excess above the scrambled spectrum's maximum (the noise ceiling).
+
+    Per-(method, size) means/SDs/CVs are assembled into `summary`, both for raw
+    GMP-Cor and for the per-gene index (GMP-Cor / n_genes), and everything is
+    written to the JSON log. A text summary is built with a PARAMETERS block, a
+    per-method results table, a top-vs-random per-gene comparison table, and a
+    hand-written INTERPRETATION section that explains why 'top' is expected to stay
+    flat and 'random' is expected to rise with size (dropout-heavy, low-expression
+    genes are noise-suppressed until enough cells resolve their structure). Finally
+    a two-panel matplotlib figure is built and saved as SVG/PNG.
+
+KEY PARAMETERS AND CONSTANTS
+    RHO = 0.9            regulated (strongly correlated) regime for the pool.
+    CELL_SIZES           subsample sizes swept: 200..1000 in steps of 200.
+    RATIO = 0.5           cell:gene ratio held fixed (1:2) across the sweep so the
+                          Marchenko-Pastur noise edge doesn't confound the
+                          comparison across sizes.
+    N_CELLS_POOL=1200, N_GENES_POOL=2400   pool size; must exceed the largest
+                          subsample request (1000 cells, 2000 genes) -- it does.
+    N_REPEATS = 5         independent cell draws per (method, size) for mean/SD.
+    DROPOUT_RATE, SHAPE, HUB_PROB   passed straight through to
+                          simulate_scRNA_data / generate_gram_hub_matrix; not swept.
+    SIGMA_SEED=31, COUNT_SEED=0    fix the pool's covariance structure and count
+                          draw so the run is reproducible and matches the
+                          sibling "top-only" run exactly.
+    SUBSAMPLE_SEED=1000   base seed for cell subsampling; combined with n_cells and
+                          rep so every (size, repeat) gets an independent, but
+                          reproducible, cell draw.
+    GENE_RNG_BASE=2,000,000   base seed for the 'random' gene-selection stream,
+                          chosen far from SUBSAMPLE_SEED's range purely so the two
+                          RNG streams' seeds cannot collide.
+    norm_sum=100 (in gmp_cor())   row-normalization target passed to get_eig_dist.
+                          This differs from src.simulations.gmp_cor's default of 50
+                          and from other scripts' choices, but is provably immaterial
+                          to the result -- see FINDINGS [1].
+    FLAT_THRESH = 15.0    % spread below which a series is called "size-invariant"
+                          in the printed interpretation; computed into top_flat /
+                          rnd_flat but not actually used to gate the narrative text
+                          -- see FINDINGS [2].
+
+FINDINGS
+    [1] INCONSISTENCY - norm_sum=100 differs from other scripts' choice, but is
+        provably immaterial (not a real inconsistency).
+        Location: gmp_cor() (module-level helper) and its call to get_eig_dist.
+        What the code does: calls get_eig_dist(..., norm_sum=100), whereas
+        src.simulations.gmp_cor() defaults to norm_sum=50, and
+        simulations/dataset_mixing_gmpcor_run.py uses norm_sum=1. The sibling script
+        subsampling_robustness_rho09_run.py (whose gmp_cor() this file's gmp_cor()
+        duplicates) carries a docstring explicitly warning that "absolute values
+        from this script are not directly comparable to GMP-Cor numbers computed
+        elsewhere at norm_sum=50".
+        Why that is a problem: that warning is incorrect. get_eig_dist row-normalizes
+        with normalize(method='sum', target_sum=norm_sum) and then applies
+        z_transform, which subtracts each column's mean and divides by its own
+        std. Rescaling every row by a constant factor (changing norm_sum) rescales
+        the whole matrix by that same constant, and z_transform is invariant to a
+        uniform multiplicative rescaling of its input (verified numerically:
+        z_transform(normalize(m, target_sum=1)) is bit-for-bit equal to
+        z_transform(normalize(m, target_sum=100)) for the same m). So GMP-Cor is
+        identical regardless of norm_sum, and the different values used across this
+        codebase's scripts (1, 50, 100) do not actually create any inconsistency in
+        the reported numbers -- only the sibling script's comment is wrong.
+        Suggested fix: none needed for this file's behaviour; consider correcting
+        the misleading docstring in subsampling_robustness_rho09_run.py so future
+        readers don't treat norm_sum as a real degree of freedom.
+
+    [2] RISK - INTERPRETATION section in the text log is a fixed narrative, not
+        derived from the flags/ratios computed just above it.
+        Location: lines ~249-289 (FLAT_THRESH / top_flat / rnd_flat block and the
+        three textwrap.wrap() paragraphs).
+        What the code does: computes top_flat = _spread(top_pg) < FLAT_THRESH and
+        rnd_flat = _spread(rnd_pg) < FLAT_THRESH, but the three interpretation
+        paragraphs always assert "TOP... size-INVARIANT" and "RANDOM... NOT" as
+        fixed prose, never branching on top_flat/rnd_flat. One paragraph also
+        contains the literal hand-written figure "0.09x -> 0.77x" for the
+        random/top per-gene ratio range, rather than computing it from the `ratio`
+        values already produced in the PER-GENE INDEX table just above.
+        Why that is a problem: with all RNG seeds fixed the current run is fully
+        deterministic, so today's printed numbers happen to be internally
+        consistent. But nothing in the code enforces that: if any swept parameter
+        (CELL_SIZES, RATIO, N_REPEATS, the pool seeds) is changed, the printed
+        INTERPRETATION text will keep asserting the old conclusion and the old
+        "0.09x -> 0.77x" figure even though the actual computed top_flat/rnd_flat
+        and ratio values may now say something different -- a silent, undetectable
+        mismatch between the log's numbers and its prose.
+        Suggested fix: derive the paragraph text (or at least the numeric range) from
+        top_flat, rnd_flat and the computed `ratio` list instead of literals, or add
+        an assertion that fails loudly if the computed flags disagree with the
+        hard-coded narrative.
+
+RELATED FILES
+    src/simulations.py           generate_gram_hub_matrix, simulate_scRNA_data (data
+                                  generation); its own gmp_cor() computes the same
+                                  quantity with a different default norm_sum (50),
+                                  shown above to be immaterial.
+    src/analysis_functions.py    get_eig_dist (eigenvalue-spectrum computation this
+                                  script's gmp_cor() wraps), normalize, z_transform.
+    simulations/subsampling_robustness_rho09_run.py
+                                  the earlier "top-only" run this script reproduces
+                                  and extends; identical pool/seed parameters, and
+                                  the source of the misleading norm_sum docstring
+                                  noted in FINDINGS [1].
+    simulations/subsampling_genecmp_fixedgenes_rho09_run.py, subsampling_allgenes_rho09_run.py
+                                  further variants of the same gene-selection
+                                  robustness question (not reviewed in this pass).

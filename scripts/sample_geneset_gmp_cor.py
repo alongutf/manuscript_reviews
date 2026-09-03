@@ -41,13 +41,23 @@ NORM = True
 LOG = False
 NORM_METHOD = 'sum'
 NORM_SUM = 50          # z-transform makes this scale-free
-SEED = 0
+SEED = 0                # seeds np.random, which drives af.get_eig_dist's scrambling
 
 
 def gmp_cor(m):
+    """Compute GMP-Cor and related diagnostics for one cells x genes count matrix.
+
+    ``m`` is normalised, z-transformed and eigendecomposed by
+    ``af.get_eig_dist``, which also builds the permutation-scrambled null
+    (averaged over its internal repeat count, 10) and returns both eigenvalue
+    spectra (``pcs`` empirical, ``pcs1`` scrambled) plus the matrix's non-zero
+    fraction after its own internal cell/gene filtering.
+    """
     pcs, pcs1, frac_nz = af.get_eig_dist(
         m, norm=NORM, log=LOG, norm_method=NORM_METHOD, norm_sum=NORM_SUM
     )
+    # GMP-Cor threshold: the largest eigenvalue seen under the null defines the
+    # noise floor: only empirical eigenvalues above it count as real correlation
     thr = float(pcs1.max())
     return {
         'gmp_cor': float(np.sum(np.maximum(pcs - thr, 0))),
@@ -62,11 +72,19 @@ def select_genes(M):
     """Return ({selection_name: gene index array}, per-gene stats) for one sample."""
     mean_expr = M.mean(axis=0)
     max_expr = M.max(axis=0)
+    # ddof=1: sample variance (unbiased), consistent with treating each sample's
+    # cells as a draw from an underlying population rather than the whole population
     var_expr = M.var(axis=0, ddof=1)
     n_det = (M > 0).sum(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
         fano = np.where(mean_expr > 0, var_expr / mean_expr, 0.0)
+    # genes detected in too few cells get a Fano factor of -inf, so they sort to
+    # the very bottom and can never be picked by the fano selection, even though
+    # their raw Fano value (computed above) is kept for reporting
     fano_rank = np.where(n_det >= FANO_MIN_CELLS, fano, -np.inf)
+    # argsort on the negated score, descending order = highest score first;
+    # kind='stable' makes tie-breaking (common for max_expr, which is tie-heavy
+    # at low counts) deterministic and reproducible across runs
     sel = {
         'max_expr':  np.sort(np.argsort(-max_expr, kind='stable')[:N_GENES]),
         'mean_expr': np.sort(np.argsort(-mean_expr, kind='stable')[:N_GENES]),
@@ -80,6 +98,7 @@ def main():
     np.random.seed(SEED)
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
+    # ---- load raw counts, drop non-endogenous probes -------------------------
     adata = ad.read_h5ad(H5AD)
     C = adata.layers['counts']
     C = (C.toarray() if sp.issparse(C) else np.asarray(C)).astype(float)
@@ -92,6 +111,7 @@ def main():
     genes = genes[keep]
     print(f'dropped {dropped}; working gene space: {C.shape[1]} genes')
 
+    # ---- per-sample gene selection + GMP-Cor ---------------------------------
     records = []
     overlaps_all = {}
     gene_sets_all = {}
@@ -101,6 +121,8 @@ def main():
         sel, st = select_genes(M)
         gene_sets_all[b] = {k: genes[v].tolist() for k, v in sel.items()}
 
+        # how much the three 2000-gene selections overlap with each other, per
+        # sample -- a sanity check on how different the selections really are
         keys = list(sel)
         ov = {}
         for i, ka in enumerate(keys):
@@ -134,6 +156,7 @@ def main():
 
     df = pd.DataFrame(records)
 
+    # ---- summarise and write outputs -----------------------------------------
     pivot = df.pivot(index='batch', columns='selection', values='gmp_cor').loc[BATCHES]
     print('\n=== GMP-Cor by sample x gene selection ===')
     print(pivot.to_string(float_format=lambda v: '%.2f' % v))
@@ -165,6 +188,8 @@ def main():
                 'n_genes': N_GENES, 'dropped_genes': dropped,
                 'fano_min_cells': FANO_MIN_CELLS,
                 'norm': NORM, 'log': LOG, 'norm_method': NORM_METHOD,
+                # scramble_reps mirrors af.get_eig_dist's internal repeat count
+                # (rep=10, not exposed as a parameter); recorded here for provenance
                 'norm_sum': NORM_SUM, 'seed': SEED, 'scramble_reps': 10,
                 'gmp_cor_definition': 'sum(max(lambda_i - max_scrambled_lambda, 0))',
             },

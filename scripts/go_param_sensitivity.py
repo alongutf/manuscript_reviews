@@ -72,6 +72,7 @@ MOTILITY_KEYWORDS = ('flagel', 'chemotax', 'motil', 'taxis')
 
 
 def is_motility(term_name):
+    """True if a GO term name contains a motility/chemotaxis/flagellar substring."""
     t = term_name.lower()
     return any(k in t for k in MOTILITY_KEYWORDS)
 
@@ -91,6 +92,12 @@ def load_go_annotations():
 # 4.1  Specificity of Fig. 4A
 # ----------------------------------------------------------------------------
 def analyse_fig4a_specificity(go_dag, gene2gos, name2id):
+    """Answer 4.1: for every gene plotted under GO:0006935 (chemotaxis) in the Fig. 4A
+    heatmap, look up ALL of that gene's GO annotations (not just chemotaxis) and tally
+    how many of them, and how many distinct terms, are motility/chemotaxis/flagellar vs.
+    something else. Writes the per-gene-per-term annotation table and a per-term
+    membership summary, and returns a dict of summary counts for the log.
+    """
     heat = pd.read_csv(HEATMAP_CSV, index_col=0)
     genes = heat.index[heat['GO_term'] == FIG4A_GO].tolist()
 
@@ -98,6 +105,9 @@ def analyse_fig4a_specificity(go_dag, gene2gos, name2id):
     for g in genes:
         uid = name2id.get(g.lower())
         if uid is None or uid not in gene2gos:
+            # gene has no UniProt accession, or the accession has no GO annotations:
+            # exclude it from the specificity denominator rather than counting it as
+            # "not motility"
             n_unmapped += 1
             continue
         go_ids = gene2gos[uid]
@@ -158,6 +168,9 @@ def run_full_ora(study, go_dag, gene2gos, name2id):
 
     deg = pd.read_csv(os.path.join(DESEQ_DIR, f'deseq2_results_{study}.csv'), index_col=0)
     deg = remove_unidentified_genes(deg, name2id)
+    # same DEG-selection logic as src.bulk_functions.run_go_enrichment: pick the LFC
+    # cutoff that yields ~TARGET_SIZE down-regulated DEGs at padj < P_CUTOFF, so the
+    # study gene set here matches the one behind the published Fig. 4B terms
     lfc_cut = get_lfc_thresh(deg, TARGET_SIZE, FOLD, p_val_thresh=P_CUTOFF)
     sel = deg.index[(deg['padj'] < P_CUTOFF) & (deg['log2FoldChange'] < lfc_cut)]
 
@@ -165,8 +178,12 @@ def run_full_ora(study, go_dag, gene2gos, name2id):
     study_ids = to_id(set(sel))
     bg_ids = to_id(set(deg.index))
 
+    # propagate_counts=False: only direct annotations count for a term, not those of
+    # its GO-DAG children, matching src.bulk_functions.run_go_enrichment exactly
     goea = GOEnrichmentStudy(bg_ids, gene2gos, go_dag, propagate_counts=False,
                              alpha=0.05, methods=['fdr_bh'])
+    # keep only 'e' (enriched) results: goatools also reports 'p' (purified/depleted)
+    # terms, which are not part of the Fig. 4 over-representation analysis
     res = [r for r in goea.run_study(study_ids) if r.enrichment == 'e']
     full = pd.DataFrame({
         'GO_ID': [r.GO for r in res],
@@ -191,6 +208,16 @@ def run_full_ora(study, go_dag, gene2gos, name2id):
 #       check that the core motility/translation terms remain significant in each
 #       condition -> the recovered term set does not depend on the size cut.
 def analyse_size_sensitivity(full_dis, full_reg, go_dis_pub, go_reg_pub):
+    """Run analyses (a) and (b) described above across a grid of gene-set-size windows.
+
+    full_dis, full_reg  -- every tested term (goatools output of run_full_ora) for the
+                            Dis-Arrest and Reg-Arrest study sets, with uncorrected p and
+                            set_size.
+    go_dis_pub, go_reg_pub -- the published, already-FDR-filtered Fig. 4B term tables
+                            (FDR < 0.05 in goatools' own within-condition BH pass).
+    Writes go_size_sensitivity_paired.csv and go_size_keyterm_recovery.csv, and returns
+    a dict of summary counts for the log.
+    """
     # ---- common shared-program terms (the bars plotted in Fig. 4B) ----
     d = go_dis_pub.set_index('GO_ID')
     r = go_reg_pub.set_index('GO_ID')
@@ -203,6 +230,9 @@ def analyse_size_sensitivity(full_dis, full_reg, go_dis_pub, go_reg_pub):
         'logFDR_reg': [-np.log10(r.loc[g, 'FDR']) for g in common],
     })
 
+    # min/max sizes chosen to bracket the plausible "GO terms too broad/narrow to
+    # trust" cutoffs a reviewer might propose, from a tight (5,100) window up to
+    # dropping only the very largest or smallest terms
     windows = [(5, 100), (5, 200), (5, 500), (5, np.inf),
                (10, np.inf), (15, np.inf), (10, 200), (15, 200)]
 
@@ -212,11 +242,15 @@ def analyse_size_sensitivity(full_dis, full_reg, go_dis_pub, go_reg_pub):
         sub = base[(base['set_size'] >= mn) & (base['set_size'] <= mx)]
         n = len(sub)
         if n >= 3:
+            # one-sided: tests the published Fig. 4B claim that Reg-Arrest terms have
+            # higher -log10(FDR) than Dis-Arrest for the same shared-program terms
             try:
                 w_stat, w_p = wilcoxon(sub['logFDR_reg'], sub['logFDR_dis'], alternative='greater')
             except ValueError:
+                # wilcoxon raises when all paired differences are zero or n is too small
                 w_stat, w_p = np.nan, np.nan
         else:
+            # too few terms in this window for a meaningful paired test
             w_stat, w_p = np.nan, np.nan
         paired_rows.append({
             'min_size': mn, 'max_size': (None if np.isinf(mx) else int(mx)),
@@ -234,6 +268,9 @@ def analyse_size_sensitivity(full_dis, full_reg, go_dis_pub, go_reg_pub):
     for mn, mx in windows:
         dd = full_dis[(full_dis['set_size'] >= mn) & (full_dis['set_size'] <= mx)].copy()
         rr = full_reg[(full_reg['set_size'] >= mn) & (full_reg['set_size'] <= mx)].copy()
+        # BH-FDR must be re-applied within each window: restricting the tested-term
+        # universe changes the multiple-testing correction, so the published FDR
+        # column (computed over the unrestricted universe) cannot be reused here
         dd['FDR_w'] = multipletests(dd['p_uncorrected'], method='fdr_bh')[1]
         rr['FDR_w'] = multipletests(rr['p_uncorrected'], method='fdr_bh')[1]
         ddi, rri = dd.set_index('GO_ID'), rr.set_index('GO_ID')
@@ -272,6 +309,11 @@ def _pop_size(ratio_str):
 
 
 def analyse_size_confound(go_dis, go_reg):
+    """Answer 4.3: for GO terms significant in both conditions (published Fig. 4B
+    tables), test whether the Reg-minus-Dis difference in -log10(FDR) scales with the
+    term's gene-set size (a size confound would show up as rho far from 0). Writes the
+    per-term table and confound scatter plot; returns the Spearman stats for the log.
+    """
     d = go_dis.set_index('GO_ID')
     r = go_reg.set_index('GO_ID')
     common = sorted(set(d.index) & set(r.index))     # both significant (published files are FDR<0.05)
@@ -314,6 +356,7 @@ def analyse_size_confound(go_dis, go_reg):
 
 # ----------------------------------------------------------------------------
 def main():
+    """Run 4.1, 4.2, 4.3 in sequence and write the combined summary log as JSON."""
     os.makedirs(OUT, exist_ok=True)
     log = {'timestamp': datetime.now().strftime('%Y%m%d_%H%M%S'),
            'params': {'p_cutoff': P_CUTOFF, 'target_size': TARGET_SIZE, 'fold': FOLD,

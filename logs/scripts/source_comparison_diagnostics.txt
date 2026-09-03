@@ -1,0 +1,111 @@
+================================================================================
+scripts/source_comparison_diagnostics.py
+197 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Investigates why GMP-Cor (the manuscript's global correlation-strength
+    metric) differs between two representations of the same underlying
+    sequencing data: the scanpy/h5ad-derived count matrix (data/
+    scanpy_shx.h5ad) versus the published, per-sample CSV matrices under
+    data_for_paper/. For each of five batches (exp, dis1, dis2, reg1, reg2)
+    it computes both structural statistics (depth, sparsity, gene
+    dominance, dispersion) and the eigenvalue spectrum/GMP-Cor for both
+    sources, then correlates every structural statistic against GMP-Cor to
+    identify what actually drives the spread. This is a revision-support
+    diagnostic, not a script that produces a published figure.
+
+INPUTS
+    - data/scanpy_shx.h5ad - AnnData object with a 'counts' layer (cells x
+      genes, dense or sparse) and obs['batch'] labelling each cell's batch
+      (exp/dis1/dis2/reg1/reg2).
+    - data_for_paper/sample_{2b,13a,15a,13b,15b}_filtered.csv - the
+      published, already cell-filtered per-batch matrices (cells x genes,
+      first column = cell barcode index).
+
+OUTPUTS
+    - results/cluster_gmp_cor/source_comparison_<timestamp>.csv - one row
+      per (batch, source) with all structural and spectral statistics.
+    - results/cluster_gmp_cor/source_comparison_<timestamp>.txt - the same
+      information as human-readable printed tables.
+    - results/cluster_gmp_cor/source_comparison_<timestamp>.json - run
+      parameters, the per-row records, and the Spearman correlations, for
+      programmatic reuse.
+    - console output: per-batch shared/unique gene counts, structural and
+      spectral summary tables, a GMP-Cor-by-source pivot with a h5ad/paper
+      ratio column, and the Spearman correlation ranking.
+
+HOW IT WORKS
+    Both sources are restricted to the same gene-exclusion rule (DROP_GENES:
+    16s_mature, 16s_unprocessed, mCherry) before comparison; the module
+    docstring notes data_for_paper already lacks these (plus kanR) so in
+    practice only the h5ad matrix loses genes at this step, leaving both
+    sources with tmRNA, tetR and YFP retained.
+
+    For each batch, the h5ad matrix is sliced to that batch's cells (already
+    dense/converted at load time) and the corresponding data_for_paper CSV
+    is read directly. describe() computes source-agnostic structural
+    statistics per matrix: per-cell total counts and genes detected, the
+    aspect ratio p/n (genes/cells, which sets the theoretical Marchenko-
+    Pastur bulk width), per-gene mean/Fano factor (variance/mean, an
+    overdispersion measure), and how concentrated total counts are in the
+    top 1/5/20 genes by total expression.
+
+    spectrum() calls the shared af.get_eig_dist() routine (also used by
+    every other GMP-Cor computation in this codebase) to get the observed
+    eigenvalue spectrum and the mean scrambled (permuted-null) spectrum.
+    GMP-Cor is the sum of the positive excess of observed eigenvalues over
+    the scrambled spectrum's maximum (the noise ceiling); the function also
+    reports what fraction of that total sits in the single largest mode
+    (top_mode_share_of_gmp - near 1 means GMP-Cor is essentially one
+    dominant eigenvalue rather than a broad excess) and the mean of the
+    sub-threshold "bulk" eigenvalues for reference.
+
+    main() loops over the five batches, building one describe()+spectrum()
+    record per source, printing the gene-overlap counts between sources per
+    batch. The combined table is pivoted to show GMP-Cor by batch x source
+    with a computed h5ad/paper ratio, and every numeric column's Spearman
+    rank correlation with GMP-Cor is computed across all 10 matrices (5
+    batches x 2 sources) to surface which structural statistic tracks the
+    GMP-Cor discrepancy. All three output artifacts are then written.
+
+KEY PARAMETERS AND CONSTANTS
+    DROP_GENES = ['16s_mature', '16s_unprocessed', 'mCherry'] - the matched
+        gene-exclusion rule applied to both sources; excludes rRNA (which
+        dominates raw counts per project memory - 16S is ~92% of counts)
+        and reporter constructs, so the comparison reflects the same gene
+        universe on both sides.
+    NORM_SUM = 50 - per-cell target total after row normalization, must
+        match the convention used elsewhere for GMP-Cor to be comparable
+        across scripts.
+    SEED = 0 - fixes the RNG behind get_eig_dist's repeated scrambles, so
+        the scrambled threshold (and GMP-Cor) is reproducible run to run.
+    ddof=1 in describe()'s per-gene variance - sample, not population,
+        variance, appropriate given genes are a fixed axis and cells are
+        the sampled units.
+    Spearman (not Pearson) for the final correlation ranking - chosen
+        because the structural statistics differ wildly in scale/units, so
+        rank correlation is the more meaningful comparison.
+
+FINDINGS
+    No logical errors or inconsistencies found. The DROP_GENES / matched-
+    gene-exclusion claim in the module docstring was checked against the
+    code (DROP_GENES is applied identically to both the h5ad slice and the
+    data_for_paper CSV, via keepc and d.drop(columns=...) respectively) and
+    is accurate. All five referenced data_for_paper CSVs and data/
+    scanpy_shx.h5ad exist in the repo.
+
+RELATED FILES
+    - src/analysis_functions.py:get_eig_dist - the shared spectrum routine;
+      identical GMP-Cor definition to scripts/capped_match_13a_15a.py and
+      scripts/add_permutation_metrics.py.
+    - scripts/capped_match_13a_15a.py - a related GMP-Cor
+      depth/source-matching diagnostic; that script hits an unrelated
+      docstring/code inconsistency (see its own log) around a promised but
+      unimplemented total-count variant.
+    - documents/gmp_cor_provenance_analysis.md - narrative documentation of
+      the broader GMP-Cor provenance/depth-confound investigation this
+      script is part of.
+    - data_for_paper/*.csv and data/scanpy_shx.h5ad - the two data sources
+      compared; data_for_paper is also the canonical input for the main
+      analysis_notebook.ipynb pipeline per CLAUDE.md's data-flow diagram.

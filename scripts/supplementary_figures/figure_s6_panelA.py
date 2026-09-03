@@ -1,8 +1,15 @@
 """
 Standalone render of Supplementary Figure S6, panel A only.
 
-Cell-area violin plots for the four conditions, output as a narrower,
-transparent-background SVG.
+Cell-area violin plots (from microscopy segmentation) comparing Dis-Arrest
+(SHX), VapC 24h and Reg-Arrest, output as a narrower, transparent-background
+SVG (the other panels of figure S6 are assembled elsewhere; this script exists
+so panel A alone can be re-rendered/resized independently).
+
+Input:  microscopy/all_positions_vapc.csv  (VapC condition, 'kept' filter mask)
+        microscopy/all_positions_shx.csv   (SHX/CASP conditions, 'kept' filter mask)
+Output: figure_s6_panelA.svg, figure_s6_panelA_preview.png, written next to
+        this script.
 
 Run from this directory:
     cd scripts/supplementary_figures
@@ -41,6 +48,8 @@ REG_COLOR = 'steelblue'
 vapc = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_vapc.csv'))
 shx  = pd.read_csv(os.path.join(MICR_DIR, 'all_positions_shx.csv'))
 
+# 'kept' is the upstream segmentation QC mask (per-cell pass/fail); only cells
+# that passed are used for the area statistics
 vapc_filt = vapc[vapc['kept'] == True].copy()
 shx_filt  = shx[shx['kept'] == True].copy()
 
@@ -61,6 +70,9 @@ area_data = {
 # Helper: annotated violin plot with per-violin stats
 # ------------------------------------------------------------------
 def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
+    """Violin plot of data_dict[k] for each k in order, with a median marker,
+    an IQR bar, and a text annotation (n, mean, coefficient of variation)
+    placed above each violin."""
     datasets = [data_dict[k] for k in order]
 
     parts = ax.violinplot(datasets, positions=range(len(order)),
@@ -84,6 +96,8 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
+    # extend the y-axis (beyond matplotlib's auto range) to leave headroom for
+    # the three-line text annotation above each violin
     ymin, ymax_auto = ax.get_ylim()
     y_pad = (ymax_auto - ymin) * 0.04
     text_top = max(np.max(v) for v in datasets) + (ymax_auto - ymin) * 0.40
@@ -91,7 +105,7 @@ def _violin_with_stats(ax, data_dict, order, colors, ylabel, title):
 
     for i, (key, vals) in enumerate(zip(order, datasets)):
         mean_val = vals.mean()
-        cv_val   = vals.std() / mean_val if mean_val != 0 else float('nan')
+        cv_val   = vals.std() / mean_val if mean_val != 0 else float('nan')  # coefficient of variation
         ax.text(i, np.max(vals) + y_pad,
                 f'n={len(vals)}\nmean={mean_val:.0f}\nCV={cv_val:.2f}',
                 ha='center', va='bottom', fontsize=fsize - 4)

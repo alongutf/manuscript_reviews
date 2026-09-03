@@ -47,7 +47,7 @@ from scipy import stats
 from rpos_regulon_deseq import (DESEQ, REGULON, alpha_for, contrast_files,
                                 load_regulon)
 
-LFC_CUT = 1.0
+LFC_CUT = 1.0          # |log2FoldChange| cutoff defining the up/down lobes
 FIGDIR = os.path.join(DESEQ, "figures")
 
 SIG_COLOR = "#d62728"     # sigma-38 genes
@@ -55,7 +55,14 @@ BG_COLOR = "#c8c8c8"      # everything else
 
 
 def bh(p):
-    """Benjamini-Hochberg adjusted p-values (scipy in this env is too old to ship it)."""
+    """Benjamini-Hochberg adjusted p-values (scipy in this env is too old to ship it).
+
+    Standard BH step-up procedure: sort p-values ascending, scale each by
+    n/rank, then enforce monotonicity by taking a running minimum from the
+    largest p-value down to the smallest (so adjusted values never decrease as
+    the raw p-value increases). Returns adjusted p-values in the original
+    (unsorted) order of `p`, clipped to [0, 1].
+    """
     p = np.asarray(p, float)
     n = p.size
     order = np.argsort(p)
@@ -67,6 +74,7 @@ def bh(p):
 
 
 def short_name(path):
+    """Compact contrast label for plot titles: '<folder>: <contrast tag>'."""
     tag = os.path.basename(path)
     tag = tag.replace("deseq2_results_", "").replace(".csv", "")
     folder = os.path.basename(os.path.dirname(path))
@@ -75,7 +83,17 @@ def short_name(path):
 
 
 def fisher_for_lobe(in_regulon, lobe):
-    """2x2 Fisher for one lobe. Returns dict of counts and p-values."""
+    """2x2 Fisher's exact test for one lobe (up- or down-regulated gene set).
+
+    `in_regulon` and `lobe` are boolean Series over the same gene index (the
+    genes DESeq2 actually tested in this contrast). Builds the contingency
+    table [[a, b], [c, dd]] = [[regulon & in lobe, regulon & not in lobe],
+    [other & in lobe, other & not in lobe]] and runs the two-sided test plus
+    both one-sided tests (enrichment and depletion), since which direction is
+    relevant depends on which way the odds ratio points (see annot() below).
+    Returns a dict of the four counts, several derived percentages, the odds
+    ratio, and the three p-values.
+    """
     a = int((in_regulon & lobe).sum())
     b = int((in_regulon & ~lobe).sum())
     c = int((~in_regulon & lobe).sum())

@@ -1,0 +1,231 @@
+================================================================================
+src/data_functions.py
+443 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Defines AnnMat, the annotated cell x gene count-matrix class used across the
+    whole pipeline described in CLAUDE.md, and the functions that build one from
+    raw probe-count data, filter/transform it, turn its eigenvalue spectrum
+    (computed by analysis_functions.get_eig_dist) into figures and CSV outputs,
+    and produce PCA/UMAP embeddings. It sits between the raw probe-count CSVs and
+    the eigenvalue/clustering analyses in analysis_notebook.ipynb and
+    scanpy_analysis.ipynb.
+
+INPUTS
+    get_annotated_data(path) reads a raw per-probe count CSV with (in order)
+    columns cell_barcode, Feature_ID, Feature_name, Feature_type, UMI_count (the
+    existing header is overwritten with these names, so the file must already
+    have five columns in this order). read_from_csv(path) reads a previously
+    saved AnnMat back from a delimited file (comma if 'csv' appears in the path,
+    else tab) with cells as rows and genes as columns.
+    remove_non_protein_coding_genes(amat) additionally reads
+    <parent of cwd>/filtered_data/biotype_map_syn.csv (a gene/synonym/biotype
+    table) - this assumes the calling notebook/script is run from scripts/, per
+    the bulk_functions.py convention noted in CLAUDE.md.
+
+OUTPUTS
+    AnnMat.to_csv(path) writes the (unfiltered) matrix to a csv, cell names as
+    the index and gene names as the header row. pcs_to_csv(...) writes an
+    eigenvalue-histogram csv (columns X, Y) to
+    <output_dir>/<file_name>_N<N>_P<P>.csv (see FINDINGS - currently broken).
+    plot_eig_dist(...) draws (does not save) a matplotlib eigenvalue-spectrum
+    figure. No other function in this file writes to disk.
+
+HOW IT WORKS
+    AnnMat wraps a raw (n_cells x n_genes) numpy array m with row/column name
+    arrays (obj_names, var_names) and two boolean masks (filtered_obj,
+    filtered_var) that every filter_by_* method narrows in place, without
+    touching m itself - filtering is lazy. get_filtered_matrix() is the only
+    place the masks are actually applied, returning a new, smaller AnnMat.
+    filter_by_umi_count keeps cells with total UMI counts in (umi_min, umi_max),
+    or (if target_cells is given) picks umi_min so exactly target_cells cells
+    survive. filter_by_gene_dispersion and filter_by_mean_expression keep genes
+    above a dispersion (variance/mean) or mean-expression threshold, computed
+    only over the currently-filtered cells, again either against a fixed
+    threshold or a target gene count.
+
+    get_annotated_data converts the long-format probe-count table into a dense
+    cell x gene matrix. Probe IDs that share a gene but differ by a numeric
+    suffix ('<gene>_<n>') are merged via gene_id(); method='max_probe' keeps only
+    the highest-count probe per gene per cell (the default), 'sum_probes' adds
+    them. Progress is printed every 1000 rows since this loop is O(n_rows) with
+    per-row list lookups (cell_bar.index / features.index), which is slow for
+    large files.
+
+    plot_eig_dist, pcs_to_csv and get_histogram_data all turn a raw eigenvalue
+    array into a normalized density histogram against a common bin grid, and
+    (plot_eig_dist only) overlay the analytic Marchenko-Pastur curve from
+    analysis_functions.mp_distribution for the matrix's aspect ratio P/N. When
+    there are more genes than cells (P/N > 1) the histogram is rescaled by N/P
+    and the structural zero eigenvalues are dropped, because the MP density as
+    implemented assumes the p/n <= 1 convention.
+
+    equate_dims and concat_datasets exist to make several AnnMat datasets
+    directly comparable: equate_dims restricts two datasets to their shared
+    genes and subsamples both to the same number of cells (a fixed global RNG
+    seed makes the draw reproducible); concat_datasets stacks any number of
+    datasets on the union of their genes, zero-filling genes a given dataset
+    lacks, and records which original dataset each cell came from in a `batch`
+    array on the returned AnnMat.
+
+    remove_non_protein_coding_genes / get_gene_type / get_synonym_array filter
+    genes down to protein-coding (or pseudogene) biotypes using an external
+    synonym/biotype lookup table, matched case-insensitively.
+    project_on_pcs / get_umap implement the standard scRNA-seq
+    normalize -> log -> z-score -> PCA -> UMAP embedding pipeline used for
+    visualization in scanpy_analysis.ipynb-adjacent work.
+
+KEY PARAMETERS AND CONSTANTS
+    target_sum=1e4 (project_on_pcs) - CPM-style row-normalization target before
+        log/UMAP; distinct from the norm_sum=1/50/100 values used for GMP-Cor
+        eigenvalue computations elsewhere - these two normalizations serve
+        different purposes (visualization vs. the published statistic) and are
+        not meant to match, but a reader should not assume they do.
+    percentile=90 (remove_highly_expressed_genes) - drops the top decile of
+        genes by mean expression.
+    n_bins=501, x_max=50 (pcs_to_csv, get_histogram_data) - fixed histogram grid
+        for eigenvalue density plots/csvs; changing x_max changes what range of
+        eigenvalues is captured (values above it are simply outside the last bin).
+    np.random.seed(0) (equate_dims) - fixes the global numpy RNG for the two
+        cell subsampling draws; note this reseeds the *global* RNG, not a local
+        Generator, so it affects any subsequent unseeded np.random call in the
+        same process (see FINDINGS).
+    'lelobekk_' (remove_non_protein_coding_genes) - a hard-coded probe-name
+        prefix stripped before biotype lookup; specific to this dataset's naming
+        convention.
+
+FINDINGS
+    [1] BUG - pcs_to_csv unpacks the wrong number of values from get_eig_dist
+        Location: function pcs_to_csv, line 348 (originally; unchanged by this
+        pass): `pcs, pcs1 = af.get_eig_dist(m, norm=norm, log=log,
+        norm_method=norm_method, norm_sum=norm_sum)`
+        What the code does: analysis_functions.get_eig_dist returns a 3-tuple
+        (pcs, pcs1, fraction_non_zero), but pcs_to_csv unpacks only two names.
+        Why that is a problem: this raises `ValueError: too many values to
+        unpack` on any call - the function cannot currently run to completion.
+        The same broken 2-value unpacking also appears in
+        scripts/figures/figure5.py:88 and in two notebook cells
+        (scripts/analysis_notebook.ipynb, scripts/supplementary figures.ipynb,
+        scripts/random_matrices.ipynb use the correct 3-value form or an older
+        2-value get_eig_dist signature - not fully verified for all cells).
+        pcs_to_csv itself has no callers elsewhere in the repository (grep found
+        none), so this is currently dead/unreachable code rather than something
+        breaking a running pipeline, but it will fail immediately the moment
+        anyone calls it.
+        Suggested fix: `pcs, pcs1, _ = af.get_eig_dist(...)`.
+
+    [2] BUG - inconsistent scaling of the two point sets in the gene-dispersion
+        QC plot
+        Location: AnnMat.filter_by_gene_dispersion, plotting block (~line 111)
+        What the code does: `plt.scatter(mean[excluded], np.sqrt(dispersion
+        [excluded]), color='r')` plots excluded genes at sqrt(dispersion), but
+        the next line plots kept genes at `np.sqrt(np.sqrt(dispersion[kept]))`
+        - a fourth root, not a square root.
+        Why that is a problem: red and blue points share one y-axis
+        ('dispersion') but are drawn on two different power transforms of the
+        same quantity, so their relative vertical positions are not comparable -
+        the plot visually misrepresents which genes have higher/lower
+        dispersion relative to each other across the filter boundary. This is
+        display-only (does not affect the filter_ind computation or which genes
+        are actually kept), but the plot's purpose is exactly to sanity-check
+        that boundary visually.
+        Suggested fix: use np.sqrt(dispersion[filter_ind]) for both point sets.
+
+    [3] BUG - AnnMat.get_filtered_matrix() drops the batch attribute
+        Location: AnnMat.get_filtered_matrix, ~line 173
+        What the code does: `return AnnMat(m, obj_names, var_names)` - batch is
+        not passed, so it defaults to None on the returned object, even when
+        self.batch held valid per-row labels (as set by concat_datasets).
+        Why that is a problem: any AnnMat produced by concat_datasets (which
+        exists specifically to track dataset-of-origin per cell) silently loses
+        that information the moment get_filtered_matrix is called - e.g. inside
+        equate_dims, which calls get_filtered_matrix() on both inputs. Contrast
+        with AnnMat.random_knockout, a few lines below, which does thread
+        self.batch through to its returned AnnMat - so the omission here is an
+        inconsistency within the same class, not a deliberate design choice.
+        No current caller in the repository was found reading .batch off a
+        get_filtered_matrix() result (grep found only scripts/cluster_gmp_cor.py
+        using .batch on a non-AnnMat object), so this has not been observed to
+        cause a wrong published number, but it is a latent trap for any future
+        code that calls equate_dims or get_filtered_matrix after
+        concat_datasets and expects batch labels to survive.
+        Suggested fix: `return AnnMat(m, obj_names, var_names,
+        self.batch[self.filtered_obj] if self.batch is not None else None)`.
+
+    [4] RISK - concat_datasets assumes each dataset's var_names are pre-sorted
+        Location: function concat_datasets, ~line 513-514
+        What the code does: `gene_index = np.where(np.isin(gene_names,
+        dataset.var_names))[0]; M[cell_index, gene_index] = dataset.m[i, :]`.
+        gene_names is built via np.union1d, which always returns a sorted
+        array, so gene_index lists matching positions in gene_names-sorted
+        order - and dataset.m[i, :] (in dataset.var_names' own column order) is
+        assigned straight into those positions.
+        Why that is a problem: this only assigns each value to the correct gene
+        column if dataset.var_names is already sorted in the same alphabetical
+        order as gene_names restricted to that dataset's genes. This holds for
+        AnnMat objects produced by get_annotated_data (which explicitly sorts
+        `features` before building the matrix) and is preserved by
+        get_filtered_matrix's boolean masking, but is not checked, and any
+        AnnMat built another way (e.g. read_from_csv on a file whose columns
+        are not alphabetically ordered, or a hand-constructed AnnMat) would have
+        its gene values silently written into the wrong columns with no error
+        raised. Verified against get_annotated_data's `features.sort()` call
+        (data_functions.py ~line 269) and read_from_csv, which does not sort.
+        Suggested fix: build gene_index by looking up each of dataset.var_names
+        individually in gene_names (e.g. via np.searchsorted or a dict), rather
+        than relying on np.isin's output order matching dataset.m's column
+        order.
+
+    [5] RISK - equate_dims reseeds the global numpy RNG
+        Location: function equate_dims, `np.random.seed(0)` (~line 390)
+        What the code does: calls the legacy global np.random.seed(0) once,
+        immediately before drawing both cell subsamples with np.random.choice.
+        Why that is a problem: this makes the two draws reproducible relative to
+        each other, but also resets the shared global RNG state as a side
+        effect - any unseeded np.random call elsewhere in the same process,
+        made after equate_dims runs, becomes deterministic in a way that may be
+        unintentional and is easy to overlook (e.g. a later random_knockout()
+        call, or another script's own np.random.seed(0) call elsewhere in the
+        codebase, would now interact with this reset in a way that depends on
+        call order).
+        Suggested fix: use a local `np.random.default_rng(0)` Generator instance
+        instead of mutating global state, as most newer code in this codebase
+        (e.g. simulations.py, analysis_functions.py's SVD-based functions) does.
+
+    [6] SMELL - concat_datasets: unreachable "max cells" guard and stale comment
+        Location: function concat_datasets, ~line 490 (comment) and the
+        `if cell_index == n_cells: break` check inside the fill loop
+        What the code does: the leading comment says "permit a maximum number of
+        cells", but there is no max-cells parameter; M and n_cells are sized to
+        exactly the sum of every dataset's cell count, so cell_index can never
+        reach n_cells before the loops naturally finish - the break is inert.
+        Why that is a problem: mildly misleading; a reader might expect a
+        max_cells argument that does not exist.
+        Suggested fix: either add a max_cells parameter that actually caps
+        n_cells, or remove the comment and the dead check.
+
+    [7] SMELL - unused parameter n_sample-equivalent already covered in
+        simulations.py; not repeated here (see logs/src/simulations.txt).
+
+RELATED FILES
+    src/analysis_functions.py - get_eig_dist, normalize, log_transform,
+        z_transform, mp_distribution are all called from this module
+        (pcs_to_csv, plot_eig_dist, project_on_pcs).
+    src/bulk_functions.py - shares the "run from scripts/ so os.path.dirname(
+        os.getcwd()) resolves to the repo root" convention that
+        remove_non_protein_coding_genes relies on for filtered_data/.
+    scripts/analysis_notebook.ipynb - primary caller of get_annotated_data,
+        the AnnMat filter_by_* methods, and plot_eig_dist for the main pipeline
+        described in CLAUDE.md.
+    scripts/figures/figure5.py - has the same get_eig_dist 2-value unpacking
+        bug as pcs_to_csv (see FINDINGS [1]); worth checking together if either
+        is fixed.
+    scripts/cluster_gmp_cor.py - the only other file found referencing a
+        `.batch` attribute in the repo, though on an apparently different
+        (non-AnnMat) object.
+    documents/gmp_cor_provenance_analysis.md, documents/
+        project_gmp_cor_provenance (memory note) - prior investigation of
+        equate_dims's uniform draw from unequal pools and how GMP-Cor scales
+        with gene count p; consistent with FINDINGS [5] above regarding the
+        subsampling in equate_dims.

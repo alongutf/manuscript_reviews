@@ -1,0 +1,141 @@
+================================================================================
+scripts/plot_umap_comparison.py
+163 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Compares three UMAP embeddings of the same SHX/casp scRNA-seq cell population
+    side by side, to answer "how much of the published UMAP survives re-running
+    the pipeline on the same cells, and how much more changes if the cell set
+    itself changes". Row 1 is the published embedding used in figure1.py panels
+    G/H; row 2 re-runs the same pipeline on the original (data_for_umap) barcodes;
+    row 3 re-runs it on the paper's (data_for_paper) barcodes. This sits
+    downstream of scanpy_analysis.ipynb / umap_paper_barcodes.py in the pipeline
+    described in CLAUDE.md and is purely a comparison/QA script - it computes no
+    new embedding itself, only loads and plots ones already saved to disk.
+
+INPUTS
+    scanpy/umap_coordinates.csv - the published embedding (index = cell barcode;
+        columns UMAP_1, UMAP_2, batch, cluster). Confirmed to have batch values
+        {exp, dis1, dis2, reg1, reg2} and 5 Leiden clusters.
+    scanpy/umap_coordinates_shx_umap_barcodes_*.csv - the most recent (by
+        filename timestamp) coordinates written by
+        `python umap_paper_barcodes.py --barcodes umap`.
+    scanpy/umap_coordinates_shx_paper_barcodes_*.csv - the most recent
+        coordinates written by `python umap_paper_barcodes.py --barcodes paper`.
+    Both non-published files must exist before running this script; `latest_csv`
+        raises FileNotFoundError with the exact command to run if they do not.
+    No CLI arguments; the script takes no configuration and always compares
+        these three specific runs.
+
+OUTPUTS
+    scanpy/umap_shx_published_<ts>.svg / .png - the published embedding alone,
+        two panels (Leiden clusters, sample/batch).
+    scanpy/umap_shx_three_way_comparison_<ts>.svg / .png - a 3 (run) x 2
+        (colouring) grid of all three embeddings.
+    <ts> = current timestamp (YYYYMMDD_HHMMSS), so repeated runs never overwrite
+        each other's output.
+    Console output: per-run cell/cluster counts, and for each non-published run
+        its Procrustes disparity and adjusted Rand index (ARI) against the
+        published embedding, restricted to the barcodes shared between the two.
+
+HOW IT WORKS
+    `latest_csv` globs for the most recent coordinates file for a given barcode
+    source ("umap" or "paper") using its timestamp-sorted filename, so the script
+    always compares against whichever run was generated most recently by
+    umap_paper_barcodes.py.
+
+    `panel` draws one UMAP scatter for a given colour-by column (cluster or
+    batch). All points are plotted in a single `ax.scatter` call, in an order
+    randomly permuted with a fixed seed (`np.random.default_rng(0)`), rather than
+    one `scatter` call per category. Plotting by category would put whichever
+    category is drawn last entirely on top of the others, hiding overlap; a
+    single shuffled scatter interleaves categories so the alpha blending shows
+    what lies underneath everywhere in the plot. Since no point is actually
+    labelled in that combined call, `panel` adds invisible zero-length scatter
+    "proxies" (one per category) purely so the legend has one correctly-coloured
+    entry per category.
+
+    `two_panel` builds a two-axis figure (clusters, sample/batch) for a single
+    embedding and saves it - used only for the standalone "published" figure.
+
+    `similarity` computes how close a re-run embedding is to the published one:
+    it restricts to the barcodes present in both dataframes (`ref.index.
+    intersection(df.index)`), computes scipy's Procrustes disparity (the
+    residual sum of squares after optimally translating, rotating, reflecting
+    and uniformly rescaling one point set onto the other - 0 means identical
+    shape up to those transformations) between the two coordinate sets, and the
+    adjusted Rand index between their cluster label columns (a cluster-assignment
+    similarity measure, corrected for chance agreement, invariant to how cluster
+    numbers are permuted between the two runs).
+
+    `main` loads all three coordinate CSVs (published, umap-barcodes re-run,
+    paper-barcodes re-run), prints their sizes and cluster counts, computes and
+    prints `similarity` of each re-run against the published embedding, saves the
+    standalone published-only figure, then builds and saves the 3x2 grid where
+    each row is one run and the two columns are the two colourings (cluster,
+    batch), with each row additionally labelled by its cell count.
+
+KEY PARAMETERS AND CONSTANTS
+    np.random.default_rng(0) inside `panel` - fixes the point-plotting order so
+        the figure is reproducible run to run; it affects only visual overplot
+        order, not any computed/reported number (Procrustes disparity and ARI do
+        not depend on plotting order).
+    POINT_SIZE = 4, POINT_ALPHA = 0.7 - scatter marker size/transparency, chosen
+        so that overlapping clusters remain visible through the alpha blending
+        described above; purely cosmetic.
+    BATCH_ORDER = ['exp', 'dis1', 'dis2', 'reg1', 'reg2'] - fixes both the legend
+        order and the colour assignment for the "batch" panels, so a given
+        sample always gets the same colour across all three rows/runs;
+        confirmed to match the actual values present in scanpy/umap_coordinates.csv.
+    PALETTE = sc.pl.palettes.default_20 - scanpy's built-in 20-colour categorical
+        palette; colours are assigned by category's position in `cats` (mod 20),
+        so cluster/batch colour assignment is stable only as long as the
+        category order passed to `panel` is stable (fixed for batch via
+        BATCH_ORDER; for clusters it falls back to `sorted(df[color_by].unique())`
+        since no `categories=` argument is passed for cluster panels).
+
+FINDINGS
+    [1] RISK - cluster panel colours are not guaranteed consistent across the three rows
+        Location: `panel()` line 80, `cats = categories if categories is not None
+        else sorted(df[color_by].unique())`; called for clusters at line 149
+        (`panel(axes[row, 0], df, 'cluster', 'Leiden clusters')`) without a
+        `categories=` argument.
+        What the code does: for the "batch" column, `two_panel`/`main` always
+        pass `categories=BATCH_ORDER`, fixing colour assignment; for the
+        "cluster" column, no `categories=` is passed, so `panel` falls back to
+        `sorted(df[color_by].unique())` computed independently for each of the
+        three dataframes.
+        Why that is a problem: cluster labels are Leiden cluster indices
+        assigned independently within each of the three separate UMAP/clustering
+        runs, so "cluster 0" in the published run and "cluster 0" in the
+        umap-barcodes re-run are not necessarily the same biological group of
+        cells. If the three runs happen to have different numbers of clusters
+        (or the same count but a different cluster ordering after `sorted`),
+        the cluster colour in row 1 need not correspond to the same colour in
+        rows 2/3, which could visually mislead a reader comparing "which cluster
+        moved" across the 3x2 comparison figure. Verified: the published run has
+        5 clusters (0-4); the re-run cluster counts were not checked here since
+        they depend on which timestamped file `latest_csv` happens to pick up at
+        run time.
+        Suggested fix: either accept that cluster colour is only meaningful
+        within a row (and say so in a code comment/figure caption), or align
+        cluster colours across rows explicitly (e.g. by matching clusters via
+        majority-vote correspondence on the shared barcodes before assigning
+        colours).
+
+RELATED FILES
+    scripts/umap_paper_barcodes.py - writes the umap/paper-barcode coordinate
+        CSVs this script compares against the published one; its own docstring
+        documents the Procrustes disparity (0.054) that motivates the
+        removal-before-normalisation order, corroborating this script's premise.
+    scanpy/umap_coordinates.csv - the published embedding (row 1); per project
+        memory this is the one used by figure1.py panels G/H, and the notebook
+        that produced it normalises before dropping the 16s-driving genes
+        (the opposite order from umap_paper_barcodes.py, which is why row 1
+        cannot be exactly reproduced by rows 2/3 and only approached).
+    scanpy/umap_coordinates_shx_scaled.csv - explicitly NOT used by this script
+        (different per-condition scaling run); the module docstring calls this
+        out to prevent confusion with the files this script does read.
+    scripts/scanpy_analysis.ipynb - the notebook pipeline umap_paper_barcodes.py
+        (and therefore, indirectly, this script's rows 2/3) is modelled on.

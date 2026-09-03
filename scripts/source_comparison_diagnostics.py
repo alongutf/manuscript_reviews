@@ -44,39 +44,55 @@ BATCH_ORDER = ['exp', 'dis1', 'dis2', 'reg1', 'reg2']
 NORM = True
 LOG = False
 NORM_METHOD = 'sum'
-NORM_SUM = 50
-SEED = 0
+NORM_SUM = 50    # per-cell target total after normalization, before eigen-analysis
+SEED = 0         # fixes the RNG used by get_eig_dist's scrambled-matrix repeats
 
 
 def spectrum(m):
-    """GMP-Cor plus the spectral quantities needed to explain it."""
+    """GMP-Cor plus the spectral quantities needed to explain it.
+
+    m : cells x genes count/expression matrix. Returns a dict with GMP-Cor
+    itself (`gmp_cor`, the total eigenvalue excess above the scrambled
+    noise ceiling) and diagnostics for *why* GMP-Cor came out the way it
+    did: whether it is dominated by one mode (`top_mode_share_of_gmp`) and
+    how far the bulk (non-signal) eigenvalues sit below threshold
+    (`bulk_mean_eigenvalue`).
+    """
     pcs, pcs1, frac_nz = af.get_eig_dist(
         m, norm=NORM, log=LOG, norm_method=NORM_METHOD, norm_sum=NORM_SUM
     )
-    thr = float(pcs1.max())
-    excess = np.maximum(pcs - thr, 0)
-    total = float(excess.sum())
+    thr = float(pcs1.max())                  # scrambled noise ceiling (lambda_max^scr)
+    excess = np.maximum(pcs - thr, 0)         # per-mode signal above that ceiling
+    total = float(excess.sum())               # GMP-Cor itself
     return {
         'gmp_cor': total,
         'lambda_max': float(pcs.max()),
         'lambda_max_scrambled': thr,
         'n_modes_above_threshold': int((pcs > thr).sum()),
+        # fraction of GMP-Cor carried by the single largest mode - a value near 1
+        # means GMP-Cor is really "one big eigenvalue", not a broad spectrum of signal
         'top_mode_share_of_gmp': float(excess.max() / total) if total > 0 else np.nan,
+        # mean of the sub-threshold ("noise") eigenvalues, for reference against thr
         'bulk_mean_eigenvalue': float(pcs[pcs <= thr].mean()) if (pcs <= thr).any() else np.nan,
         'fraction_non_zero_after_filter': float(frac_nz),
     }
 
 
 def describe(M, genes, label):
-    """Structural statistics of a cells x genes count matrix."""
+    """Structural statistics of a cells x genes count matrix, independent of
+    the eigenvalue analysis, used to explain differences in GMP-Cor across
+    matrices built from different sources/pipelines (depth, sparsity, gene
+    dominance, etc. all shape the resulting spectrum)."""
     tot = M.sum(axis=1)
     det = (M > 0).sum(axis=1)
     gmean = M.mean(axis=0)
-    gvar = M.var(axis=0, ddof=1)
+    gvar = M.var(axis=0, ddof=1)   # ddof=1: sample variance across cells, per gene
     with np.errstate(divide='ignore', invalid='ignore'):
+        # Fano factor (variance/mean) per gene, a standard overdispersion measure;
+        # guarded against divide-by-zero for genes with zero mean (set to 0 instead)
         fano = np.where(gmean > 0, gvar / gmean, 0.0)
     gsum = M.sum(axis=0)
-    order = np.argsort(-gsum)
+    order = np.argsort(-gsum)   # genes ranked by total counts, descending
     rec = {
         'dataset': label,
         'n_cells': int(M.shape[0]),
@@ -105,7 +121,7 @@ def main():
 
     adata = ad.read_h5ad(H5AD)
     C = adata.layers['counts']
-    C = (C.toarray() if sp.issparse(C) else np.asarray(C)).astype(float)
+    C = (C.toarray() if sp.issparse(C) else np.asarray(C)).astype(float)   # densify
     hgenes = np.asarray(adata.var_names)
     batch = adata.obs['batch'].astype(str).values
     keepc = ~np.isin(hgenes, DROP_GENES)
@@ -116,14 +132,14 @@ def main():
     for b in BATCH_ORDER:
         fname = BATCH_TO_FILE[b]
 
-        # --- h5ad source ---
+        # --- h5ad source (scanpy_shx.h5ad, counts layer, this batch's cells) ---
         M = C[batch == b]
         rec = describe(M, hgenes, f'{b}:h5ad')
         rec.update({'batch': b, 'source': 'h5ad'})
         rec.update(spectrum(M))
         records.append(rec)
 
-        # --- data_for_paper source ---
+        # --- data_for_paper source (published, already-filtered CSV) ---
         d = pd.read_csv(os.path.join(PAPER, fname), index_col=0)
         d = d.drop(columns=[g for g in DROP_GENES if g in d.columns])
         P = d.values.astype(float)
@@ -157,6 +173,10 @@ def main():
     print('\n=== GMP-Cor by source ===')
     print(piv.to_string(float_format=fmt))
 
+    # rank correlation (not Pearson, since these statistics have very different
+    # scales/distributions) between every numeric statistic and GMP-Cor, across all
+    # 2*len(BATCH_ORDER) matrices - a cheap way to see which structural property
+    # tracks the GMP-Cor spread across sources
     num = df.select_dtypes(include=[np.number])
     corr = num.corr(method='spearman')['gmp_cor'].drop('gmp_cor').sort_values(key=abs, ascending=False)
     print('\n=== Spearman corr of each statistic with GMP-Cor (n=%d matrices) ===' % len(df))

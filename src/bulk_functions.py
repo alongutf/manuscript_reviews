@@ -1,3 +1,22 @@
+"""Bulk RNA-seq helper library: DESeq2 differential expression and GO enrichment.
+
+Importable module (see CLAUDE.md) used by scripts/bulk_analysis.ipynb and related
+bulk-RNA-seq scripts. It wraps two external packages so the notebooks/scripts only
+need to call a handful of functions:
+
+  run_deseq()          - wraps pydeseq2 to run differential expression between two
+                         conditions on a raw count matrix and writes the DEG table.
+  plot_deseq_results()  - volcano plot (plotly) of a saved DESeq2 results CSV.
+  run_go_enrichment()   - wraps goatools to test a DEG set (from run_deseq output)
+                         for GO term enrichment against the background gene set.
+  run_go_single_cell()  - same GO enrichment, but reading marker-gene tables from
+                         the scanpy single-cell clustering output instead of DESeq2.
+
+Everything here reads/writes files under `metadata/` and expects to be imported
+from a notebook or script whose current working directory is `scripts/`, so that
+`os.path.dirname(os.getcwd())` resolves to the repo root and `metadata/` is found
+as its sibling (see the CLAUDE.md note on this module).
+"""
 import pandas as pd
 import numpy as np
 import os
@@ -10,22 +29,39 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 
 # path to metadata files
+# NOTE: os.getcwd() must be scripts/ (i.e. run notebooks from there) for this to
+# resolve to <repo root>/metadata -- see the CLAUDE.md note on this module.
 metadata_dir = os.path.join(os.path.dirname(os.getcwd()),'metadata')
 # Define file paths
-GO_OBO = os.path.join(metadata_dir, "go-basic.obo")
-GAF_FILE = os.path.join(metadata_dir, "ecocyc.gaf")  # Replace with your GAF file
-GTF_FILE = os.path.join(metadata_dir, "genomic.gtf")
+GO_OBO = os.path.join(metadata_dir, "go-basic.obo")          # GO ontology DAG
+GAF_FILE = os.path.join(metadata_dir, "ecocyc.gaf")  # Replace with your GAF file (gene -> GO term associations)
+GTF_FILE = os.path.join(metadata_dir, "genomic.gtf")          # genome annotation, for gene id <-> name lookup
 
 def get_ID_conversion(path_to_gtf):
+    """Build a gene-name -> GeneID lookup from a GTF annotation file.
+
+    :param path_to_gtf: path to a GTF file (e.g. GTF_FILE); parsed as plain
+        tab-separated text, not with a GTF-aware parser
+    :return: dict mapping lowercased gene name -> GeneID string (no 'GeneID:' prefix)
+
+    Only 'CDS' feature rows are used. The GeneID and gene name are pulled out of the
+    attributes column by fixed positional splits (';'-separated fields, then
+    space-separated within a field), which assumes every CDS row's attributes are
+    laid out in the same field order as this genome's GTF -- it is not a general
+    GTF attribute parser and will silently mis-parse a GTF with a different field
+    order.
+    """
     df = pd.read_csv(path_to_gtf, sep='\t', comment='#', header=None)
     df.columns = ['seqid', 'source', 'feature', 'start', 'end', 'score', 'strand', 'phase', 'attributes']
     df = df[df['feature'] == 'CDS']
     # create dictionary to store gene id and gene name
     gene_id_name = {}
     for index, row in df.iterrows():
+        # attributes field 2 (0-indexed) holds 'GeneID:xxxxx' as its 3rd space-separated token
         gene_id = row['attributes'].split(';')[2].split(' ')[2].replace('"', '')
         # remove 'GeneID:' from gene_id
         gene_id = gene_id.split(':')[-1]
+        # attributes field 4 holds the gene name the same way
         gene_name = row['attributes'].split(';')[4].split(' ')[2].replace('"', '')
         gene_id_name[gene_name.lower()] = gene_id
 
@@ -47,8 +83,14 @@ def get_lfc_thresh(deseq_df, target_size, fold, p_val_thresh=0.01):
     df_sorted = df_sorted.sort_values('log2FoldChange', ascending=False)
     # Get the LFC threshold for the target number of DEGs
     if fold == 'up':
+        # the LFC of the target_size'th-ranked gene (0-indexed, so this is the
+        # boundary just past the top target_size genes) becomes the cutoff; clamped
+        # to at least 1 so a lenient p_val_thresh can't pull the LFC cutoff below the
+        # conventional 2-fold-change floor
         lfc_thresh = np.maximum(df_sorted.iloc[target_size]['log2FoldChange'],1)
     elif fold == 'down':
+        # mirror image from the bottom of the sorted (most negative LFC) list,
+        # clamped to at most -1 for the same reason as above
         lfc_thresh = np.minimum(df_sorted.iloc[-target_size]['log2FoldChange'],-1)
     else:
         raise ValueError("fold must be 'up' or 'down'")
@@ -70,14 +112,18 @@ def remove_unidentified_genes(deseq_df, gene_id_name):
 def run_deseq(file_path, metadata_path, output_dir, contrast):
     """
     Function to run DESeq2 analysis
-    :param file_path: path to the count data
-    :param metadata_path: path to the metadata file
+    :param file_path: path to the count data, genes (rows) x samples (columns), raw
+        (non-normalized) counts -- pydeseq2 does its own size-factor normalization
+    :param metadata_path: path to the metadata file: samples (rows) x sample-info
+        columns, must include a 'condition' column matching the contrast's factor,
+        and its row order/index must line up with file_path's sample columns
     :param output_dir: path to save the DESeq2 results
     :param contrast: contrast for the DESeq2 analysis: e.g., ["condition", "casp-t2", "exp-t0"]
     :return:
     """
 
     count_matrix = pd.read_csv(file_path, index_col=0, header=0)
+    # pydeseq2 expects samples x genes, so transpose the genes x samples input file
     count_matrix = count_matrix.T
     # Load your count matrix and metadata
     # Assume 'count_matrix.csv' is your RNA-seq count data
@@ -107,7 +153,7 @@ def run_deseq(file_path, metadata_path, output_dir, contrast):
 
 
 def plot_deseq_results(deseq_file, lfc_cutoff=1, p_cutoff=0.01, output_dir=None):
-    # plot volcano plot of deseq2 results
+    # interactive volcano plot (plotly) of a DESeq2 results CSV written by run_deseq()
     deg_results = pd.read_csv(deseq_file, index_col=0)
     # Plot the volcano plot
     # Add a new column for -log10(padj)
@@ -151,6 +197,17 @@ def plot_deseq_results(deseq_file, lfc_cutoff=1, p_cutoff=0.01, output_dir=None)
 
 
 def run_go_enrichment(DEG_file, p_cutoff, target_size, fold, output_dir):
+    """GO term enrichment of the top target_size up/down DEGs from a DESeq2 run.
+
+    :param DEG_file: path to a DESeq2 results CSV, as written by run_deseq()
+    :param p_cutoff: adjusted-p-value threshold used both for choosing the LFC
+        cutoff (get_lfc_thresh) and for selecting the DEG set itself
+    :param target_size: target number of DEGs to include; used only to derive the
+        LFC cutoff (get_lfc_thresh), the actual DEG set below can be larger or
+        smaller depending on how many genes clear both the p and LFC cutoffs
+    :param fold: 'up' or 'down', which tail of log2FoldChange to test
+    :param output_dir: directory to write GO_enrichment_<DEG_file>.csv into
+    """
     # path to metadata files
     # Load GO ontology
     go_dag = obo_parser.GODag(GO_OBO)
@@ -179,6 +236,8 @@ def run_go_enrichment(DEG_file, p_cutoff, target_size, fold, output_dir):
         try:
             deg_genes_ID.append(gene_id_name[gene.lower()])
         except:
+            # gene name has no entry in gene_id_name (e.g. not in the GTF's CDS
+            # rows); silently dropped from the study set rather than raising
             pass
     background_genes_ID = []
     for gene in background_genes:
@@ -215,6 +274,8 @@ def run_go_enrichment(DEG_file, p_cutoff, target_size, fold, output_dir):
         "Ratio in Population": [r.ratio_in_pop for r in significant_results],
         "Parents": [r.goterm._parents for r in significant_results],
     })
+    # NOTE: DEG_file is the *input path*, not a short name, so this embeds the full
+    # path (slashes and all) into the output filename -- see FINDINGS log.
     results_df.to_csv(os.path.join(output_dir, f"GO_enrichment_{DEG_file}.csv"),
                       index=False)
     # Print top 10 enriched GO terms
@@ -222,6 +283,21 @@ def run_go_enrichment(DEG_file, p_cutoff, target_size, fold, output_dir):
 
 
 def run_go_single_cell(DEG_file, cluster, p_cutoff, fold, output_dir):
+    """GO term enrichment of single-cell marker genes for one Leiden cluster.
+
+    Same enrichment machinery as run_go_enrichment(), but the DEG table is read
+    from the scanpy marker-gene workbook (scanpy_analysis.ipynb output) instead of
+    a DESeq2 results CSV, and the LFC cutoff is fixed at 0 (any up/down direction
+    counts) rather than being derived from a target DEG-set size.
+
+    :param DEG_file: unused -- kept for a matching call signature with
+        run_go_enrichment(), see FINDINGS log
+    :param cluster: sheet name in marker_genes_per_cluster_shx_scaled.xlsx to read
+        (one sheet per Leiden cluster)
+    :param p_cutoff: adjusted p-value threshold on the marker table's 'adjusted_pval'
+    :param fold: 'up' or 'down', which tail of 'log2_fold_change' to test
+    :param output_dir: directory to write GO_enrichment_cluster_<cluster>.csv into
+    """
     # path to metadata files
     # Load GO ontology
     go_dag = obo_parser.GODag(GO_OBO)
@@ -230,12 +306,14 @@ def run_go_single_cell(DEG_file, cluster, p_cutoff, fold, output_dir):
     # load gene id conversion
     gene_id_name = get_ID_conversion(GTF_FILE)
     # load DEG results
+    # NOTE: hard-codes the marker-gene workbook path/name and expects os.getcwd()
+    # to be scripts/ (its parent's 'scanpy' subdir), same assumption as metadata_dir
     deg_results = pd.read_excel(os.path.join(os.path.dirname(os.getcwd()),'scanpy','marker_genes_per_cluster_shx_scaled.xlsx'), sheet_name=cluster, index_col=0, header=0)
     # remove unidentified genes
     deg_results = remove_unidentified_genes(deg_results, gene_id_name)
     # Read DEG and background gene lists
     # get the log fold change threshold
-    lfc_cutoff = 0
+    lfc_cutoff = 0    # no magnitude cutoff here; any nonzero direction counts as a DEG
     if fold == 'up':
         deg_genes = set(
             deg_results.index[(deg_results['adjusted_pval'] < p_cutoff) & (deg_results['log2_fold_change'] > lfc_cutoff)])

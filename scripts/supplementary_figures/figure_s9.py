@@ -1,3 +1,24 @@
+"""
+Supplementary Figure S9 — lag-time distributions from ScanLag data.
+
+Panels
+------
+A  Log-log CCDF ("fraction of arrested bacteria") of lag-time distributions for
+   Reg-Arrest, Reg-Arrest+SHX and Dis-Arrest. Lag times are shifted by t0 (the
+   minimum appearance time of the exponential control) before plotting, so all
+   three conditions are on the same time-since-exposure axis. Format follows
+   figure1 panel E.
+B  Summary table of lag-time mean/std across all conditions in this study,
+   together with reference values adapted from Kaplan et al.
+
+Input:  scanlag_data/CASP+SHX/casp+shx.xlsx        -> panel A
+        scanlag_data/CASP+SHX/scanlag_summary.xlsx -> panel B
+Output: figure_s9.pdf, figure_s9_preview.png, written next to this script.
+
+Run from this directory:
+    cd scripts/supplementary_figures
+    python figure_s9.py
+"""
 import os
 import sys
 
@@ -12,16 +33,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 from figure_functions import PanelFigure
-
-# ------------------------------------------------------------------
-# Supplementary Figure S9
-#   A. Log-log CCDF of lag-time distributions (Reg-Arrest,
-#      Reg-Arrest+SHX, Dis-Arrest). Lag times are shifted by t0 (the
-#      minimum appearance time of the exponential control) before
-#      plotting. Format follows figure1 panel E.
-#   B. Summary table of lag-time data across all conditions in this
-#      study together with data adapted from Kaplan et al.
-# ------------------------------------------------------------------
 
 fsize = 10
 REG_COLOR = 'steelblue'  # Reg-Arrest
@@ -41,7 +52,12 @@ CCDF_CONDITIONS = [
 
 
 def _load_ccdf_data():
-    """Read casp+shx.xlsx and return, per condition, (t0-shifted lag, CCDF)."""
+    """Read casp+shx.xlsx and return, per condition, (t0-shifted lag, CCDF).
+
+    The sheet is a fixed-layout export (no header row parsed as such): rows 0-3
+    carry metadata (row 2 = t0) and the lag/CCDF pairs start at row 4, addressed
+    by the (lag_col, cdf_col) pairs in CCDF_CONDITIONS.
+    """
     raw = pd.read_excel(os.path.join(SCANLAG_DIR, 'casp+shx.xlsx'), header=None)
     out = {}
     for name, lag_col, cdf_col, _ in CCDF_CONDITIONS:
@@ -54,12 +70,15 @@ def _load_ccdf_data():
 
 
 def panel_A(ax):
+    """Log-linear CCDF of t0-shifted lag times, one step curve per condition."""
     data = _load_ccdf_data()
     for name, lag_col, cdf_col, color in CCDF_CONDITIONS:
         lag, ccdf = data[name]
         order = np.argsort(lag)
         ax.step(lag[order], ccdf[order], where='post', color=color,
                 linewidth=1.2, label=name)
+    # x-axis kept linear (not log, despite the log y-axis) so the negative,
+    # t0-shifted lag times near zero remain visible
     #ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlabel('Lag time (min)', fontsize=fsize)
@@ -106,7 +125,7 @@ def panel_B(ax):
                 for cell in [header[c]] + [r[c] for r in body]) + pad
             for c in range(ncol)
         ], dtype=float)
-        return w / w.sum()
+        return w / w.sum()   # matplotlib table colWidths must sum to 1
 
     tbl = ax.table(cellText=rows, colLabels=col_labels,
                    colWidths=_col_widths(col_labels, rows),

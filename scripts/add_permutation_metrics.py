@@ -41,6 +41,15 @@ EV_DIR = os.path.join(_REPO, 'ev_data')
 
 
 def main(tag=DEFAULT_TAG):
+    """Join a permutation-test run onto data_metrics.csv and rewrite it in place.
+
+    tag : basename (no extension) of the permutation run CSV under
+        results/permutation_test/raw/, keyed by dataset in a 'sample' column
+        with 'null_sd', 'null_mean' and 'p_empirical_1' fields (produced by the
+        B=2000 permutation scripts, e.g. eigenvalue_permutation_full_B2000.py).
+
+    Returns the updated data_metrics DataFrame (also written to disk).
+    """
     perm_csv = os.path.join(_REPO, 'results', 'permutation_test', 'raw', tag + '.csv')
     if not os.path.exists(perm_csv):
         raise SystemExit('no permutation run at ' + perm_csv)
@@ -54,8 +63,12 @@ def main(tag=DEFAULT_TAG):
 
     perm = pd.read_csv(perm_csv).set_index('sample')
     dm = pd.read_csv(METRICS, index_col=0)
+    # data_metrics rows are keyed by CSV filename; permutation results are keyed by
+    # the bare sample name, so strip the extension to line the two tables up.
     key = dm['file_name'].str.replace('.csv', '', regex=False)
 
+    # bail out rather than silently leaving NaNs if a dataset in data_metrics has
+    # no matching permutation-test row (e.g. the run hasn't finished for it yet)
     missing = sorted(set(key) - set(perm.index))
     if missing:
         raise SystemExit('no permutation result for: ' + ', '.join(missing))

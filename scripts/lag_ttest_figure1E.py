@@ -83,6 +83,13 @@ print()
 # The actual test: 3 means vs 3 means
 # --------------------------------------------------------------------------
 def rep_ttest(a_dict, b_dict, name_a, name_b):
+    """Two-sample t-test (Welch and Student) comparing two conditions'
+    per-replicate mean lag times, and print both results.
+
+    a_dict, b_dict : {replicate_id: mean_lag_time} for each condition, as
+        built into rep_means above (one scalar per biological replicate).
+    name_a, name_b : labels used only for the printed report.
+    """
     a = np.array(list(a_dict.values()))   # 3 replicate means, group A
     b = np.array(list(b_dict.values()))   # 3 replicate means, group B
 

@@ -98,6 +98,8 @@ def panel(ax, df, color_by, title, categories=None):
 
 
 def two_panel(df, tag, path_stem):
+    """Save a single-run figure: one UMAP panel coloured by Leiden cluster next
+    to one coloured by sample/batch, both drawn by `panel` from the same df."""
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
     panel(axes[0], df, 'cluster', 'Leiden clusters')
     panel(axes[1], df, 'batch', 'Sample', categories=BATCH_ORDER)
@@ -119,6 +121,9 @@ def similarity(ref, df):
 
 
 def main():
+    """Load the three coordinate CSVs, print per-run size/cluster counts and
+    Procrustes/ARI similarity to the published run, then save the published-only
+    figure and the 3x2 (run x colouring) comparison figure."""
     runs = [
         ('Published\n(data_for_umap barcodes,\nfigure 1G/H)', PUBLISHED_CSV),
         ('Original barcodes\n(data_for_umap,\nuniform, genes removed first)',
@@ -149,6 +154,9 @@ def main():
         panel(axes[row, 0], df, 'cluster', 'Leiden clusters')
         panel(axes[row, 1], df, 'batch', 'Sample', categories=BATCH_ORDER)
         axes[row, 0].set_ylabel(f'{label}\nn={len(df)}', fontsize=11)
+        # the row label doubles as a y-axis label; re-enable the axis so it renders,
+        # then immediately blank the ticks since the coordinate values themselves
+        # are not meaningful (UMAP has no natural units)
         axes[row, 0].yaxis.set_visible(True)
         axes[row, 0].set_yticks([])
     fig.tight_layout()

@@ -1,0 +1,182 @@
+================================================================================
+src/bulk_functions.py
+291 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Importable library module for the bulk RNA-seq side of the pipeline (per
+    CLAUDE.md). It wraps pydeseq2 to run differential expression between two
+    conditions (run_deseq), plots a volcano of the results (plot_deseq_results),
+    and wraps goatools to test a DEG set for GO term enrichment against a
+    background gene set, both for bulk DESeq2 output (run_go_enrichment) and for
+    scanpy single-cell marker-gene tables (run_go_single_cell). It underlies
+    scripts/bulk_analysis.ipynb.
+
+INPUTS
+    metadata/go-basic.obo        GO ontology DAG (goatools obo_parser).
+    metadata/ecocyc.gaf          gene -> GO term associations (goatools read_gaf).
+    metadata/genomic.gtf         genome annotation, parsed by get_ID_conversion()
+                                  for a gene-name -> GeneID lookup; only 'CDS' rows
+                                  are used, and the GeneID/gene-name fields are
+                                  pulled out of the GTF attributes column by fixed
+                                  positional splits (assumes a fixed field order).
+    run_deseq(file_path, ...)    file_path: raw (non-normalized) count matrix CSV,
+                                  genes (rows) x samples (columns).
+                                  metadata_path: CSV of samples x sample-info,
+                                  must include 'condition' and be row-aligned with
+                                  file_path's sample columns.
+    run_go_enrichment(DEG_file,...)  DEG_file: a DESeq2 results CSV as written by
+                                  run_deseq() (needs 'padj', 'log2FoldChange').
+    run_go_single_cell(...)      reads a fixed path,
+                                  <parent of cwd>/scanpy/marker_genes_per_cluster_shx_scaled.xlsx,
+                                  sheet name = `cluster` argument; needs
+                                  'adjusted_pval' and 'log2_fold_change' columns.
+    Working-directory assumption: every path above is built from
+    os.path.dirname(os.getcwd()), so any caller must run with cwd == scripts/ (see
+    CLAUDE.md note on this module) for metadata/ and scanpy/ to resolve correctly.
+
+OUTPUTS
+    run_deseq()            <output_dir>/deseq2_results_<contrast[1]>_vs_<contrast[2]>.csv
+    plot_deseq_results()   <output_dir>/volcano_plot.png (if output_dir given), and
+                            shows an interactive plotly figure.
+    run_go_enrichment()    <output_dir>/GO_enrichment_<DEG_file>.csv -- NOTE:
+                            DEG_file here is the literal input path string, not a
+                            basename (see FINDINGS [1]).
+    run_go_single_cell()   <output_dir>/GO_enrichment_cluster_<cluster>.csv
+
+HOW IT WORKS
+    get_ID_conversion() parses the GTF as plain tab-separated text (not with a
+    GTF-aware library), keeps only CDS rows, and extracts each row's GeneID and
+    gene name by splitting the semicolon-delimited attributes field on fixed
+    positions (field 2 for GeneID, field 4 for gene name, then the 3rd
+    space-separated token within each). The result is a dict keyed by lowercased
+    gene name.
+
+    get_lfc_thresh() picks the log2FoldChange cutoff that yields approximately
+    target_size DEGs at a given adjusted-p-value threshold: it filters to padj <
+    p_val_thresh, sorts by log2FoldChange, and reads off the value at rank
+    target_size from the top (for 'up') or bottom (for 'down'), clamping the
+    result to at least 1 (or at most -1) so a lenient p-value threshold can't push
+    the LFC cutoff below/above the conventional 2-fold-change floor.
+
+    remove_unidentified_genes() drops rows of a DESeq2/marker table whose gene
+    name (lowercased) has no entry in the gene_id_name dict from
+    get_ID_conversion(), i.e. genes present in the expression data but absent (or
+    named differently) in the GTF.
+
+    run_deseq() reads the raw count matrix and metadata, transposes counts to
+    samples x genes (pydeseq2's expected orientation), builds a DeseqDataSet with
+    design_factors="condition", runs dds.deseq2() (normalization + dispersion
+    estimation + fitting), computes DeseqStats for the given contrast, and writes
+    the full results table (log2FoldChange, padj, etc. per gene).
+
+    plot_deseq_results() reads a saved DESeq2 CSV, adds a -log10(padj) column
+    (zero p-values are floored to 1e-300 to keep the log finite), flags genes
+    passing both lfc_cutoff and p_cutoff as 'significant', and renders a plotly
+    scatter (volcano) with cutoff lines and gene-name hover text; x-axis is
+    clipped to [-10, 10].
+
+    run_go_enrichment() loads the GO DAG, GAF associations and gene-id map, reads
+    a DESeq2 results CSV, drops genes absent from the GTF, derives an LFC cutoff
+    via get_lfc_thresh(), selects the up- or down-regulated DEG set passing both
+    the p and LFC cutoffs, translates gene names to GeneIDs for both the DEG set
+    and the full background gene set (silently dropping any gene without a
+    GeneID), runs goatools' GOEnrichmentStudy with propagate_counts=False and
+    Benjamini-Hochberg FDR correction, keeps GO terms with p_fdr_bh < 0.05, and
+    writes a results table.
+
+    run_go_single_cell() is the same enrichment machinery pointed at a scanpy
+    marker-gene workbook instead of a DESeq2 CSV: one sheet per cluster, LFC
+    cutoff fixed at 0 (i.e. any nonzero direction counts, unlike run_go_enrichment
+    which derives a magnitude cutoff from get_lfc_thresh).
+
+KEY PARAMETERS AND CONSTANTS
+    p_val_thresh (get_lfc_thresh, default 0.01) -- adjusted-p filter applied
+        before ranking genes by LFC to find the cutoff; changing it changes which
+        genes are eligible to set the LFC threshold, not the final DEG p-value
+        filter (that is applied again, separately, by the caller).
+    LFC floor of 1 / -1 (get_lfc_thresh) -- minimum magnitude enforced on the
+        derived cutoff regardless of target_size; without it a very lenient
+        p_val_thresh could set a near-zero LFC cutoff.
+    alpha=0.05, methods=['fdr_bh'] (GOEnrichmentStudy) -- significance level and
+        multiple-testing correction used internally by goatools; the 0.05 cutoff
+        on p_fdr_bh is re-applied explicitly afterward to build significant_results.
+    propagate_counts=False -- GO term counts are NOT propagated up the DAG to
+        parent terms; only genes directly annotated to a term count toward it.
+    lfc_cutoff = 0 (run_go_single_cell) -- no magnitude threshold; every gene
+        clearing the adjusted p-value cutoff in the chosen direction is a DEG.
+    -log10(padj) zero-floor at 1e-300 (plot_deseq_results) -- avoids log(0) = -inf
+        for exactly-zero adjusted p-values from DESeq2.
+    x-axis range [-10, 10] (plot_deseq_results) -- any gene with |LFC| > 10 is
+        clipped out of view in the volcano plot (still present in the underlying
+        data/table).
+
+FINDINGS
+    [1] RISK - GO enrichment output filename embeds the full input path
+        Location: run_go_enrichment(), line ~275 (f"GO_enrichment_{DEG_file}.csv")
+        What the code does: builds the output CSV name from DEG_file, which is
+        documented and used elsewhere as a full path (e.g.
+        results/deseq_results/deseq2_results_x_vs_y.csv), not a basename.
+        Why that is a problem: the resulting filename contains path separators and
+        the full input path, e.g. "GO_enrichment_results/deseq_results/deseq2_....csv",
+        which will fail to write (invalid nested path) on most OSes unless
+        DEG_file happens to be a bare filename with no directory component.
+        Suggested fix: use os.path.basename(DEG_file) (compare with
+        run_go_single_cell, which correctly uses only `cluster` in its output
+        name).
+
+    [2] SMELL - run_go_single_cell's DEG_file parameter is unused
+        Location: run_go_single_cell(DEG_file, cluster, p_cutoff, fold, output_dir)
+        What the code does: accepts a DEG_file argument but always reads a
+        hard-coded workbook path (marker_genes_per_cluster_shx_scaled.xlsx)
+        instead, selecting only the `cluster` sheet.
+        Why that is a problem: misleading signature -- a caller passing a
+        different DEG_file silently has it ignored.
+        Suggested fix: drop the parameter, or thread it through to the
+        pd.read_excel() path.
+
+    [3] INCONSISTENCY - run_go_enrichment raises on a bad `fold`, run_go_single_cell
+        does not
+        Location: run_go_enrichment (raises ValueError via get_lfc_thresh for
+        fold not in {'up','down'}) vs run_go_single_cell (no such guard; if/elif
+        with no else leaves `deg_genes` unbound)
+        What the code does: run_go_single_cell's fold selection is a bare
+        if/elif with no else and no fallback lfc set for deg_genes.
+        Why that is a problem: calling run_go_single_cell with any fold value
+        other than 'up'/'down' raises an unhelpful UnboundLocalError deep in the
+        function instead of a clear error at the top, unlike its sibling function.
+        Suggested fix: add the same `else: raise ValueError(...)` guard used
+        (indirectly, via get_lfc_thresh) in run_go_enrichment.
+
+    [4] SMELL - bare `except:` clauses swallow all exceptions
+        Location: run_go_enrichment and run_go_single_cell, gene-ID translation
+        loops (`except: pass`)
+        What the code does: catches every exception (not just KeyError) when
+        looking up a gene name in gene_id_name, silently dropping the gene.
+        Why that is a problem: masks real bugs (e.g. a TypeError from a malformed
+        gene name) as "gene not found", and gives no count of how many
+        genes were dropped.
+        Suggested fix: catch KeyError specifically, and consider logging/counting
+        drops for a sanity check against how many genes are in the DEG set.
+
+    [5] SMELL - get_ID_conversion is a positional, non-general GTF parser
+        Location: get_ID_conversion()
+        What the code does: pulls GeneID and gene name from the attributes column
+        by splitting on ';' and then ' ' at hard-coded field indices (2 and 4),
+        rather than parsing the attributes as key-value pairs.
+        Why that is a problem: silently mis-parses (wrong gene/ID, or an
+        IndexError) if the GTF's attribute field order ever changes, e.g. a
+        different genome build or a re-exported annotation.
+        Suggested fix: parse attributes as `key "value";` pairs (split on ';',
+        then on first space) and look up 'GeneID' / 'gene' by key rather than
+        position. Not fixed here per the comments-only scope of this pass.
+
+RELATED FILES
+    scripts/bulk_analysis.ipynb -- the notebook that calls run_deseq(),
+        plot_deseq_results(), run_go_enrichment() (per CLAUDE.md); must be run
+        from scripts/ for the metadata_dir path to resolve.
+    scripts/scanpy_analysis.ipynb -- produces
+        scanpy/marker_genes_per_cluster_shx_scaled.xlsx, the input to
+        run_go_single_cell().
+    metadata/go-basic.obo, metadata/ecocyc.gaf, metadata/genomic.gtf -- the three
+        annotation files this module depends on; not reviewed for content here.

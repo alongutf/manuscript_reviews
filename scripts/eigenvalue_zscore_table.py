@@ -68,6 +68,10 @@ def load_run(tag=None):
 
 
 def build(tag=None, label=''):
+    """Recompute z_k and the Gaussian tail p for every (sample, rank) using the raw
+    null draws of a stored permutation run. Returns a long-form DataFrame (one row
+    per sample x rank) and the run's parsed log dict.
+    """
     tag, log, draws = load_run(tag)
     B = log['parameters']['B']
     rows = []
@@ -77,6 +81,10 @@ def build(tag=None, label=''):
         K = d.shape[1]
         for k in range(K):
             col = d[:, k]
+            # ddof=1 (sample sd): note the source run (eigenvalue_permutation_test.py)
+            # stores its own z_topK using ddof=0 on the same null draws, so this
+            # script's z is not bit-identical to the z already sitting in that run's
+            # JSON -- see the log for this file
             mu, sd = float(col.mean()), float(col.std(ddof=1))
             z = (obs[k] - mu) / sd
             p, l10 = gaussian_tail(z)
@@ -99,6 +107,10 @@ def build(tag=None, label=''):
 
 
 def main(tag=None):
+    """Entry point: build the z-score table for the latest (or given) permutation
+    run, optionally fold in a matching high-B boundary rerun, and write the
+    CSV/txt/json outputs plus the summary figure.
+    """
     df, log = build(tag)
     B = df.attrs['B']
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -215,6 +227,10 @@ def main(tag=None):
 
 
 def make_figure(df, r1, out_tag, B):
+    """Three-panel figure: rank-1 z-score bar chart per sample, z_k across ranks for
+    every sample, and a sanity check that p_gaussian is a deterministic function of
+    z (since it is computed, not fitted). Writes figures/<out_tag>.{svg,png}.
+    """
     colors = {'r': '#2c6fbb', 'd': '#c8412f'}
     fig, axes = plt.subplots(1, 3, figsize=(16, 5.6),
                              gridspec_kw={'width_ratios': [1.4, 1.15, 1]})

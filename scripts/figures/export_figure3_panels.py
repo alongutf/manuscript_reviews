@@ -1,3 +1,29 @@
+"""Export the six panels of Figure 3 as individual PNGs, for slide/poster use.
+
+Figure 3 makes the case for GMP-Cor as a correlation-strength metric: panels A-D
+compare the empirical eigenvalue CCDF (complementary CDF) against its scrambled
+null for two real samples (regulated vs. dis-arrest) and two synthetic ones at
+different simulated correlation strengths; panel E is the GMP-Cor calibration
+curve against simulated correlation strength chi, with the two real-data group
+medians overlaid; panel F is the regulated-vs-dis-arrest GMP-Cor boxplot with a
+Mann-Whitney significance bracket.
+
+This is a standalone export utility, not a reusable PanelFigure-based figure
+script (contrast scripts/figures/figureN.py, which build one combined SVG via
+figure_functions.PanelFigure) -- it saves each panel as its own PNG file to a
+presentation folder rather than assembling a single multi-panel manuscript figure.
+
+Reads:
+    ev_data/*.npy                              eigenvalue spectra (panels A-D)
+    results/simulation_results/raw/rho_sweep_summary.txt   panel E's sweep data
+    results/data_metrics/test8.csv             panels E/F's per-sample GMP-Cor
+
+Writes:
+    <OUTPUT_DIR>/figure3_panel{A..F}.png        one PNG per panel
+
+Run from anywhere (sys.path is patched to find src/ from this file's location):
+    python scripts/figures/export_figure3_panels.py
+"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 

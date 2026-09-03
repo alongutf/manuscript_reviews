@@ -1,0 +1,172 @@
+================================================================================
+scripts/bulk_pca.py
+211 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Runs a PCA of bulk RNA-seq samples from three related experiments (a
+    single-timepoint arrest comparison and two time-course experiments) on
+    their absolute, variance-stabilised expression profiles, to visualise
+    whether regulated-arrest ("CASP-like") and dysregulated-arrest
+    ("Disrupted-like") samples separate in expression space and whether that
+    separation survives removing a sequencing-batch effect. This is a
+    diagnostic/exploratory companion to the paper's main bulk RNA-seq
+    differential-expression pipeline (bulk_analysis.ipynb), answering "do the
+    biological groups cluster" rather than "which genes differ."
+
+INPUTS
+    bulk_data/bulk_count_data.csv
+        raw counts; only columns starting with CASP or Disrupted are kept
+        (the EXP_* exponential-phase controls are dropped entirely -- this
+        script does not use fold-change-from-control, unlike bulk_lfc_pca.py).
+    bulk_data/time_in_shx_count_data.csv
+        raw counts; only columns ending in t6/t7/t8 (the late SHX time
+        points) are kept.
+    bulk_data/time_in_casp_count_data.csv
+        raw counts; only columns starting with CASP are kept.
+    metadata/genomic.gtf (only if --drop-ncrna)
+        MG1655 reference annotation, parsed by noncoding_ids() to find
+        rRNA/tRNA/ncRNA gene_biotype features to exclude.
+    CLI args: --drop-ncrna, --remove-batch (see KEY PARAMETERS).
+
+OUTPUTS
+    results/bulk_pca/bulk_pca_coordinates<SUFFIX>.csv
+        per-sample metadata plus PC1-3 coordinates.
+    results/bulk_pca/bulk_pca<SUFFIX>.{svg,png}
+        PC1 vs PC2 scatter, coloured by biology (regulated vs. disrupted),
+        shaped by batch (bulk vs. time-course), with a short label per point.
+    SUFFIX encodes --drop-ncrna ("_coding") and --remove-batch ("_nobatch")
+        so different option combinations never overwrite each other's files.
+
+HOW IT WORKS
+    clean_ids() harmonises gene identifiers across the three source tables
+    (stripping 'rna-'/'gene-' prefixes used inconsistently between them, and
+    summing counts for any names that collide after stripping), and the
+    per-experiment column subsets are prefixed ("bulk|", "shx|", "casp|") so
+    the merged column names stay traceable to their source table. Genes are
+    then intersected across all three tables and ERCC spike-in controls are
+    dropped; if --drop-ncrna is set, rRNA/tRNA/ncRNA genes identified from
+    the GTF (plus a small hard-coded fallback list for genes whose biotype
+    tag might be missing: rrs/rrl/rrf operons, tmRNA, SRP RNA, RNase P RNA)
+    are removed too, leaving only protein-coding genes.
+
+    A per-sample metadata table records the source dataset, a condition
+    label, a publication-facing display label (Reg-Arrest1/2, Dis-Arrest1/2),
+    a two-level "biogroup" (CASP-like vs. Disrupted-like) used as the
+    biological factor of interest, and a "batch" flag distinguishing the
+    single bulk experiment from the two time-course experiments (both
+    contain both biogroups, i.e. a balanced 2x2 design, which is what makes
+    the batch-removal step below identifiable rather than confounded with
+    biology).
+
+    DESeq2's variance-stabilising transform (pydeseq2's DeseqDataSet.vst,
+    called "blind", i.e. its dispersion trend is fit on the mean count only
+    and not on the declared design) is applied to the raw counts directly --
+    there is no separate size-factor normalisation step or low-count gene
+    filter before this, unlike bulk_lfc_pca.py.
+
+    If --remove-batch is set, a per-gene linear model
+    vst ~ 1 + biogroup + batch is fit by least squares (numpy lstsq,
+    rcond=None so the modern machine-precision singular-value cutoff is
+    used), and only the fitted batch coefficient is subtracted back out --
+    the biogroup term is fit but deliberately not subtracted, so the
+    biological contrast the plot is meant to show is protected. The design
+    matrix's rank is checked first and the script aborts if batch and
+    biogroup turn out to be confounded (which would make the batch term
+    unidentifiable from the biological one).
+
+    The top N_HVG=1000 most-variable genes (by variance across all samples,
+    computed after any batch removal) are selected, the matrix is centred,
+    and a 5-component PCA (sklearn) is fit. PC1-3 are written to CSV; a
+    scatter of PC1 vs PC2 is plotted with a fixed colour-by-biology /
+    marker-by-batch scheme, legend labels reporting explained variance, and
+    a compact per-point text tag (replicate id or time point) via tag().
+
+KEY PARAMETERS AND CONSTANTS
+    N_HVG = 1000
+        number of most-variable genes fed to the PCA; larger values include
+        more low-signal genes and can dilute the biological separation,
+        smaller values risk PCA overfitting to a handful of genes.
+    --drop-ncrna
+        excludes rRNA/tRNA/ncRNA genes (identified via the GTF biotype tag
+        plus a hard-coded fallback pattern) before HVG selection/VST, useful
+        because highly abundant rRNA genes can otherwise dominate variance.
+    --remove-batch
+        fits and subtracts a per-gene batch offset (bulk vs. time-course)
+        while protecting the biogroup contrast; aborts if the design is
+        rank-deficient.
+    rcond=None (np.linalg.lstsq)
+        uses numpy's current default small-singular-value cutoff rather than
+        the old, deprecated fixed cutoff; relevant only if the design matrix
+        is close to (but not actually) rank-deficient.
+
+FINDINGS
+    [1] INCONSISTENCY - technical replicates are not collapsed here, unlike
+        the sibling script bulk_lfc_pca.py
+        Location: line ~81 (`bulk = bulk[[c for c in bulk.columns if
+        c.startswith(("CASP", "Disrupted"))]]`)
+        What the code does: keeps every column of bulk_count_data.csv whose
+        name starts with CASP or Disrupted, including CASP_biorep1a,
+        CASP_biorep1b and CASP_biorep1c (and the matching Disrupted_* trio)
+        -- confirmed present as separate columns in
+        bulk_data/bulk_count_data.csv. These three columns are technical
+        (re-sequencing) replicates of the same biological sample biorep1,
+        not independent biological replicates.
+        Why that is a problem: bulk_lfc_pca.py explicitly collapses these
+        into a single biorep1 column before any downstream analysis
+        (documented in its own comments as matching DESeq2's
+        collapseReplicates convention), specifically because treating
+        technical replicates as independent samples pseudo-replicates the
+        data and can bias a PCA/variance estimate toward whatever technical
+        replicate cluster happens to be tightest, inflating apparent
+        agreement for biorep1 relative to biorep2/biorep3 (which have no
+        technical replicates in this table). This script's PCA and its
+        published coordinates therefore treat biorep1 as roughly 3x
+        over-represented relative to biorep2/3 for the CASP and Disrupted
+        conditions.
+        Suggested fix: collapse technical replicates the same way
+        bulk_lfc_pca.py does (mean the *_biorepNa/b/c columns into one
+        biorepN column) before intersecting genes and running VST/PCA.
+
+    [2] INCONSISTENCY - no low-count gene filter before VST/HVG selection,
+        unlike bulk_lfc_pca.py's --min-count
+        Location: the VST block, line ~137-140, versus
+        bulk_lfc_pca.py's `keep = norm.mean(axis=0) >= args.min_count`
+        What the code does: this script runs VST and picks the top-1000
+        variable genes from the full shared gene set with no expression
+        filter; bulk_lfc_pca.py drops genes whose mean normalised count is
+        below 10 by default, specifically because "low counts make log fold
+        changes explode" (its own comment).
+        Why that is a problem: while VST (unlike a plain log ratio) is
+        designed to stabilise variance across the expression range and so is
+        less sensitive to this than a raw log fold change, a very lowly
+        expressed gene can still show large VST swings driven by count noise
+        and could be selected into the top-1000 HVG set here in a way the
+        sibling script's design explicitly guards against. Not necessarily
+        wrong for this script's absolute-expression use case, but it is a
+        filtering difference between two scripts computing PCA on largely
+        the same underlying counts, and it means the two scripts' "top 1000
+        variable genes" sets are not directly comparable.
+        Suggested fix: either add the same --min-count-style filter here for
+        consistency, or note explicitly in the module docstring why VST
+        makes it unnecessary.
+
+RELATED FILES
+    scripts/bulk_lfc_pca.py
+        the fold-change-from-control counterpart; shares clean_ids(),
+        noncoding_ids(), the batch-removal design, and most plotting code
+        near-verbatim with this script (duplicated rather than factored into
+        a shared module), and differs in normalisation (adds explicit
+        median-of-ratios size factors), gene filtering (--min-count),
+        technical-replicate handling (collapses them; see [1]), and the
+        scientific question asked (relative-to-control vs. absolute
+        expression).
+    scripts/bulk_analysis.ipynb
+        the paper's main bulk RNA-seq differential-expression / GO
+        enrichment pipeline (DESeq2, goatools); this script is an ancillary
+        clustering diagnostic, not part of that primary analysis.
+    bulk_data/bulk_count_data.csv, bulk_data/time_in_shx_count_data.csv,
+    bulk_data/time_in_casp_count_data.csv
+        the three raw count tables this script reads.
+    metadata/genomic.gtf
+        MG1655 annotation used for --drop-ncrna's biotype lookup.

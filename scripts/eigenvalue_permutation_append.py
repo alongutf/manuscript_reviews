@@ -98,6 +98,8 @@ def summarise(name, r, titles, B):
 
 
 def main(tag, new_samples=None, n_workers=None):
+    """Compute the new samples' permutation draws and merge them into run `tag`'s
+    existing output files in place, leaving already-run samples untouched."""
     from scipy.stats import mannwhitneyu
 
     log_path = os.path.join(OUT, 'logs', tag + '.json')
@@ -121,6 +123,7 @@ def main(tag, new_samples=None, n_workers=None):
 
     # Fail fast: every target is rewritten in place, and a file held open by Excel
     # raises PermissionError. Check before spending the compute, not after.
+    # ('r+b' opens for read/write without truncating, so this is a pure lock probe.)
     targets = [os.path.join(OUT, 'raw', tag + s) for s in
                ('.csv', '.txt', '_rank1.csv', '_observed.csv', '_null_moments.csv',
                 '_null_draws.npz')] + [log_path]
@@ -140,7 +143,10 @@ def main(tag, new_samples=None, n_workers=None):
     print('run {}  B={}\nexisting: {} samples\nadding  : {}\nworkers : {}'.format(
         tag, B, len(existing), ', '.join(new_samples), n_workers), flush=True)
 
-    # separate seed block so existing samples keep the seeds already recorded
+    # separate seed block (offset +2000, vs +1000 for the original run) so existing
+    # samples keep the seeds already recorded in the log; `i` indexes only THIS call's
+    # new_samples list, so a second, later append call reuses the same +2000+i seeds
+    # for whatever it adds -- see the cross-append seed-collision note in FINDINGS
     seeds = {nm: SEED + 2000 + i for i, nm in enumerate(sorted(new_samples))}
     t_start = time.time()
     order = sorted(new_samples,
@@ -165,6 +171,8 @@ def main(tag, new_samples=None, n_workers=None):
                         **{nm + '::maxfull': results[nm]['max_full'] for nm in results},
                         **{nm + '::abovefull': results[nm]['n_above_full'] for nm in results})
     print('  cached permutations -> ' + os.path.basename(cache), flush=True)
+    # (the '::'-suffixed keys pack each sample's per-rank summary arrays alongside its
+    # draws in one npz, since savez_compressed only takes flat name -> array pairs)
 
     titles = pd.read_excel(os.path.join(_REPO, 'ev_data',
                                         'titles.xlsx')).set_index('file_name')

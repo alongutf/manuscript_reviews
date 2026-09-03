@@ -1,0 +1,136 @@
+================================================================================
+scripts/equate_dims_depth_matched.py
+243 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    A reviewer-response robustness check on the paper's GMP-Cor pipeline. The
+    published matrices in data_for_paper/ come from src.data_functions.equate_dims,
+    which draws a uniform random subsample of target_cells from each of the four
+    condition samples' eligible cell pools. Because those pools differ hugely in
+    size (dis1/'13a' ~1600 eligible cells vs. dis2/'15a' ~15600, per the module
+    docstring), a uniform draw reaches much further down the depth distribution
+    for the larger pool, leaving the four matrices at systematically different
+    sequencing depths -- and GMP-Cor is known to track depth (see project memory:
+    "GMP-Cor scales with p / depth"). This script keeps every other pipeline
+    choice identical to the paper (same UMI filter, same dispersion gene filter,
+    same pairwise gene-panel intersection, same target cell count) but replaces
+    the cell draw with one that matches all four samples to a single shared
+    depth histogram, then recomputes GMP-Cor to see whether the paper's
+    dis-vs-reg conclusion survives depth-matching.
+
+INPUTS
+    C:\\Users\\owner\\Documents\\Projects\\rnaseq_correlations\\data\\sample_{13a,15a,13b,15b}_unfiltered.csv
+        (hard-coded machine-specific path, OTHER/DATA) -- raw, unfiltered
+        cells x genes probe-count CSVs for the four samples (dis1=13a, dis2=15a,
+        reg1=13b, reg2=15b), read in streaming chunks.
+    data_for_paper/sample_{13a,15a,13b,15b}_filtered.csv -- the PUBLISHED,
+        already-filtered matrices, read only for their barcode index (to measure
+        overlap with the new depth-matched draw, not used in the recomputation).
+    src.analysis_functions (af.get_eig_dist) -- for the GMP-Cor calculation.
+
+OUTPUTS
+    results/cluster_gmp_cor/equate_depth_matched_<timestamp>.csv -- one row per
+        (sample, rep): n_cells, n_genes, mean/median total expression, mean genes
+        detected, lambda_max, lambda_max_scrambled, gmp_cor.
+    results/cluster_gmp_cor/equate_depth_overlap_<timestamp>.csv -- one row per
+        (sample, rep): how many barcodes were drawn, how many were in the
+        published matrix, and the percent of the published barcode set retained.
+    results/cluster_gmp_cor/equate_depth_matched_<timestamp>.json -- full
+        parameter dict plus the same per-rep records and overlaps, for
+        reproducibility (per the CLAUDE.md workflow rule to log every simulation
+        parameter).
+
+HOW IT WORKS
+    load_eligible() streams each sample's raw CSV in CHUNK-row pieces (too large
+    to load whole) and keeps only cells with UMI_MIN < total UMI < UMI_MAX --
+    the same cell filter as the paper's filter_by_umi_count(400, 20000), applied
+    before any gene filtering. dispersion_genes() reimplements
+    filter_by_gene_dispersion(min_dispersion=1) directly on the eligible-cell
+    pool. For each of the two condition pairs (dis1+dis2, reg1+reg2), the gene
+    panel is the intersection of the two samples' dispersion-passing genes, again
+    matching the paper's pairwise-intersection convention.
+
+    Depth is then defined, per sample, as the row sum on that sample's own final
+    gene panel. matched_draw() takes the depth arrays for ALL FOUR samples
+    together, bins the pooled depth values into N_BINS quantile bins, and for
+    each bin takes the MINIMUM available cell count across all four samples --
+    this is what forces every sample onto the same depth histogram shape instead
+    of each keeping its own. Bin quotas are then scaled down proportionally to
+    hit TARGET_CELLS total, with any rounding remainder handed to the
+    highest-headroom bins one at a time. Cells are drawn from each sample's bins
+    with np.random.Generator.choice(..., replace=False).
+
+    main() runs REPS independent replicates (a fresh rng per rep, seeded
+    SEED + rep), and for each replicate and sample computes gmp_cor() -- the
+    excess eigenvalue mass above the scrambled-null maximum, from
+    af.get_eig_dist with the same norm_method='sum', norm_sum=50 normalization
+    used elsewhere -- and records barcode overlap with the published matrix.
+    Finally it prints mean +/- sd of GMP-Cor per sample, the within-condition gap
+    (dis1 vs dis2, reg1 vs reg2) and the between-condition gap (dis mean vs reg
+    mean), and writes all three output files.
+
+KEY PARAMETERS AND CONSTANTS
+    UMI_MIN, UMI_MAX = 400, 20000 -- must match analysis_notebook cell 3 exactly
+        for this to be a fair like-for-like comparison against the published
+        pipeline; a drift here would change which cells are even eligible.
+    MIN_DISPERSION = 1.0 -- filter_by_gene_dispersion's default; changing it
+        changes both the panel size and composition, confounded with everything
+        downstream.
+    TARGET_CELLS = 1000, N_BINS = 40 -- matches the published ~1000-cell output
+        size; N_BINS trades histogram resolution (higher = finer depth matching)
+        against per-bin sample size (higher = more bins with too few cells to
+        draw from, capping total_avail below TARGET_CELLS).
+    REPS = 5 -- number of independent matched draws averaged for the reported
+        mean/sd; not large enough to tightly bound the sd itself, only to give a
+        rough sense of draw-to-draw variability.
+    SEED = 0, per-rep seed SEED + rep -- reproducible but arbitrary; a different
+        SEED would give a different (but presumably similar) draw and possibly a
+        slightly different mean/sd.
+    NORM_SUM = 50 -- row-sum target used by get_eig_dist's normalization; must
+        match whatever the published GMP-Cor numbers used for the two to be
+        comparable (not verified against the notebook in this review).
+
+FINDINGS
+    [1] RISK - hard-coded, machine-specific input path
+        Location: line 34-35 (OTHER = r'C:\\Users\\owner\\...\\rnaseq_correlations')
+        What the code does: points at an absolute Windows path to a sibling repo
+        checkout that is not part of this repository.
+        Why that is a problem: the script cannot run on any other machine (or CI)
+        without editing this constant; there is no environment-variable or
+        relative-path fallback.
+        Suggested fix: read the sibling-repo path from an environment variable or
+        a config file, falling back to this value.
+
+    [2] RISK - depth-matching does not equalize gene-panel size across conditions
+        Location: panel construction (per-pair intersection) vs. depth matching
+        (across all four samples at once)
+        What the code does: fixes the cell draw so all four samples share one
+        depth histogram, but the gene panel is still computed per condition pair
+        (dis1+dis2 intersection vs. reg1+reg2 intersection) independently, so the
+        two pairs can end up with a different number of genes p.
+        Why that is a problem: per project memory, GMP-Cor is known to scale with
+        p (number of genes/dimensions), not just depth. If the dis and reg gene
+        panels differ in size, the "between-condition gap" this script reports at
+        the end is still confounded by p even after depth-matching -- the very
+        confound this script sets out to control for is only half addressed.
+        Suggested fix: print/log each pair's panel size next to the GMP-Cor
+        summary (the per-pair print already exists earlier, at "panel {a}+{b}:
+        {len} genes" -- worth surfacing again next to the final gap numbers), and
+        consider also equating p across the two pairs (e.g. subsample genes down
+        to the smaller panel) as a further robustness check.
+
+RELATED FILES
+    src/data_functions.py (equate_dims, AnnMat.filter_by_umi_count,
+        AnnMat.filter_by_gene_dispersion) -- the paper's original functions this
+        script reimplements with a different cell-draw rule; equate_dims confirms
+        the "uniform random subsample" behavior this script's docstring describes
+        (np.random.choice(..., target_cells, replace=False) with seed fixed at 0
+        for every call, not varied per replicate).
+    src/analysis_functions.py (get_eig_dist) -- the GMP-Cor / eigenvalue-spectrum
+        calculation shared with the rest of the pipeline.
+    scripts/matched_downsampling.py -- sibling robustness script (not in this
+        review batch) likely addressing a related depth/cell-count confound;
+        worth cross-checking its matching strategy against this one if revisited.
+    data_for_paper/*.csv -- the published, uniform-draw matrices this script
+        compares against via barcode overlap.

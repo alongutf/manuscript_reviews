@@ -1,0 +1,218 @@
+================================================================================
+scripts/bulk_lfc_pca.py
+349 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Runs a PCA of the bulk RNA-seq samples in log-fold-change space: every sample
+    is expressed relative to the exponential-phase control of its own
+    experiment/biological replicate, so the experiment-specific baseline is
+    removed by construction (unlike an absolute-expression PCA, no batch
+    correction step is required for this to work, though one is optionally
+    available). This is the upstream data-preparation step for the bulk RNA-seq
+    branch of the pipeline described in CLAUDE.md: it merges the three raw bulk
+    count tables, DESeq2-normalises them, computes fold changes, runs the PCA, and
+    writes the intermediate matrices (log fold changes and normalised counts) that
+    bulk_lfc_correlation.py, bulk_correlation_dendrogram.py and
+    bulk_expression_correlation_panel.py all read as their own input.
+
+INPUTS
+    bulk_data/bulk_count_data.csv - gene x sample raw counts; 15 columns
+        (EXP/CASP/Disrupted x biorep1a/b/c,2,3), the "bulk" experiment.
+    bulk_data/time_in_shx_count_data.csv - gene x sample raw counts; 9 columns
+        (Disrupted_biorep1t1..t8, EXP_biorep1t0), the SHX time course.
+    bulk_data/time_in_casp_count_data.csv - gene x sample raw counts; 4 columns
+        (CASP biorep1 400/511/621min, EXP biorep2), the CASP time course.
+    metadata/genomic.gtf - MG1655 reference annotation, read only when
+        --drop-ncrna is passed, to look up which gene ids are rRNA/tRNA/ncRNA.
+    CLI arguments: --transform {log2,vst} (default log2), --compare-transforms
+        (also runs vst and prints diagnostics), --drop-ncrna, --min-count
+        (default 10.0, mean-normalised-count filter), --bulk-control
+        {matched,mean} (default matched), --shx-late (keep only SHX t6-t8),
+        --remove-batch (subtract per-gene batch offsets from the LFC matrix),
+        --n-hvg (default 0 = all genes; restrict PCA to top-N variable genes).
+
+OUTPUTS
+    results/bulk_pca/bulk_lfc_pca_coordinates<SUFFIX>.csv - sample metadata plus
+        PC1-PC3 scores, one row per treated sample.
+    results/bulk_pca/bulk_log_fold_changes<SUFFIX>.csv - genes x samples log fold
+        change matrix (the matrix actually fed to the PCA, transposed to genes x
+        samples on write); read by bulk_lfc_correlation.py (--space lfc) and
+        bulk_correlation_dendrogram.py.
+    results/bulk_pca/bulk_normalized_counts<EXPR_SUFFIX>.csv - genes x samples
+        DESeq2-normalised counts for the treated samples and the expressed-gene
+        set, pre-transform/pre-batch-removal/pre-HVG-selection; read by
+        bulk_lfc_correlation.py (--space expression), bulk_correlation_dendrogram.py
+        and bulk_expression_correlation_panel.py. EXPR_SUFFIX drops the "_hvg*"
+        and "_nobatch" parts of SUFFIX since this file does not reflect either.
+    results/bulk_pca/bulk_lfc_pca<SUFFIX>.{svg,png} - PC1-vs-PC2 scatter, coloured
+        by biological label, shaped by batch, with per-point sample tags.
+    SUFFIX encodes every CLI choice that changes the output content
+        (transform, coding-only, bulk-control mode, shx-late, nobatch, n-hvg), so
+        different configurations never overwrite each other's files.
+
+HOW IT WORKS
+    The three raw count tables are loaded and their gene identifiers harmonised
+    by `clean_ids`: whitespace stripped, "rna-"/"gene-" prefixes removed (an
+    artifact of how the casp table names non-coding genes), and any resulting
+    duplicate gene names summed together. The bulk table's technical replicates
+    (the three sequencing runs *_biorep1a/b/c of one biological sample) are
+    averaged into a single *_biorep1 column, equivalent to DESeq2's
+    collapseReplicates up to a constant factor of 3 that the size-factor
+    normalisation absorbs anyway. Columns from the three tables are prefixed
+    "bulk|", "shx|", "casp|" to keep sample identity dataset-qualified once
+    everything is concatenated.
+
+    Genes are intersected across all three tables (so every gene present in the
+    output has a count in every dataset) and ERCC spike-in controls are dropped.
+    With --drop-ncrna, rRNA/tRNA/ncRNA gene ids are additionally looked up from
+    the GTF annotation and removed, supplemented by a small hard-coded list
+    (rrsX/rrlX/rrfX plus tmRNA/SRP/6S RNA gene symbols) in case the annotation's
+    biotype field misses one.
+
+    Each treated sample is paired with the list of its own exponential-phase
+    control column(s) in the CONTROL dict: bulk biological replicates pair to the
+    matching EXP_biorepN (or, with --bulk-control mean, to the average of all
+    three EXP bioreps); SHX time points pair to the single SHX EXP_biorep1t0;
+    CASP time points pair to the single CASP EXP biorep2. --shx-late then drops
+    the early SHX time points (t1-t5), keeping only t6-t8, matching the subset
+    used elsewhere in the paper's bulk_pca.py for comparability.
+
+    Counts are normalised once for the whole merged matrix with DESeq2's
+    median-of-ratios size factors (via pydeseq2's DeseqDataSet.fit_size_factors,
+    using a "dataset" design that exists only to satisfy the constructor - the
+    size factors themselves do not depend on the design). Genes whose mean
+    normalised count falls below --min-count are dropped before any fold-change
+    or PCA step, because log ratios computed on near-zero counts are dominated by
+    noise. Two expression transforms of the surviving genes are computed: log2
+    of normalised count + 1, and a "blind" variance-stabilising transform (VST,
+    dispersion trend fit against the mean intensity only, ignoring the "dataset"
+    design) - `--transform` selects which one is fed to the fold-change/PCA
+    steps below, and `--compare-transforms` runs a short diagnostic comparing the
+    two (spread of fold changes at low vs high expression, agreement between the
+    two fold-change matrices, and correlation of their first two PCs) to decide
+    whether the extra VST machinery changes the biological conclusion.
+
+    fold_changes() then subtracts, for every treated sample, the (possibly
+    multi-column, geometric-mean-on-this-scale) reference expression of its own
+    control from its own expression - this is what removes the batch/experiment
+    baseline by construction, without any explicit batch-correction step, because
+    every sample is now "how far did this sample move from its own exponential
+    phase" rather than "what is this sample's absolute expression level".
+
+    Optionally (--remove-batch), a further limma-style removeBatchEffect
+    correction is applied to the resulting fold-change matrix itself: a per-gene
+    linear fit of lfc ~ 1 + biogroup + batch, with only the fitted batch
+    coefficient subtracted. Because every biogroup appears in both batches
+    (bulk vs timecourse), the design is a balanced 2x2 and the batch term is
+    identifiable without absorbing the CASP-like/Disrupted-like biological
+    contrast; any residual difference this removes is treated as genuine
+    leftover batch response that survived the exponential-control division, not
+    a baseline artifact.
+
+    Optionally (--n-hvg), the matrix is restricted to the N genes with the
+    highest across-sample variance before PCA. The sample x gene matrix is
+    mean-centred per gene and passed to sklearn's PCA (n_components = min(5,
+    n_samples)); the first three PC scores are attached to the sample metadata
+    and written out, along with the log-fold-change matrix itself and the
+    normalised-count matrix behind it (for absolute-expression analyses that need
+    identical input samples/genes). Finally a PC1-vs-PC2 scatter is drawn,
+    coloured by the four publication labels (Dis-Arrest1/2, Reg-Arrest1/
+    Reg-Arrest2+SHX) and shaped by batch (bulk vs timecourse), with each point
+    tagged by a compact sample name.
+
+KEY PARAMETERS AND CONSTANTS
+    --min-count default 10.0 - mean normalised count threshold; genes below this
+        are dropped before fold changes are computed, since log ratios of
+        near-zero counts explode and are pure noise.
+    +1.0 pseudocount in log2(norm + 1) - keeps zero counts finite without
+        distorting genes that pass the mean-count filter.
+    use_design=False in dds.vst() - "blind" VST: only an intercept is used to fit
+        the dispersion trend, so the transform does not depend on which samples
+        belong to which biological group; matches the "design-independent" claim
+        made in the code comment for the size factors above it.
+    --bulk-control default "matched" - pairs each bulk biological replicate to
+        its own EXP_biorepN control; "mean" instead references every bulk sample
+        to the average of all three EXP bioreps, trading replicate-specific
+        control noise for a shared, lower-variance baseline.
+    --shx-late - drops SHX time points t1-t5 (keeps t6-t8) via the regex
+        `r"t[1-5]$"`, matching the subset used elsewhere in the paper.
+    n_components = min(5, X.shape[0]) - PCA cannot return more components than
+        samples; only the first three are kept in the output CSV/plot.
+    rng/seed - none in this file (no random component in the pipeline itself).
+
+FINDINGS
+    [1] SMELL - PCA input is centred twice
+        Location: line 291, `X = mat.values - mat.values.mean(axis=0)`, then
+        `pca.fit_transform(X)`; the same pattern also appears in the
+        --compare-transforms diagnostic block at line 258.
+        What the code does: manually mean-centres the sample x gene matrix
+        before handing it to sklearn's PCA.fit_transform.
+        Why that is a problem: sklearn's PCA always centres its input internally
+        before decomposing it, so the manual centring is redundant. It is
+        harmless here (centring an already-centred matrix is a no-op up to
+        floating-point noise) but it is dead logic that could confuse a future
+        reader into thinking PCA does not centre automatically, or into removing
+        the automatic centring assumption incorrectly elsewhere.
+        Suggested fix: pass `mat.values` directly to `PCA().fit_transform`, or
+        keep the explicit centring and drop the (implicit) redundant one -
+        cosmetic either way, not correctness-affecting.
+
+    [2] INCONSISTENCY - "condition" means different things in this script and its siblings
+        Location: `condition()` (line 185) and `meta["biogroup"]` (line 202) here,
+        vs the `condition` column in bulk_lfc_correlation.py, bulk_correlation_dendrogram.py
+        and bulk_expression_correlation_panel.py.
+        What the code does: in this script, `meta["condition"]` is a fine-grained
+        per-sample label (e.g. "CASP", "Disrupted", "SHX_t6", "CASP_time"), used
+        only for the plot legend text/grouping, while the coarse two-level split
+        used in the --remove-batch design matrix is a separate column called
+        `meta["biogroup"]` ("CASP-like" / "Disrupted-like"). In the three sibling
+        scripts, the column literally named `condition` IS that coarse two-level
+        split ("Reg-Arrest" / "Dis-Arrest") and is what their own batch-removal
+        designs use directly.
+        Why that is a problem: the two-level partition is identical in substance
+        (CASP-like/Reg-Arrest and Disrupted-like/Dis-Arrest are the same grouping
+        under different names), so this is not a numerical bug - the metadata
+        tables are built independently in each script and never shared directly.
+        But a reader moving between these four files who sees "condition" will
+        reasonably assume it means the same thing in all of them, which it does
+        not; this is exactly the kind of drift duplicated logic invites (see
+        finding [1] logged for bulk_expression_correlation_panel.py).
+        Suggested fix: rename this script's fine-grained label (e.g. to
+        `subcondition` or `condition_detail`) and rename `biogroup` to
+        `condition` to match the sibling scripts, or vice versa, so the same word
+        means the same partition everywhere it is used for a batch-removal design.
+
+    [3] SMELL - bulk_normalized_counts<EXPR_SUFFIX>.csv name does not vary with content that does vary
+        Location: line 305, `EXPR_SUFFIX = re.sub(r"_hvg\d+$", "", SUFFIX).replace("_nobatch", "")`.
+        What the code does: strips only the "_hvgN" and "_nobatch" suffix parts,
+        but keeps the "_log2"/"_vst" transform tag in the output file name for
+        `bulk_normalized_counts<EXPR_SUFFIX>.csv`.
+        Why that is a problem: the normalised-count matrix written here
+        (`norm.loc[samples, keep]`) is computed before either transform is
+        applied and is identical whether `--transform log2` or `--transform vst`
+        was passed. Running the script once with each transform (same other
+        flags) therefore writes two files with different names
+        (`bulk_normalized_counts_log2_matched_late.csv` and
+        `bulk_normalized_counts_vst_matched_late.csv`) holding byte-identical
+        gene/sample content, which wastes disk and could mislead a reader into
+        thinking the two files differ. Not a bug in the sense of wrong numbers -
+        every sibling script's default --suffix "_log2_matched_late" happens to
+        pick a valid copy - but it is a latent trap if the default ever changes.
+        Suggested fix: drop the transform component from EXPR_SUFFIX as well
+        (e.g. build it from bulk-control/shx-late/coding-only flags only, since
+        those are the only ones that change which samples/genes go into `norm`).
+
+RELATED FILES
+    bulk_data/bulk_count_data.csv, bulk_data/time_in_shx_count_data.csv,
+        bulk_data/time_in_casp_count_data.csv - the three raw count tables merged
+        here.
+    metadata/genomic.gtf - reference annotation used only by --drop-ncrna.
+    src/bulk_functions.py - separate bulk RNA-seq helpers (run_deseq,
+        run_go_enrichment) for the DESeq2/GO pipeline in bulk_analysis.ipynb; not
+        imported by this script, which calls pydeseq2 directly instead.
+    scripts/bulk_lfc_correlation.py, scripts/bulk_correlation_dendrogram.py,
+        scripts/bulk_expression_correlation_panel.py - all read this script's
+        outputs (bulk_log_fold_changes<SUFFIX>.csv and
+        bulk_normalized_counts<SUFFIX>.csv) and duplicate its
+        annotate/LABELS/remove_batch logic locally rather than importing it.

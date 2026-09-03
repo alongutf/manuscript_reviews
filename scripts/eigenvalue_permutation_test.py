@@ -124,6 +124,10 @@ def validate(m_raw, M, stored_pcs):
 
 # ---------------------------------------------------------------- main
 def run():
+    """Run the full permutation test over every sample in data_for_paper/ and write
+    the CSV summary, the null draws, the human-readable report and the JSON log,
+    plus the summary figure. Returns (df, group) for interactive/notebook use.
+    """
     titles = pd.read_excel(os.path.join(EV_DIR, 'titles.xlsx')).set_index('file_name')
     rng = np.random.default_rng(SEED)
 
@@ -150,9 +154,17 @@ def run():
 
         k_scan = len(obs) if K_SCAN is None else min(K_SCAN, len(obs))
         null = np.empty((B, k_scan))
+        # `rng` is one continuing PCG64 stream shared across every sample in `samples`
+        # (in sorted order), so a run's numbers depend on the sample list/order -- unlike
+        # eigenvalue_permutation_full_B2000.py, which gives each sample its own independent
+        # seed and so is reproducible regardless of run order or parallel scheduling
         for b in range(B):
             null[b] = spec(scramble(M, rng))[:k_scan]
 
+        # ddof=0 (population sd, divide by B) here and in eigenvalue_permutation_highB.py;
+        # the B2000/append family instead uses ddof=1 (sample sd, divide by B-1) -- for
+        # B=100 that is a ~0.5% difference in sd and thus in z, so z_1 is not bit-identical
+        # to the same sample's value in the B2000 outputs
         mu_all, sd_all = null.mean(0), null.std(0)
         z_all = (obs[:k_scan] - mu_all) / sd_all
         mu, sd, z_obs = mu_all[:K], sd_all[:K], z_all[:K]
@@ -339,6 +351,11 @@ def run():
 
 
 def make_figure(df, per_sample, group, tag=None, null_draws=None):
+    """Build and save the summary figure (2x3 panel grid): z_1 per sample, the
+    regulated-vs-dysregulated z_1 comparison, the per-rank z_k profile, and three
+    example null-vs-observed histograms for one strong/weak/no-signal sample.
+    Writes results/permutation_test/figures/<tag>.{svg,png}.
+    """
     tag = tag or TAG
     colors = {'r': '#2c6fbb', 'd': '#c8412f'}
     d = df.sort_values(['cat', 'z_1'], ascending=[True, False]).reset_index(drop=True)

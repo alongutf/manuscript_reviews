@@ -18,9 +18,13 @@ import re
 
 import pandas as pd
 
+# ROOT assumes cwd is scripts/ (per the module docstring's "Run from scripts/"),
+# so dirname(getcwd()) resolves to the repo root
 ROOT = os.path.dirname(os.getcwd())
 GO_DIR = os.path.join(ROOT, "results", "eigenvector_analysis", "go")
 OUT_DIR = os.path.join(ROOT, "results", "eigenvector_analysis", "mode_go")
+# NOTE: test8.csv, per project notes, is a stale scramble realisation rather than
+# the current metrics table (data_metrics.csv) — see FINDINGS in the review log
 METRICS = os.path.join(ROOT, "results", "data_metrics", "test8.csv")
 os.makedirs(OUT_DIR, exist_ok=True)
 
@@ -52,6 +56,8 @@ for cond in all_conditions:
     modes = by_cond.get(cond, {})
 
     # term -> {Term, Category, modes={mode: fdr}}
+    # collapse the per-mode GO tables for this condition into one record per GO
+    # term, tracking every mode it was significant in and that mode's own FDR
     term_info = {}
     for mode, df in sorted(modes.items()):
         for _, r in df.iterrows():
@@ -64,6 +70,8 @@ for cond in all_conditions:
                 "FDR": r["FDR"], "Ratio_in_study": r.get("Ratio_in_study", ""),
             })
 
+    # one row per GO term for this condition: which modes it appeared in, and its
+    # best (minimum) FDR across those modes, used to rank the per-condition table
     rows = []
     for go_id, info in term_info.items():
         ms = sorted(info["modes"])
@@ -91,6 +99,8 @@ for cond in all_conditions:
     text_blocks.append("\n".join(block))
     print("\n".join(block))
 
+# long-format table: one row per (condition, mode, GO term) triple, for filtering
+# or pivoting across the whole dataset at once
 pd.DataFrame(long_rows).to_csv(os.path.join(OUT_DIR, "all_conditions.csv"), index=False)
 
 header = (

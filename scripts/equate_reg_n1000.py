@@ -25,31 +25,43 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import src.analysis_functions as af
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# unfiltered per-cell count CSVs live in a sibling repo checkout, not under ROOT
 OTHER = r'C:\Users\owner\Documents\Projects\rnaseq_correlations'
 DATA = os.path.join(OTHER, 'data')
 PAPER = os.path.join(ROOT, 'data_for_paper')
 OUTDIR = os.path.join(ROOT, 'results', 'cluster_gmp_cor')
 POOLDIR = os.path.join(OUTDIR, 'eligible_pools')
 
+# only reg1/reg2 need re-scanning at a lower UMI floor (see module docstring);
+# dis1/dis2 are read from the existing umi_min=400 cache via load_cached()
 UNFILT = {'reg1': 'sample_13b_unfiltered.csv', 'reg2': 'sample_15b_unfiltered.csv'}
+# published (paper) filtered barcode sets, used only to report how much of the
+# original published cell set survives the new, more permissive selection
 PUBLISHED = {'dis1': 'sample_13a_filtered.csv', 'dis2': 'sample_15a_filtered.csv',
              'reg1': 'sample_13b_filtered.csv', 'reg2': 'sample_15b_filtered.csv'}
 ORDER = ['dis1', 'dis2', 'reg1', 'reg2']
 
 UMI_FLOOR = 50          # permissive floor for the re-scan / cache
 UMI_MAX = 20000
-MIN_DISPERSION = 1.0
-TARGET_CELLS = 1000
-N_BINS = 40
-REPS = 5
-CHUNK = 20000
-NORM_SUM = 50
-SEED = 0
+MIN_DISPERSION = 1.0    # min variance/mean ratio for a gene to enter the panel
+TARGET_CELLS = 1000     # per-sample cell count the matched draw aims for
+N_BINS = 40              # detection-count quantile bins used by matched_draw
+REPS = 5                 # independent matched draws (different rng seed each)
+CHUNK = 20000            # rows per pandas read_csv chunk when re-scanning the raw CSV
+NORM_SUM = 50            # target per-cell total for get_eig_dist's row normalisation
+SEED = 0                 # base seed; rep i uses SEED + i, so reps are reproducible
+# probe/marker columns excluded from the analysis panel (not biological genes, or
+# 16s rRNA which is ~92% of counts and would dominate the correlation spectrum);
+# cell selection above still uses TOTAL counts including these columns
 DROP_GENES = ['16s_mature', '16s_unprocessed', 'LELOBEKK', 'kanR', 'mCherry']
 
 
 def scan_low(sample):
-    """Re-scan with the permissive floor and cache."""
+    """Re-scan a reg sample's raw unfiltered CSV at the permissive UMI_FLOOR and
+    cache the result as an .npz (subsequent runs hit the cache instead of
+    re-reading the multi-GB raw file). Returns (counts matrix [cells x genes],
+    barcode array, gene-name array).
+    """
     cache = os.path.join(POOLDIR, f'{sample}_low.npz')
     if os.path.exists(cache):
         d = np.load(cache, allow_pickle=True)
@@ -57,16 +69,21 @@ def scan_low(sample):
         return d['M'].astype(float), d['bc'], d['genes']
     path = os.path.join(DATA, UNFILT[sample])
     header = pd.read_csv(path, nrows=0)
+    # counts fit in int32; the index column (barcodes) is read separately as str
     dtypes = {c: np.int32 for c in header.columns[1:]}
     dtypes[header.columns[0]] = str
     genes = np.asarray(header.columns[1:])
     rows, bcs = [], []
+    # stream the CSV in chunks so the full unfiltered file is never held in
+    # memory at once; only cells passing the UMI window are kept from each chunk
     for ch in pd.read_csv(path, index_col=0, chunksize=CHUNK, dtype=dtypes):
         V = ch.values
         tot = V.sum(1)
         sel = (tot > UMI_FLOOR) & (tot < UMI_MAX)
         if sel.any():
             rows.append(V[sel])
+            # strip the 10x "-1" GEM-well suffix so barcodes compare cleanly
+            # against the published (also-stripped) barcode sets later
             bcs.append(np.array([str(b).split('-')[0] for b in ch.index])[sel])
     M = np.vstack(rows)
     bc = np.concatenate(bcs)
@@ -76,11 +93,18 @@ def scan_low(sample):
 
 
 def load_cached(sample):
+    """Load a dis sample's already-cached eligible pool (built elsewhere at the
+    paper's standard umi_min=400 floor; see the sibling equate_dims_*.py scripts).
+    """
     d = np.load(os.path.join(POOLDIR, f'{sample}.npz'), allow_pickle=True)
     return d['M'].astype(float), d['bc'], d['genes']
 
 
 def dispersion_genes(M, genes):
+    """Genes whose variance/mean ratio (index of dispersion) exceeds
+    MIN_DISPERSION, i.e. more variable across cells than a Poisson-noise gene
+    would be. `M` is cells x genes; returns a set of gene names.
+    """
     mean = M.mean(axis=0)
     var = M.var(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -89,6 +113,19 @@ def dispersion_genes(M, genes):
 
 
 def matched_draw(vals, target, n_bins, rng):
+    """Draw a detection-count-matched subsample from each sample in `vals`.
+
+    `vals` maps sample name -> 1-D array of a per-cell matching statistic
+    (here, genes detected per cell). Cells are binned into `n_bins` quantile
+    bins computed on the pooled values across all samples, so both samples use
+    the same bin edges. Within each bin, the number of cells drawn is capped by
+    whichever sample has fewer cells in that bin (`avail`), keeping the two
+    samples' distributions over the matching statistic aligned rather than just
+    matching their means. Draws are scaled down proportionally if the total
+    available cells exceed `target`, with leftover slots (from the floor
+    rounding) handed to the fullest remaining bins one at a time.
+    Returns (dict of sample -> selected row indices, total cells drawn per sample).
+    """
     allv = np.concatenate(list(vals.values()))
     edges = np.unique(np.quantile(allv, np.linspace(0, 1, n_bins + 1)))
     binned = {s: np.digitize(v, edges[1:-1]) for s, v in vals.items()}
@@ -97,6 +134,8 @@ def matched_draw(vals, target, n_bins, rng):
                       for b in range(nb)])
     total = int(avail.sum())
     take = avail if total <= target else np.floor(avail * target / total).astype(int)
+    # floor() can leave the total a few cells short of target; top up from the
+    # bins with the most unused headroom until target (or total) is reached
     while take.sum() < min(target, total):
         take[int(np.argmax(avail - take))] += 1
     picks = {}
@@ -112,6 +151,12 @@ def matched_draw(vals, target, n_bins, rng):
 
 
 def gmp_cor(m):
+    """GMP-Cor for one cells x genes matrix: the empirical eigenvalue spectrum
+
+    (of the gene-gene correlation matrix, via af.get_eig_dist) summed over the
+    part that exceeds the largest eigenvalue of the column-permuted (null)
+    spectrum. Returns (GMP-Cor, largest empirical eigenvalue, null threshold).
+    """
     pcs, pcs1, _ = af.get_eig_dist(m, norm=True, log=False,
                                    norm_method='sum', norm_sum=NORM_SUM)
     thr = float(pcs1.max())
@@ -127,7 +172,11 @@ def main():
     for s in ['dis1', 'dis2']:
         raw[s] = load_cached(s)
 
-    # choose the largest umi_min still giving TARGET_CELLS in both reg samples
+    # choose the largest umi_min still giving TARGET_CELLS in both reg samples:
+    # scan candidate thresholds upward from the permissive floor to 400 (the
+    # paper's dis threshold) in steps of 5, keeping the last one that still
+    # clears TARGET_CELLS in both reg replicates -- this is the tightest (least
+    # permissive) cutoff that still reaches the target cell count
     tot = {s: raw[s][0].sum(1) for s in ['reg1', 'reg2']}
     chosen = UMI_FLOOR
     for cand in range(UMI_FLOOR, 401, 5):
@@ -139,6 +188,8 @@ def main():
     print(f'  for reference at umi_min=400: '
           f'reg1 {int((tot["reg1"] > 400).sum())}, reg2 {int((tot["reg2"] > 400).sum())}')
 
+    # apply the chosen umi_min to reg1/reg2 only; dis pools are already at their
+    # cached (paper-standard) umi_min=400 and are used unfiltered here
     pool = {}
     for s in ORDER:
         M, bc, genes = raw[s]
@@ -149,24 +200,33 @@ def main():
                    'disp': dispersion_genes(M, genes)}
         print(f'  {s}: pool {M.shape[0]} cells')
 
+    # gene panel per replicate pair: genes that pass the dispersion filter in
+    # BOTH replicates of that pair, minus the non-biological probe columns
     panel = {}
     for a, b in [('dis1', 'dis2'), ('reg1', 'reg2')]:
         common = sorted((pool[a]['disp'] & pool[b]['disp']) - set(DROP_GENES))
         panel[a] = panel[b] = common
         print(f'  panel {a}+{b}: {len(common)} genes')
 
+    # restrict each pool's matrix to its pair's panel, and compute the per-cell
+    # detection count (genes with count > 0) used as the matching statistic below
     sub, det = {}, {}
     for s in ORDER:
         ix = pd.Index(pool[s]['genes']).get_indexer(panel[s])
         sub[s] = pool[s]['M'][:, ix]
         det[s] = (sub[s] > 0).sum(1)
 
+    # barcode sets from the paper's published filtered matrices, for reporting how
+    # much of the originally published cell set this new selection still contains
     published = {}
     for s in ORDER:
         idx = pd.read_csv(os.path.join(PAPER, PUBLISHED[s]),
                           index_col=0, usecols=[0]).index
         published[s] = set(str(i).split('-')[0] for i in idx)
 
+    # REPS independent matched draws (different rng each), one dis pair and one
+    # reg pair per rep, so downstream summaries can report mean +/- std across
+    # draws rather than relying on a single random subsample
     records, overlaps = [], []
     for rep in range(REPS):
         rng = np.random.default_rng(SEED + rep)
@@ -213,12 +273,17 @@ def main():
                                 'pct_of_published_retained']]
             .mean().loc[ORDER].to_string(float_format=lambda v: '%.1f' % v))
 
+    # headline comparison: is the between-condition (dis vs reg) GMP-Cor gap still
+    # larger than the within-condition (replicate vs replicate) gaps once reg's
+    # depth/detection confound has been reduced?
     g = df.groupby('sample')['gmp_cor'].mean()
     d1, d2, r1, r2 = g['dis1'], g['dis2'], g['reg1'], g['reg2']
     print(f'\n  dis mean {np.mean([d1,d2]):.3f} | reg mean {np.mean([r1,r2]):.3f}')
     print(f'  within-dis gap {abs(d1-d2):.3f} | within-reg gap {abs(r1-r2):.3f} '
           f'| between-condition gap {abs(np.mean([d1,d2])-np.mean([r1,r2])):.3f}')
 
+    # write the per-rep results, the barcode-overlap-vs-published table, and a full
+    # JSON log (parameters + both result sets) for reproducibility, per CLAUDE.md
     df.to_csv(os.path.join(OUTDIR, f'reg_n1000_{stamp}.csv'), index=False)
     ov.to_csv(os.path.join(OUTDIR, f'reg_n1000_overlap_{stamp}.csv'), index=False)
     with open(os.path.join(OUTDIR, f'reg_n1000_{stamp}.json'), 'w') as fh:

@@ -1,3 +1,34 @@
+"""
+Synthetic scRNA-seq data generation and the metrics computed on it, used to
+validate the GMP-Cor eigenvalue-spectrum statistic (see CLAUDE.md / README.md)
+against ground truth that the real experimental data cannot provide.
+
+Two things live here:
+
+  - A generative model of bacterial scRNA-seq counts (`generate_gram_hub_matrix`
+    + `simulate_scRNA_data`) with a known gene-gene correlation structure
+    (`sigma`), realistic negative-binomial marginals, library-size variation and
+    expression-dependent dropout. `validate_*` / `run_validation` check that the
+    simulated data reproduce the qualitative statistical properties (heavy-tailed
+    expression, overdispersion, dropout-expression coupling) seen in real data.
+
+  - Experiment runners built on that model: `rho_sweep` (does GMP-Cor track the
+    known correlation strength rho?), `subpopulation_mixing` and
+    `inverted_subpopulation_mixing` (can mixing two internally-regulated but
+    distinct sub-populations spuriously inflate GMP-Cor, mimicking loss of
+    regulation?). These were written for the reviewer-response simulations under
+    `simulations/` and write their parameters/results to JSON logs for
+    reproducibility (see `results/simulation_results/` in CLAUDE.md).
+
+Not part of the eigenvalue-spectrum work: `calculate_entropy` (graphical-lasso
+covariance entropy) and `run_de_analysis` / `plot_volcano` (a simple Welch
+t-test differential-expression pipeline) are exploratory helpers used from
+`simulations/notebook.ipynb`, independent of the rest of the module.
+
+This module is imported as `src.simulations` (or `af`/`sf`-style aliases) from
+notebooks and the standalone scripts under `simulations/`; it is not run
+directly.
+"""
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -143,11 +174,11 @@ def plot_ccdf(data, label=None, ax=None):
 
 def validate_cell_expression_distribution(counts, ax=None):
     """
-    Compare per-cell total expression CCDF against data.
+    Compare per-cell total expression CCDF against an exponential-tail null.
 
-    Plots the empirical CCDF of gene totals and overlays a reference power-law
-    slope, then returns the KS statistic against an exponential null (a rough
-    check that the tail is heavy).
+    Plots the empirical CCDF of cell totals (sum over genes, i.e. per-cell
+    library size), then returns the KS statistic against an exponential null
+    (a rough check that the tail is heavier than exponential).
     """
     cell_totals = counts.sum(axis=1)
     cell_totals = cell_totals[cell_totals > 0]
@@ -164,11 +195,13 @@ def validate_cell_expression_distribution(counts, ax=None):
 
 def validate_gene_expression_distribution(counts, n_sample=200, ax=None):
     """
-    Compare per-gene total expression CCDF against an inverse-Gamma expectation.
+    Compare per-gene total expression CCDF against an exponential-tail null.
 
-    Plots the empirical CCDF of gene totals and overlays a reference power-law
-    slope, then returns the KS statistic against an exponential null (a rough
-    check that the tail is heavy).
+    Plots the empirical CCDF of gene totals (sum over cells), then returns the
+    KS statistic against an exponential null (a rough check that the tail is
+    heavier than exponential, consistent with the inverse-Gamma mean prior used
+    by simulate_scRNA_data). `n_sample` is accepted for API symmetry with other
+    validate_* helpers but is currently unused - the full gene set is plotted.
     """
     gene_totals = counts.sum(axis=0)
     gene_totals = gene_totals[gene_totals > 0]
@@ -860,6 +893,9 @@ def calculate_entropy(DE_timepoints, reg_param):
     """Fit a GraphicalLasso model and return the log-determinant of its covariance."""
     model = GraphicalLasso(alpha=reg_param, max_iter=1000, tol=0.001)
     model.fit(DE_timepoints)
+    # log-determinant of the regularized covariance as an entropy proxy (up to an
+    # additive constant); `sign` is discarded since a valid covariance estimate is
+    # always positive semi-definite (sign should be +1).
     sign, entropy = np.linalg.slogdet(model.covariance_)
 
     g = sns.clustermap(
@@ -895,9 +931,13 @@ def run_de_analysis(data, metadata, condition_col='condition', test_time=1):
     """
     results = []
     genes = data.index
+    # tiny pseudocount avoids log2(0) = -inf for genes with zero counts in a sample
     log_data = np.log2(data + 1e-9)
 
     groups = metadata[condition_col].unique()
+    # groups[0] is always the reference; test_time selects which other condition to
+    # contrast it against. Assumes at least `test_time + 1` distinct condition values
+    # are present in metadata[condition_col] - raises IndexError otherwise.
     cond1 = metadata[metadata[condition_col] == groups[0]].index
     cond2 = metadata[metadata[condition_col] == groups[test_time]].index
 

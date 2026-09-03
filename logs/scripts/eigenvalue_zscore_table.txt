@@ -1,0 +1,138 @@
+================================================================================
+scripts/eigenvalue_zscore_table.py
+272 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Produces an assumption-light companion table/figure to the permutation
+    test: for every sample and eigenvalue rank, it standardizes the observed
+    eigenvalue against the empirical mean/sd of the permutation null draws
+    (z_k), then additionally reports a Gaussian-tail p-value derived purely
+    from z_k. It exists to give a fast, closed-form p-value that does not
+    require the multi-family MLE fit in null_distribution_fit.py, while being
+    explicit in its own documentation that the Gaussian assumption
+    understates the true (Tracy-Widom-like) tail and is therefore
+    anti-conservative.
+
+INPUTS
+    results/permutation_test/logs/eigenvalue_permutation_test_*.json (or a
+    given run tag)
+        the most recent (by filename sort) base permutation run's log, read
+        via load_run(); supplies per-sample lambda_obs and metadata.
+    results/permutation_test/raw/<tag>_null_draws.npz
+        the raw (B, K) scrambled-eigenvalue arrays saved by that run;
+        reloaded rather than recomputed.
+    results/permutation_test/logs/eigenvalue_permutation_highB_*.json (+
+    matching _null_draws.npz), optional
+        the most recent high-B boundary rerun, folded in as a supplementary
+        table if present.
+    CLI arg: run_tag (optional) -- pins the base run instead of using the
+    latest available.
+
+OUTPUTS
+    results/permutation_test/raw/<out_tag>.csv
+        long-form table, one row per (sample, rank): z, p_gaussian,
+        log10_p_gaussian, null moments, skewness, kurtosis, normality test p.
+    results/permutation_test/raw/<out_tag>.txt
+        human-readable report: rank-1 table, a per-sample z/log10(p) grid
+        across all ranks, and the high-B boundary comparison if available.
+    results/permutation_test/logs/<out_tag>.json
+        full machine-readable log of the same content plus method notes.
+    results/permutation_test/figures/<out_tag>.{svg,png}
+        three-panel summary figure (see make_figure).
+
+HOW IT WORKS
+    load_run() locates the most recent eigenvalue_permutation_test_*.json (by
+    lexicographic/timestamp filename order) unless a tag is given, and loads
+    both the log and its saved null-draws npz -- this script performs no new
+    permutations, it only re-derives statistics from data an earlier run
+    already produced.
+
+    build() iterates every sample and every stored rank k, taking the column
+    of B scrambled lambda_k values, computing their empirical mean and sd
+    (ddof=1, i.e. the unbiased sample estimator), and forming
+    z_k = (lambda_obs_k - mean_k) / sd_k. From z_k, gaussian_tail() reports
+    both the plain upper-tail probability (scipy stats.norm.sf) and its
+    log10 via logsf, which stays numerically informative even when the
+    linear-scale p underflows to 0.0 for large z. Alongside the tail
+    probability, build() also reports the null draws' own skewness, excess
+    kurtosis, and a D'Agostino-Pearson normality test p-value, so a reader
+    can see directly how good the "null is Gaussian" approximation actually
+    is for that sample and rank, rather than trusting it blindly. A rough
+    Monte Carlo relative error on sd (1/sqrt(2(B-1)), the standard error of a
+    sample sd under normality) is reported too, since that error propagates
+    linearly into z.
+
+    main() builds the table for the requested/latest run, optionally locates
+    and folds in the most recent high-B boundary rerun (recomputing the same
+    z/p_gaussian statistic for its rank-1 draws, at ddof=1), and writes CSV,
+    a formatted text report (rank-1 leaderboard, then a per-sample grid of z
+    and log10(p) across all stored ranks, then the high-B comparison), and a
+    JSON log. make_figure() renders three panels: a symlog bar chart of
+    rank-1 z per sample (colored by category), a line plot of z_k across
+    ranks for every sample, and a scatter of z_1 vs. -log10(p_gaussian) with
+    the theoretical Gaussian SF curve overlaid as a sanity check that
+    p_gaussian is a purely deterministic transform of z (it must lie exactly
+    on that curve by construction, since p_gaussian is computed, not fit).
+
+KEY PARAMETERS AND CONSTANTS
+    LOG10 = np.log(10)
+        used to convert scipy's natural-log survival function (logsf) into
+        log10(p) without a second underflow-prone division elsewhere.
+    ddof=1 in build() and in the high-B block
+        the null sd is the unbiased sample estimator; see the INCONSISTENCY
+        finding below re: the source run's own stored z values.
+    Gaussian tail assumption
+        explicitly documented (module docstring and the "NOTE ON THE
+        ASSUMPTION" block, plus the log's `assumption_caveat` field) as
+        anti-conservative relative to the true Tracy-Widom-type tail; the
+        script is careful never to claim p_gaussian is the "real" p-value,
+        only a cheap, checkable approximation alongside diagnostics.
+    z_mc_rel_err = 1/sqrt(2(B-1))
+        approximate relative standard error of a sample sd estimated from B
+        draws under (near-)normality; propagates directly into the precision
+        of z at the given B.
+
+FINDINGS
+    [1] INCONSISTENCY - this script's z differs from the source run's own
+        stored z for the same sample/rank/null-draw data
+        Location: eigenvalue_zscore_table.py build(), line ~80
+        (`mu, sd = float(col.mean()), float(col.std(ddof=1))`) versus
+        eigenvalue_permutation_test.py line ~156-158
+        (`mu_all, sd_all = null.mean(0), null.std(0)`, ddof=0), both applied
+        to the identical null draws array (this script loads that same run's
+        _null_draws.npz rather than resampling).
+        What the code does: recomputes z_k from the saved null draws using
+        ddof=1, while the run whose draws it is reading originally computed
+        and stored z_topK in its own JSON using ddof=0.
+        Why that is a problem: for the same run, the same sample, and the
+        same underlying null draws, two files in results/permutation_test/
+        (the base run's log and this script's output) report two slightly
+        different z_1 values for the identical (sample, rank), which could
+        confuse a reader cross-referencing them, and makes "z_1" an
+        ambiguous label without checking which script produced it. This is
+        the same ddof inconsistency documented for
+        eigenvalue_permutation_test.py, but here it manifests within outputs
+        that are meant to be read side-by-side (same source run).
+        Suggested fix: pick one ddof convention across the whole
+        permutation-test toolchain (eigenvalue_permutation_test.py,
+        eigenvalue_permutation_highB.py, eigenvalue_zscore_table.py, and the
+        B2000/append family) and use it everywhere z is computed from B null
+        draws.
+
+    [2] SMELL - "moments come straight from the permutation draws" language
+        in the module docstring does not specify ddof, so a reader cannot
+        tell from the docstring alone that this differs from the base run's
+        convention; low priority, covered by [1].
+
+RELATED FILES
+    scripts/eigenvalue_permutation_test.py
+        produces the base run's log and null-draws npz this script reads;
+        see its log entry for the matching ddof/seed findings.
+    scripts/eigenvalue_permutation_highB.py
+        produces the optional high-B boundary rerun folded into this
+        script's output.
+    scripts/null_distribution_fit.py
+        the alternative, heavier-weight parametric approach (multi-family
+        MLE + AIC selection) this script deliberately avoids in favor of a
+        single fixed Gaussian tail with explicit caveats.

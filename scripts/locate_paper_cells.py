@@ -15,17 +15,26 @@ import numpy as np
 import pandas as pd
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# the unfiltered, pre-cell-calling matrix and the K-12 biotype map are not part of
+# this repo; they live in the original (pre-manuscript-reviews) analysis repo on
+# this machine. Machine-specific absolute path -- will break on any other checkout.
 OTHER = r'C:\Users\owner\Documents\Projects\rnaseq_correlations'
 UNFILT = os.path.join(OTHER, 'data', 'sample_15a_unfiltered.csv')
 BIOTYPE = os.path.join(OTHER, 'filtered_data', 'k12_biotype_map.csv')
+# the two candidate reconstructions of the published cell set, to compare against
+# the unfiltered pool and each other
 PAPER_F = os.path.join(ROOT, 'data_for_paper', 'sample_15a_filtered.csv')
 UMAP_F = os.path.join(ROOT, 'data_for_umap', 'sample_15a_filtered.csv')
 OUTDIR = os.path.join(ROOT, 'results', 'cluster_gmp_cor')
 CACHE = os.path.join(OUTDIR, 'sample_15a_barcode_stats.npz')
-CHUNK = 20000
+CHUNK = 20000   # rows per pandas read_csv chunk when streaming the unfiltered matrix
 
 
 def protein_coding_mask(genes):
+    """Boolean mask over `genes` selecting protein-coding probes (excludes
+    tRNA and rRNA biotypes, per the K-12 biotype map). Gene names are matched
+    case-insensitively after stripping the 'lelobekk_' probe-set prefix that
+    appears on some probe names but not in the biotype map."""
     bt = pd.read_csv(BIOTYPE)
     pc = bt.gene[(bt.biotype != 'tRNA') & (bt.biotype != 'rRNA')].astype(str)
     pc = set(v.casefold() for v in pc)
@@ -34,17 +43,26 @@ def protein_coding_mask(genes):
 
 
 def build_cache():
+    """Stream the full unfiltered count matrix once and compute, per barcode
+    (cell), the totals needed to characterize it: total UMI/probe count,
+    mRNA (protein-coding) count, 16S rRNA count, and number of distinct
+    protein-coding genes detected. Streamed in CHUNK-row pieces because the
+    unfiltered matrix is too large to load at once. Returns a dict of 1-D
+    arrays (one entry per barcode) plus the gene list and coding mask, and
+    caches it to CACHE (.npz) so this expensive pass only runs once."""
     header = pd.read_csv(UNFILT, nrows=0)
-    dtypes = {c: np.int32 for c in header.columns[1:]}
-    dtypes[header.columns[0]] = str
+    dtypes = {c: np.int32 for c in header.columns[1:]}   # int32: counts, not floats
+    dtypes[header.columns[0]] = str                       # first column is the barcode
     genes = np.asarray(header.columns[1:])
     pc = protein_coding_mask(genes)
-    rr = np.array([str(g).startswith('16s') for g in genes])
+    rr = np.array([str(g).startswith('16s') for g in genes])   # 16S rRNA probes
 
     bcs, tot, mrna, rrna, det_pc = [], [], [], [], []
     for i, ch in enumerate(pd.read_csv(UNFILT, index_col=0, chunksize=CHUNK,
                                        dtype=dtypes)):
         V = ch.values
+        # barcode suffix after '-' is the sequencing lane/well tag; strip it so
+        # barcodes match across the paper/umap filtered files below
         bcs.append(np.array([str(b).split('-')[0] for b in ch.index]))
         tot.append(V.sum(1))
         mrna.append(V[:, pc].sum(1))
@@ -71,7 +89,7 @@ def main():
         d = build_cache()
 
     bc = d['barcode']
-    pos = {b: i for i, b in enumerate(bc)}
+    pos = {b: i for i, b in enumerate(bc)}   # barcode -> row index into the cached arrays
     print(f'unfiltered barcodes: {len(bc)}')
 
     sets = {}
@@ -79,7 +97,7 @@ def main():
         idx = pd.read_csv(path, index_col=0, usecols=[0]).index
         sets[name] = np.array([str(i).split('-')[0] for i in idx])
 
-    # rank within the unfiltered pool (1 = highest)
+    # rank within the unfiltered pool (1 = highest); negate so rank() sorts descending
     rank_tot = pd.Series(-d['total']).rank(method='first').values
     rank_mrna = pd.Series(-d['mrna']).rank(method='first').values
 
@@ -102,13 +120,14 @@ def main():
     print('\n=== published cell sets profiled in the unfiltered matrix ===')
     print(df.to_string(index=False, float_format=lambda v: '%.1f' % v))
 
-    # what does the whole pool look like, for reference
+    # what does the whole pool look like, for reference (baseline to compare the
+    # published-set medians above against)
     print('\n=== unfiltered pool reference ===')
     for k in ['total', 'mrna', 'detected_pc']:
         v = d[k]
         print(f'  {k:12s} median {np.median(v):8.1f}  p90 {np.percentile(v, 90):8.1f}  max {v.max():8.0f}')
 
-    # is the paper set a contiguous rank band?
+    # is the paper set a contiguous rank band, i.e. simply "top-N by depth"?
     ixp = np.array([pos[b] for b in sets['paper'] if b in pos])
     for lbl, r in [('by total', rank_tot[ixp]), ('by mRNA', rank_mrna[ixp])]:
         print(f'\npaper set rank distribution {lbl}: '

@@ -1,0 +1,137 @@
+================================================================================
+scripts/supplementary_figures/figure_s9.py
+134 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Builds Supplementary Figure S9, a two-panel figure on lag-time (time to
+    resume growth after arrest) statistics from ScanLag plate data: panel A is a
+    log-log CCDF of lag times for Reg-Arrest, Reg-Arrest+SHX and Dis-Arrest; panel
+    B is a table summarizing lag-time mean/std for every condition in this study
+    plus reference values from Kaplan et al. It is a supporting-evidence figure
+    for the lag-time claims made in the main text (figure1 panel E, which this
+    file's panel A explicitly mirrors in style).
+
+INPUTS
+    scanlag_data/CASP+SHX/casp+shx.xlsx - fixed-layout sheet (no real header row):
+        row 0 = condition name per column, row 2 = "t0=<value>" string, rows 4+ =
+        alternating lag-time / CCDF-value columns. Read by _load_ccdf_data, which
+        maps (lag_col, cdf_col) pairs via the CCDF_CONDITIONS constant.
+    scanlag_data/CASP+SHX/scanlag_summary.xlsx - a second fixed-layout sheet, one
+        column per (study, strain, condition, replicate), with row labels Study,
+        Strain, Stress, Replicate, t0, mean, std in column 0.
+    scripts/figures/figure_functions.py - PanelFigure layout helper.
+    No CLI arguments.
+
+OUTPUTS
+    figure_s9.pdf and figure_s9_preview.png, written next to this script (run from
+    scripts/supplementary_figures/).
+
+HOW IT WORKS
+    CCDF_CONDITIONS hard-codes, per condition, which pair of columns in
+    casp+shx.xlsx holds its lag-time and pre-computed CCDF values, plus its plot
+    color. _load_ccdf_data reads the t0 string out of row 2 for each condition's
+    lag column, parses the numeric part after "=", and subtracts it from every lag
+    value in that column so all three conditions are expressed as time-since-the-
+    exponential-control's-appearance rather than absolute plate time.
+
+    panel_A plots each condition's (already t0-shifted) lag values against its
+    CCDF as a right-continuous step function (where='post'), sorting by lag first
+    since the source columns are not guaranteed to already be ordered. The x-axis
+    is left linear (a commented-out ax.set_xscale('log') is present) specifically
+    so the negative, t0-shifted lag times near zero remain visible; only the
+    y-axis (fraction of arrested bacteria) is log-scaled.
+
+    panel_B reads scanlag_summary.xlsx, transposes its row-labeled layout into one
+    table row per column (condition/replicate/study), applies the same t0 shift to
+    the reported mean, and renders it as a matplotlib table. Column widths are
+    sized to the longest text in each column (_col_widths) so no header or value
+    is truncated; row background tint distinguishes Reg-Arrest-family conditions
+    (blue tint) from Dis-Arrest-family conditions (red tint) using the same
+    REG_COLOR/DIS_COLOR as panel A.
+
+KEY PARAMETERS AND CONSTANTS
+    REG_COLOR / DIS_COLOR / SHX_COLOR - fixed colors matching figure1's palette,
+        for cross-figure visual consistency.
+    CCDF_CONDITIONS - hard-codes column indices (0-5) into casp+shx.xlsx; breaks
+        silently (reads garbage or NaN-only columns) if that file's column order
+        ever changes.
+    row 2 / rows 4+ in both _load_ccdf_data and panel_B - hard-coded row offsets
+        matching each Excel file's fixed layout; not derived from a header lookup.
+
+FINDINGS
+    [1] RISK - lag-time CCDF is computed by a script-specific, uncorrected
+        formula, inconsistent with the "+1/n" correction used elsewhere in the
+        repository.
+        Location: n/a directly in this file - panel A instead reads CCDF values
+            that were pre-computed and stored in casp+shx.xlsx itself (columns
+            1, 3, 5), not recomputed here. However, the sibling script
+            scanlag_1cdf.py recomputes an equivalent complementary-CDF from raw
+            lag times as `y = 1 - arange(1, n+1)/n` (no "+1/n" term), while
+            figure_s8.py's _plot_ccdf computes the analogous eigenvalue CCDF as
+            `1 - arange(1, n+1)/n + 1/n`. Because this file's panel A relies on
+            whichever formula produced the stored casp+shx.xlsx columns (not
+            independently verifiable from this script alone), there is a
+            latent risk that the pre-computed CCDF in the spreadsheet does not
+            use the same convention as the rest of the repository's CCDF plots.
+        Why that is a problem: a CCDF's y-values for the first and last points
+            differ visibly under the two conventions on a log axis (the "+1/n"
+            version never touches exactly 1.0 or 0.0); if the spreadsheet's stored
+            values used a different convention than scanlag_1cdf.py or
+            figure_s8.py, panels drawn from this file would be numerically
+            inconsistent with the others even though they render the same kind of
+            quantity.
+        Suggested fix: confirm (from whatever script originally produced
+            casp+shx.xlsx's CCDF columns) which convention was used, and either
+            note it explicitly in this file's docstring or align it with the
+            convention used in figure_s8.py.
+
+    [2] RISK - t0 values for "Reg-Arrest" vs. "Reg-Arrest+SHX" appear swapped
+        between casp+shx.xlsx (panel A's source) and scanlag_summary.xlsx (panel
+        B's source), for what look like the same underlying Kaplan et al.
+        reference measurements.
+        Location: panel_A via CCDF_CONDITIONS (lines ~36-40) and panel_B (reads
+            scanlag_summary.xlsx directly)
+        What the code does: casp+shx.xlsx labels its t0=72 column "Reg-Arrest+SHX"
+            and its t0=74 column "Reg-Arrest" (verified directly from the file:
+            row 0 = ['Reg-Arrest+SHX', NaN, 'Reg-Arrest', NaN, 'Dis-Arrest', NaN],
+            row 2 = ['t0=72', NaN, 't0=74', NaN, 't0=0', NaN]). scanlag_summary.xlsx
+            has a "Kaplan et. al" block with the same two t0 values, 72 and 74, but
+            assigned to the opposite conditions: Stress='Reg-Arrest' at t0=72 and
+            Stress='Reg-Arrest+SHX' at t0=74 (verified directly from the file).
+            This script reads both files independently and does not cross-check
+            them, so it silently plots and tabulates with whatever labeling each
+            source file happens to carry.
+        Why that is a problem: t0 is the reference point every lag time in a
+            condition is shifted by; if one of the two source files mislabels
+            which t0 belongs to Reg-Arrest vs. Reg-Arrest+SHX, either panel A's
+            curve or panel B's table row for that condition uses the wrong
+            reference and reports an incorrect lag-time distribution/mean for
+            that condition. This could not be resolved by reading code alone -
+            it requires checking against the original experimental records for
+            which t0 truly belongs to which condition.
+        Suggested fix: verify against the primary ScanLag export for the Kaplan
+            reference data which t0 value belongs to Reg-Arrest and which to
+            Reg-Arrest+SHX, and correct whichever of the two spreadsheets is wrong;
+            until resolved, treat panel A and panel B's Reg-Arrest/+SHX rows as
+            unverified.
+
+    [3] SMELL - CCDF_CONDITIONS' fourth CCDF-condition name uses a literal
+        newline ('Reg-Arrest\n+SHX') solely for panel A's legend, while panel B
+        independently formats its own condition strings; the two panels are not
+        guaranteed to describe the same condition identically if one label format
+        changes without the other.
+        Location: line ~38 (CCDF_CONDITIONS) vs. panel_B's `stress` string building
+        Suggested fix: none required; noted for awareness only, as the current
+            labels are consistent in content, just formatted independently.
+
+RELATED FILES
+    scripts/figures/figure1.py (not reviewed here) - panel E, whose CCDF plotting
+        style this file's panel_A explicitly follows.
+    scripts/supplementary_figures/scanlag_1cdf.py - computes an equivalent
+        complementary-CDF from raw ScanLag data with a different formula (see
+        Finding 1); a useful cross-check target.
+    scanlag_data/CASP+SHX/casp+shx.xlsx, scanlag_data/CASP+SHX/scanlag_summary.xlsx
+        - the two source spreadsheets (see Finding 2 for the apparent
+        cross-file inconsistency between them).
+    scripts/figures/figure_functions.py - PanelFigure.

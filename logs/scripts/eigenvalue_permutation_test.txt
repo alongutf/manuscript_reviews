@@ -1,0 +1,229 @@
+================================================================================
+scripts/eigenvalue_permutation_test.py
+461 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Tests, per scRNA-seq sample, whether the empirical gene-gene correlation
+    eigenvalue spectrum differs from a null in which genes are mutually
+    independent. The null is built by permuting each gene's values across
+    cells independently (destroying cross-gene correlation while preserving
+    each gene's own marginal distribution), then recomputing the spectrum many
+    times. This is the primary significance test behind the "correlation
+    signal is real" claim in the paper: it sits downstream of the
+    analysis_notebook.ipynb pipeline that produces data_for_paper/*.csv and
+    ev_data/*.npy, and re-derives + validates those same eigenvalues before
+    testing them.
+
+INPUTS
+    data_for_paper/*.csv
+        filtered cell x gene count matrices, one file per sample (as written
+        by analysis_notebook.ipynb).
+    ev_data/*.npy
+        stored eigenvalue spectra (object arrays; [0] is the empirical
+        spectrum) used only to validate that this script's own preprocessing
+        reproduces the repo's canonical pipeline.
+    ev_data/titles.xlsx
+        maps file_name -> display title and category ('r' = regulated,
+        'd' = dysregulated), used for labeling and the group comparison.
+    scripts/null_distribution_fit.py (imported as ndf)
+        supplies the parametric tail-probability fit, family selection (AIC)
+        and calibration check used for lambda_1's p-value.
+    src/data_functions.py, src/analysis_functions.py
+        AnnMat reader and the reference get_eig_dist() used only for
+        validation.
+    --replot <json_path> (optional CLI mode)
+        regenerates the figure from a previously written logs/*.json without
+        recomputing any permutations.
+
+OUTPUTS
+    results/permutation_test/raw/<tag>.csv
+        one row per sample: lambda_1, null mean/sd, z_1, parametric and
+        empirical p-values, topK_mass, maxT, k_hat, etc.
+    results/permutation_test/raw/<tag>_null_draws.npz
+        per-sample (B, K) array of the scrambled top-K eigenvalues for every
+        replicate.
+    results/permutation_test/raw/<tag>.txt
+        human-readable report: methodology notes, the summary table, a
+        per-family log10(p) breakdown for lambda_1, and the group comparison.
+    results/permutation_test/logs/<tag>.json
+        full machine-readable log: parameters, per-sample results, group
+        comparison, environment, runtime -- the source of truth for --replot.
+    results/permutation_test/figures/<tag>.{svg,png}
+        six-panel summary figure (see make_figure).
+
+HOW IT WORKS
+    load_matrix() reads one sample's AnnMat from CSV and removes the tracker
+    genes (16S rRNA processed/unprocessed and a control gene) from the
+    filtered-gene mask before materializing the matrix, matching the
+    preprocessing used to build ev_data/. prep() then keeps genes/cells that
+    pass trivial presence filters (MIN_CELLS, MIN_GENES, both effectively 1
+    here so this step is mostly a formality), converts each cell's row to
+    fractional abundance (library-size normalization), and z-scores each gene
+    (column) with the population convention ddof=0. NaNs from all-zero rows
+    or zero-variance columns are zeroed out rather than propagated.
+
+    spec() computes the nonzero eigenvalues of the p x p gene-gene
+    correlation matrix (1/n) M'M by instead diagonalizing the much smaller
+    n x n Gram matrix (1/n) M M', which shares all nonzero eigenvalues with
+    the full correlation matrix (there are only n of them once p > n, which
+    is the regime here: cells << genes). This is the same trick as af.get_pcs
+    but implemented directly with eigvalsh rather than via SVD.
+
+    validate() re-derives the spectrum through the repository's own
+    af.get_eig_dist() and compares it against the stored ev_data/*.npy value
+    (should match to floating-point noise) and against this script's own
+    spec()-based route (should match to <1e-10). Both are asserted in run(),
+    so any drift between this script's preprocessing and the paper's
+    canonical pipeline would halt the run rather than silently producing a
+    test on the wrong matrix.
+
+    The permutation null is built by scramble(): each column (gene) is
+    independently permuted by a shared numpy Generator (rng), which is seeded
+    once (SEED) and then advanced across every sample in sequence -- so the
+    null draws for sample k depend on how many random draws every earlier
+    sample in the loop consumed. B=100 replicates are drawn per sample and
+    their spectra stacked into a (B, k_scan) array. From this null, several
+    statistics are computed: z_k (standardized deviation of each observed
+    eigenvalue rank from its null mean, ddof=0), an empirical exceedance
+    p-value per rank, topK_mass (sum of the top K eigenvalues, a bulk-signal
+    statistic), maxT (the maximum z_k across ranks 1..K, taken within each
+    replicate to control the family-wise error rate across ranks), and k_hat
+    (a parallel-analysis estimate of how many leading eigenvalues clear the
+    null's 95th percentile at their own rank).
+
+    Because empirical permutation p-values are bounded below by 1/(B+1) with
+    only B=100 draws, a second, parametric route is layered on for lambda_1:
+    null_distribution_fit.parametric_pvalue fits several tail families (see
+    ndf.TAIL_ORDER) to the B null draws by MLE, selects the best by AIC, and
+    reports both the best-fit p-value and a band across all fitted families
+    (log10_p_min/max) so that samples whose z_1 is far in the tail still get
+    an interpretable (if approximate) magnitude rather than a censored "<1%"
+    answer. A held-out calibration check (fit on half the draws, PIT the
+    other half) flags whether the fit is trustworthy where the null data
+    actually constrain it.
+
+    After looping over every sample, a group-level Mann-Whitney U test
+    compares z_1 between the 'regulated' and 'dysregulated' categories
+    (one-sided: dysregulated < regulated), producing the paper's headline
+    "correlation signal is weaker under dysregulation" comparison. All
+    results are written to CSV, an npz of null draws, a text report and a
+    JSON log, then make_figure() renders the six-panel summary (per-sample
+    z_1 bar chart, group comparison scatter, per-rank z_k profile, and three
+    example null-histogram/fit panels for a strong/weak/no-signal sample).
+
+KEY PARAMETERS AND CONSTANTS
+    B = 100
+        number of permutation replicates per sample; sets the empirical
+        p-value floor to 1/(B+1) ~= 0.0099 and controls Monte Carlo noise in
+        the parametric fit. Compare eigenvalue_permutation_highB.py (B=2000,
+        3 boundary samples only) and eigenvalue_permutation_full_B2000.py
+        (B=2000, all samples, parallelized).
+    K = 20
+        number of leading ranks used for topK_mass, maxT and the per-rank
+        z_k report; chosen as roughly 1% of the gene count p.
+    K_SCAN = None
+        ranks retained in the null array for the k_hat parallel-analysis
+        scan; None means the full spectrum (all n nonzero eigenvalues) is
+        scanned, so k_hat can never be right-censored for this script (it is
+        for the leaner K_SCAN used elsewhere).
+    SEED = 20260823
+        seeds a single numpy Generator that is then advanced sequentially
+        across every sample in the (sorted) sample list -- see the RISK
+        finding below.
+    ALPHA = 0.05
+        significance level for the parallel-analysis null quantile (q95)
+        used to compute k_hat.
+    TRACKER_GENES
+        16S rRNA (mature/unprocessed) and a control probe ('LELOBEKK'),
+        excluded before eigenvalue calculation because they are spike-in/
+        housekeeping controls, not part of the biological gene set under
+        test; matches the exclusion in ev_data's own generation.
+    NORM_METHOD='sum', NORM_SUM=1, LOG=False
+        must match af.get_eig_dist's defaults exactly for the validate()
+        cross-check to pass; not tunable independently of that function's
+        actual defaults.
+    MIN_CELLS=1, MIN_GENES=1
+        presence filters in prep(); with default 1 these keep essentially
+        everything (any gene/cell seen in at least one observation), so they
+        currently have almost no effect but exist to keep prep() parallel to
+        af.get_eig_dist's filtering hook.
+    perm_pvalue: (1 + #{null >= obs}) / (B + 1)
+        the standard "add-one" permutation p-value; the observed statistic is
+        treated as one of the B+1 exchangeable draws under H0, which avoids a
+        p-value of exactly 0 no matter how extreme the observation is.
+
+FINDINGS
+    [1] RISK - shared, order-dependent RNG stream across samples
+        Location: run(), line ~128 (`rng = np.random.default_rng(SEED)`) and
+        the per-sample loop at line ~153 (`null[b] = spec(scramble(M, rng))`)
+        What the code does: seeds one Generator once, then draws from it
+        continuously across every sample processed in the loop (samples are
+        iterated in sorted-filename order).
+        Why that is a problem: the null draws (and therefore z, p-values,
+        k_hat, etc.) for every sample after the first depend on exactly how
+        many random numbers all earlier samples consumed, which in turn
+        depends on each sample's cell/gene count (n, k_scan) and B. Adding a
+        new sample, changing K_SCAN, or reordering the sample list silently
+        changes every later sample's numbers. Contrast with
+        eigenvalue_permutation_full_B2000.py, which assigns each sample its
+        own independent seed (SEED+1000+i) specifically so results are
+        order- and worker-count-independent.
+        Suggested fix: seed a fresh child Generator per sample (e.g.
+        `rng.spawn(1)[0]` or an explicit per-sample seed), as the B2000
+        family already does.
+
+    [2] INCONSISTENCY - ddof differs between the B=100 and B=2000 script
+        families for the same null standard deviation
+        Location: line ~156 (`mu_all, sd_all = null.mean(0), null.std(0)`,
+        ddof=0) versus eigenvalue_permutation_full_B2000.py line ~164 and
+        eigenvalue_permutation_append.py line ~61 (`sd = d.std(0, ddof=1)`)
+        What the code does: this script (and eigenvalue_permutation_highB.py,
+        which shares its convention) computes the null sd as a population
+        statistic (divide by B); the B2000/append family computes it as a
+        sample statistic (divide by B-1).
+        Why that is a problem: z_1 and every other z_k reported for the same
+        sample differ by a factor of sqrt(B/(B-1)) between the two script
+        families purely from this convention, not from B itself -- at B=100
+        that is a ~0.5% shift in z, small but real, and it means a reader
+        comparing a "B=100" z_1 to a "B=2000" z_1 for the same sample is not
+        comparing exactly the same statistic.
+        Suggested fix: standardize on one convention (ddof=1 is the more
+        defensible choice for an estimated sd) across the whole permutation-
+        test family, or document the difference prominently in both scripts'
+        headers.
+
+    [3] SMELL - `from scipy.stats import beta as _beta` deferred import
+        pattern is absent here but present in the sibling highB/B2000
+        scripts; not a finding against this file, noted only for cross-
+        reference: this base script does not compute a Monte Carlo
+        confidence interval on its empirical p-values at all, while both
+        higher-B siblings do. Not a bug, just an asymmetry in what is
+        reported at low vs. high B.
+
+RELATED FILES
+    scripts/eigenvalue_permutation_highB.py
+        reruns only the 3 boundary-|z_1| samples at B=2000, importing
+        load_matrix/prep/spec/scramble/perm_pvalue/validate directly from
+        this module; uses SEED+1 as its own single shared stream (same
+        order-dependence risk as [1], but over only 3 fixed samples).
+    scripts/eigenvalue_permutation_full_B2000.py
+        the B=2000, all-samples, multiprocessing-parallel version; imports
+        load_matrix/prep/spec/scramble/validate from this module inside its
+        worker function; uses independent per-sample seeds and ddof=1 (see
+        [2]).
+    scripts/eigenvalue_permutation_append.py
+        appends new samples to an existing B2000 run in place; shares
+        summarise() logic (ddof=1) with full_B2000.py.
+    scripts/null_distribution_fit.py
+        supplies the parametric tail fit (ndf.parametric_pvalue,
+        ndf.calibration_check, ndf.TAIL_ORDER, ndf.CANDIDATES) used for the
+        lambda_1 p-value band.
+    src/analysis_functions.py
+        af.get_eig_dist / af.get_pcs / af.scramble are the canonical
+        implementations this script's prep/spec/scramble are built to
+        reproduce and validate against.
+    src/data_functions.py
+        data_func.read_from_csv / AnnMat, used to load each sample matrix.
+    data_for_paper/*.csv, ev_data/*.npy, ev_data/titles.xlsx
+        the input data and the ground truth being validated against.

@@ -1,0 +1,150 @@
+================================================================================
+simulations/dataset_mixing_gmpcor_run.py
+316 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Tests what happens to GMP-Cor when two real experimental scRNA-seq datasets
+    (different conditions/timepoints) are pooled into one matrix, as a check on
+    whether mixing distinct cell populations could artificially inflate or deflate
+    the reported correlation index. It is a standalone runner in the "simulations/"
+    layer described in CLAUDE.md, but unlike most siblings it operates on real
+    processed data (data_for_umap/*.csv, the same matrices scanpy_analysis.ipynb
+    consumes) rather than purely synthetic counts, and reproduces the paper's
+    figure-3-style eigenvalue CCDF plot for the mixed matrix.
+
+INPUTS
+    --file1, --file2 (default EXP_biorep_t0A_filtered.csv, VAPC_biorep_t2A_filtered.csv)
+        cells x genes CSVs read from --data-dir (default data_for_umap/, resolved
+        relative to the repo root regardless of the current working directory).
+        Verified present at data_for_umap/EXP_biorep_t0A_filtered.csv and
+        data_for_umap/VAPC_biorep_t2A_filtered.csv.
+    --gene-space {shared,union} (default shared), --n-cells-per-dataset (default
+        500), --n-genes (default 2000), --seed (default 0), --no-case-fold,
+        --keep-nongene   CLI flags controlling gene-space construction, cell/gene
+        subsampling and the scrambling RNG seed.
+
+OUTPUTS (results/simulation_results/, filename base encodes both dataset tags,
+    gene-space mode, final matrix shape and a timestamp)
+    - figures/mixing_<tag1>__<tag2>_<mode>_<cells>x<genes>_<ts>.svg / .png
+        Log-log CCDF plot of the empirical vs. scrambled eigenvalue spectrum
+        (figure-3 style), titled with the resulting GMP-Cor value.
+    - raw/mixing_..._<ts>.txt
+        Human-readable summary: dataset shapes, gene-space composition, excluded
+        reporter genes, subsampling choices, and the GMP-Cor breakdown.
+    - logs/mixing_..._<ts>.json
+        Full parameter and result log (satisfies CLAUDE.md's reproducibility
+        requirement), including the CLI args, both datasets' raw shapes, the
+        gene-space composition and the final GMP-Cor numbers.
+
+HOW IT WORKS
+    parse_args() reads the CLI options, then main() seeds numpy's global RNG
+    (np.random.seed(args.seed)) once -- this is the seed src.analysis_functions
+    .scramble() draws from, so it controls the reproducibility of the scrambled
+    null spectrum used later.
+
+    load_matrix() reads each CSV (cells as the index, genes as columns), fills
+    missing values with 0, optionally drops "Unnamed*"/"INTR_*" non-gene columns,
+    and (by default) casefolds gene names so e.g. "GFP" and "gfp" are treated as
+    the same gene across the two datasets, collapsing any resulting duplicate
+    columns by summing their counts.
+
+    The gene space is built as either the intersection ("shared", the default --
+    only genes measured in both datasets) or the union of the two datasets'
+    columns; in union mode a gene absent from one dataset is later zero-filled for
+    every cell of that dataset. Reporter/plasmid-marker genes (gfp, laci, ampr,
+    case-insensitive, via the EXCLUDE_GENES constant) are always dropped from the
+    gene space regardless of mode.
+
+    Cell selection: top_cells() takes the --n-cells-per-dataset cells with the
+    highest total counts from EACH dataset SEPARATELY (capped at however many
+    cells that dataset actually has), before the two selections are reindexed onto
+    the common gene_space (zero-filling any gene the dataset lacks) and stacked
+    into one combined matrix.
+
+    Gene selection: on the combined, selected-cell matrix, each gene's Fano factor
+    (variance / mean) is computed and the --n-genes genes with the highest Fano
+    factor are kept (all genes are kept if the gene space is already <= n_genes).
+    Fano factor picks out genes whose count fluctuates more than a pure-Poisson
+    process would predict at that mean -- i.e. the most informative genes for
+    correlation structure -- rather than simply the most highly expressed ones.
+
+    GMP-Cor: src.analysis_functions.get_eig_dist(final, norm=True, log=False,
+    norm_method='sum', norm_sum=1) drops all-zero genes/cells, row-normalizes,
+    z-transforms columns, and returns the empirical spectrum (pcs) alongside the
+    mean spectrum of 10 column-scrambled copies (pcs1). lambda_max^scr = max(pcs1)
+    is the noise ceiling; GMP-Cor is the sum of (pcs - lambda_max^scr) over
+    eigenvalues exceeding it.
+
+    Finally the CCDF figure (plot_ccdf: log-log complementary CDF of empirical vs.
+    scrambled spectra, matching the paper's figure 3 styling, eigenvalues below
+    lambda_max^scr shaded as "spurious"), the text summary, and the JSON log are
+    all written under results/simulation_results/ with the same base filename.
+
+KEY PARAMETERS AND CONSTANTS
+    EXCLUDE_GENES = {'gfp', 'laci', 'ampr'}   reporter/plasmid genes always removed
+                     from the analyzed gene space (case-insensitive), because they
+                     are not part of the organism's regulatory network. See
+                     FINDINGS [1] for a subtlety in when this exclusion is applied.
+    --n-cells-per-dataset = 500   cells taken from each dataset by highest total
+                     count; the two contributions are equal-sized by construction,
+                     so the combined matrix is always a 50/50 mix by cell count
+                     regardless of the two datasets' relative sizes.
+    --n-genes = 2000   Fano-factor cutoff; matches the >=2000-gene panels used
+                     elsewhere in the codebase (e.g. dataset_mixing_ratio_run.py).
+    --seed = 0        seeds np.random globally; controls only the scrambled-null
+                     draw inside get_eig_dist (the data itself is real, not
+                     simulated, so this seed does not affect which cells/genes are
+                     selected -- selection is deterministic given the CSVs).
+    norm_sum=1        row-normalization target passed to get_eig_dist; provably
+                     immaterial to GMP-Cor because normalize()+z_transform() is
+                     invariant to a uniform rescaling of the matrix (see the
+                     matching finding logged for subsampling_genecmp_rho09_run.py).
+
+FINDINGS
+    [1] SMELL - cell selection ranks by total counts BEFORE reporter genes are
+        excluded, so reporter expression can influence which cells are chosen even
+        though those genes are then dropped from the analyzed matrix.
+        Location: top_cells() calls (main(), the "Cell selection" block) vs. the
+        EXCLUDE_GENES filtering, which runs earlier in the gene_space construction
+        but is never applied to df1/df2 themselves.
+        What the code does: load_matrix() returns df1/df2 with GFP/LacI/ampR (or
+        casefolded equivalents) still present as columns. top_cells() then ranks
+        cells by d.sum(axis=1) over ALL of those columns, including the excluded
+        reporter genes, before the selected cells are reindexed onto gene_space
+        (which has already dropped gfp/laci/ampr) for the GMP-Cor computation.
+        Why that is a problem: a cell with unusually high reporter-gene expression
+        (e.g. a GFP-overexpressing cell) would rank as "high total count" and get
+        selected, even though that expression contributes nothing to the genes
+        actually analyzed -- the ranking criterion and the analyzed feature set are
+        not the same set of genes.
+        Verified against the actual default input: in data_for_umap/
+        EXP_biorep_t0A_filtered.csv, GFP contributes only ~0.4% of total counts on
+        average (max ~3.5% in a single cell), so for this dataset the effect on
+        which cells rank "top" is negligible. The assumption may not hold for other
+        datasets/conditions (e.g. strong reporter induction), so this is flagged as
+        a smell rather than dismissed outright.
+        Suggested fix: drop EXCLUDE_GENES columns from df1/df2 (or restrict the
+        ranking sum to gene_space) before calling top_cells(), so cell selection
+        and gene selection operate on the same feature set.
+
+    No further logical errors or inconsistencies found; norm_sum=1 (noted above)
+    does not create a real cross-script inconsistency with other GMP-Cor scripts
+    that use different norm_sum values, since z_transform makes the result
+    invariant to that choice.
+
+RELATED FILES
+    src/analysis_functions.py    get_eig_dist (spectrum + GMP-Cor threshold),
+                                  normalize, z_transform, scramble (consumes the
+                                  global np.random state seeded by --seed).
+    data_for_umap/*.csv           input matrices; same files scanpy_analysis.ipynb
+                                  uses for UMAP, so cell/gene naming conventions
+                                  (Unnamed*/INTR_* columns, GFP/LacI/ampR reporter
+                                  columns) match that notebook's expectations.
+    simulations/dataset_mixing_ratio_run.py   a related dataset-mixing variant
+                                  (not reviewed in this pass) that likely shares the
+                                  Fano-factor gene-selection and cell-selection
+                                  logic; worth checking for the same [1] ordering
+                                  issue if it also filters reporter genes.
+    scripts/figures/figure3.py (or equivalent)   the source of the CCDF plotting
+                                  convention plot_ccdf() reproduces.

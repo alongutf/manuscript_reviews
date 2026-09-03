@@ -1,3 +1,38 @@
+"""Figure 2: the eigenvalue-spectrum method behind GMP-Cor, from theory to data.
+
+Assembles a seven-panel figure that walks the reader through the correlation-
+spectrum argument used throughout the paper:
+  A - Marchenko-Pastur (MP) law for an uncorrelated random matrix, as a sanity
+      check that the theory matches a simulated null.
+  B - the Generalized MP (GMP) family: how the spectrum's shape changes as the
+      underlying gene-gene correlation strength (chi) increases.
+  C - a small synthetic sparse count matrix and its per-gene permutation-
+      scrambled counterpart, to make the empirical-vs-null comparison concrete.
+  D - eigenvalue density (PDF) of that synthetic data, colour-coded into MP-null,
+      other-spurious, and true-signal eigenvalues, with a CCDF inset.
+  E-G - CCDF of the real correlation spectrum (signal vs. scrambled null) for the
+      paper's own exponential-phase E. coli sample and two published reference
+      datasets (Ma et al. E. coli and K. pneumoniae), each annotated with its
+      permutation-test p-value.
+
+Run interactively (e.g. from scripts/figures/, as a Jupyter cell or via
+`run figure2.py`) with the working directory two levels below the repo root, so
+that `root_dir` below resolves to the repo root.
+
+Input:
+  ev_data/simulated_pcs.npy                 - synthetic-data eigenvalues (panel D)
+  ev_data/Expira_biorep_t0A_filtered.npy     - exponential E. coli spectrum (panel E)
+  ev_data/deb_Ec_CDS_untreated.npy           - Ma et al. E. coli spectrum (panel F)
+  ev_data/deb_KP_CDS_untreated.npy           - Ma et al. K. pneumoniae spectrum (panel G)
+  each .npy is a (2, n_genes) array: row 0 = empirical eigenvalues, row 1 =
+  scrambled-null eigenvalues (see src.analysis_functions.get_eig_dist)
+  "model fit"/model_alpha2_sigma*.txt        - precomputed GMP PDF curves (panel B)
+
+Output:
+  figure2.svg   (300 dpi, publication)
+  figure2_preview.png (200 dpi, quick look)
+"""
+
 import src.analysis_functions as af
 import src.data_functions as df
 import matplotlib.pyplot as plt
@@ -16,6 +51,8 @@ importlib.reload(df)
 # ------------------------------------------------------------------
 fsize = 10
 plt.close("all")
+# repo root is two levels above this script's usual working directory
+# (scripts/figures/); see the module docstring for the assumed cwd
 root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 ev_data_dir = os.path.join(root_dir, 'ev_data')
 
@@ -25,15 +62,23 @@ def panel_A(ax):
     N = 500
     P = 1000
     matrix = np.random.randn(N, P)
+    # sample (Pearson-style) correlation matrix of P independent Gaussian genes
+    # over N samples; no true correlation exists, so its spectrum is pure MP noise
     corr_matrix = matrix.T @ matrix / N
     eigvals, _ = np.linalg.eig(corr_matrix)
+    # drop numerically-zero eigenvalues (P - N of them are exactly rank-deficient
+    # since corr_matrix has rank <= N < P) before histogramming
     eigvals = np.real(eigvals[eigvals > 1e-6])
     bins = np.linspace(0, 6, 40)
+    # weight each count by 1/(P * bin width) so the histogram is a density over
+    # eigenvalue index normalised by P, directly comparable to mp_distribution
     ax.hist(eigvals,
             weights=np.ones_like(eigvals) / (P * (bins[1] - bins[0])),
             bins=bins, color='r', alpha=0.5, density=False,
             label='simulated')
     x = np.linspace(0, 6, 100)
+    # analytic Marchenko-Pastur PDF at aspect ratio a = P/N, overlaid on the
+    # simulated histogram as the theoretical prediction for uncorrelated data
     y = np.array([af.mp_distribution(val, P / N) for val in x])
     ax.plot(x, y, color='r', linewidth=1, linestyle='--', label='MP')
     ax.set_title('Random matrix\nMP distribution', fontsize=fsize-2, pad=0)
@@ -46,6 +91,8 @@ def panel_A(ax):
 
 def panel_B(ax):
     # GMP distribution: random Gaussian matrix with underlying correlations
+    # each file is a precomputed GMP PDF (columns: lambda, rho(lambda)) at aspect
+    # ratio alpha=2 and correlation strength chi=sigma, from model_fit.nb (Mathematica)
     files = ['model_alpha2_sigma0.txt', 'model_alpha2_sigma07.txt',
              'model_alpha2_sigma08.txt', 'model_alpha2_sigma09.txt']
     labels = [r'$\chi=0$ (MP)', r'$\chi=0.7$', r'$\chi=0.8$', r'$\chi=0.9$']
@@ -67,15 +114,21 @@ def panel_B(ax):
 
 def panel_C(axes):
     # Illustrative sparse simulation matrix + scrambled version
-    np.random.seed(42)
+    np.random.seed(42)   # fixed seed so the illustrative matrix is reproducible
     n_cells, n_genes = 22, 14
 
+    # small, purely illustrative dataset: each gene is nonzero in a random subset
+    # of cells (15-38% detection rate) with exponentially distributed counts,
+    # mimicking the sparsity of real scRNA-seq probe counts
     matrix = np.zeros((n_cells, n_genes))
     for j in range(n_genes):
         n_nz = max(1, int(n_cells * np.random.uniform(0.15, 0.38)))
         rows = np.random.choice(n_cells, size=n_nz, replace=False)
         matrix[rows, j] = np.random.exponential(2.5, size=n_nz)
 
+    # the permutation null: shuffle each gene's values independently across cells,
+    # which destroys gene-gene correlations while keeping each gene's own
+    # marginal distribution (and overall sparsity) unchanged
     scrambled = matrix.copy()
     for j in range(n_genes):
         perm = np.random.permutation(n_cells)
@@ -102,6 +155,8 @@ def panel_C(axes):
 
 def panel_D(axes):
     # Simulation eigenvalue distributions: original (color-coded) and scrambled
+    # row 0 = empirical (correlated) spectrum, row 1 = per-gene-permuted null
+    # spectrum, both from the same synthetic dataset used to validate GMP-Cor
     pcs_data = np.load(os.path.join(ev_data_dir, 'simulated_pcs.npy'))
     pcs, pcs1 = pcs_data[0], pcs_data[1]
 
@@ -109,6 +164,8 @@ def panel_D(axes):
     data2 = pcs1[pcs1 > 0]
     bin_width = 0.15
     x1 = (1 + np.sqrt(2)) ** 2 + bin_width   # MP upper edge (γ = P/N = 2)
+    # empirical scrambled-null maximum eigenvalue -- this IS the GMP-Cor threshold
+    # (lambda_max^scr): empirical eigenvalues above it are counted as true signal
     x2 = float(np.max(pcs1))+bin_width     # scrambled maximum = GMP-Cor threshold
 
     all_data = np.concatenate([data1, data2])
@@ -121,6 +178,11 @@ def panel_D(axes):
     _, _, patches1 = ax_top.hist(
         data1, bins=bin_edges, width=bin_width * 0.8, align='right',
         edgecolor='black', color='#d9d9d9', alpha=0.7, density=True)
+    # recolor each bar by which of the three eigenvalue regimes its left edge
+    # falls in: below the analytic MP edge (pure noise, expected even with no
+    # scrambling), between the MP edge and the scrambled maximum (extra spurious
+    # correlation from sparsity/finite-size effects, caught by the null), and
+    # above the scrambled maximum (true correlation signal, counted in GMP-Cor)
     for patch in patches1:
         bx = patch.get_x()
         if bx < x1:
@@ -149,7 +211,9 @@ def panel_D(axes):
     inset.tick_params(labelsize=fsize - 3)
     inset.set_xlim([0.2,14])
 
-    # Bottom: scrambled pcs1 (same x-axis), color intermediate (sparsity) bars too
+    # Bottom: scrambled pcs1 (same x-axis), color intermediate (sparsity) bars too.
+    # scrambled data has no eigenvalues above x2 by construction (x2 is its own
+    # max), so only the below/above-MP-edge split applies here.
     _, _, patches2 = ax_bot.hist(
         data2, bins=bin_edges, width=bin_width * 0.8, align='right',
         edgecolor='black', color='darkgray', alpha=0.7, density=True)
@@ -193,6 +257,9 @@ def _draw_ccdf(ax, data1, data2, dataset=None, show_legend=True, markersize=3):
     d1s = np.sort(data1)
     d2s = np.sort(data2)
     p1 = len(d1s)
+    # empirical CCDF P(X >= x_i) at each sorted value; the "+ 1/p1" shifts the
+    # largest point up to 1/p1 instead of 0, which would be unplottable on a
+    # log axis
     ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
     p2 = len(d2s)
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
@@ -218,6 +285,7 @@ def panel_E(ax):
 
 
 def _plot_ccdf(ax, npy_file, title):
+    """Load a (2, n_genes) empirical/scrambled eigenvalue array and draw its CCDF."""
     arr = np.load(os.path.join(ev_data_dir, npy_file))
     data1 = arr[0, :];  data1 = data1[data1 > 0]
     data2 = arr[1, :];  data2 = data2[data2 > 0]

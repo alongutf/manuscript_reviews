@@ -1,0 +1,107 @@
+================================================================================
+scripts/add_permutation_metrics.py
+91 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Joins the results of a B=2000 permutation test (the empirical p-value on
+    the largest eigenvalue, and the null distribution's mean/SD) onto the main
+    per-dataset metrics table, results/data_metrics/data_metrics.csv, and adds
+    a propagated uncertainty (confidence interval) on the published GMP-Cor
+    statistic. This is the step that turns a raw permutation run into the
+    columns actually used in the manuscript's summary table.
+
+INPUTS
+    - results/permutation_test/raw/<tag>.csv - one row per dataset ('sample'
+      index) with columns 'null_sd', 'null_mean', 'p_empirical_1'; produced by
+      one of the eigenvalue_permutation_*.py scripts (default tag points at
+      eigenvalue_permutation_B2000_20260823_132215, the B=2000 run).
+    - results/data_metrics/data_metrics.csv - the metrics table to update,
+      indexed by row, with a 'file_name' column giving the source CSV name.
+    - ev_data/<sample>.npy - the full observed eigenvalue spectrum per
+      dataset (row 0 of the stored array), used to count how many observed
+      eigenvalues exceed the mean scrambled threshold.
+    - optional CLI argument: permutation run tag (defaults to DEFAULT_TAG).
+
+OUTPUTS
+    - results/data_metrics/data_metrics.csv is overwritten in place with five
+      new/updated columns: permutation_p, sigma_lambda_max_scr,
+      mean_lambda_max_scr, n_above_threshold, gmp_cor_ci.
+    - prints a summary table to stdout.
+
+HOW IT WORKS
+    main() first checks that the requested permutation CSV exists and that
+    data_metrics.csv is not locked open (e.g. by Excel), so a failure happens
+    before any data is touched. It reads both tables and builds a join key by
+    stripping '.csv' from data_metrics' file_name column to match the bare
+    sample names used in the permutation results; it aborts loudly if any
+    dataset in data_metrics has no matching permutation row.
+
+    For each dataset it pulls null_sd (sigma, the spread of the scrambled
+    top-eigenvalue lambda_max^scr across the B permutations) and null_mean
+    (the threshold t used elsewhere to separate "signal" eigenvalues from
+    noise). It loads the full observed spectrum from ev_data and counts N,
+    the number of observed eigenvalues strictly above that threshold - this
+    is an exact count against the full spectrum, not a truncated top-K, so it
+    stays correct even for datasets with many eigenvalues above threshold.
+
+    GMP-Cor (sum_denoised_ev) is a sum of N terms, each of which effectively
+    carries the same threshold uncertainty sigma (since all terms are
+    measured relative to the same scrambled threshold). Treating those errors
+    as fully correlated across the sum gives gmp_cor_ci = sqrt(N) * sigma,
+    which is what is computed and stored, along with the supporting sigma,
+    threshold and N values so the CI can be recomputed by hand.
+
+    The five columns are written into the DataFrame, the whole table is
+    rewritten to disk, and a compact preview is printed.
+
+KEY PARAMETERS AND CONSTANTS
+    DEFAULT_TAG = 'eigenvalue_permutation_B2000_20260823_132215' - the
+        specific permutation run currently treated as canonical. Changing
+        which run is "the" B=2000 run means updating this constant (or
+        passing a different tag on the command line).
+    1 + #{...} / (B+1) exceedance formula for p_empirical - not recomputed
+        here, just carried over from the permutation CSV; documented in the
+        module docstring so the censoring floor (1/(B+1) = 4.9975e-4) is
+        visible without opening the upstream script.
+    `ev > t` uses a strict inequality when counting N; ties at exactly the
+        mean threshold are excluded.
+
+FINDINGS
+    [1] RISK - default permutation tag is a hard-coded, dated run name
+        Location: DEFAULT_TAG (line 38)
+        What the code does: main() falls back to a specific timestamped file,
+        'eigenvalue_permutation_B2000_20260823_132215', whenever it is run
+        with no CLI argument.
+        Why that is a problem: if a new, higher-B or corrected permutation
+        run is produced later, running this script without an explicit tag
+        will silently keep using the old run and regenerate the same stale
+        numbers in data_metrics.csv - there is no check that DEFAULT_TAG is
+        actually the most recent run under results/permutation_test/raw/.
+        Suggested fix: either pick the tag automatically (e.g. most recent
+        matching file) or fail/warn if a newer B2000 run is present.
+        (Verified: results/permutation_test/raw/ currently contains exactly
+        one B2000 run, so this is not yet biting, but it is a landmine for
+        the next revision cycle.)
+
+    [2] SMELL - N is recomputed from ev_data rather than reused from the
+        permutation CSV
+        Location: main(), the `ev = np.load(...)` loop
+        What the code does: reloads the full eigenvalue spectrum per dataset
+        from disk to recompute N, instead of using any equivalent count that
+        may already exist in the permutation results file.
+        Why that is a problem: minor duplication of work/logic across
+        scripts if the permutation script also computes a similar count;
+        keeps two potential sources of truth for N. Not verified whether the
+        permutation CSV in fact carries an equivalent column - flagged as a
+        possible duplication, not a confirmed one.
+
+RELATED FILES
+    - results/permutation_test/raw/eigenvalue_permutation_B2000_20260823_132215.csv
+      and the script that produced it (an eigenvalue_permutation_*.py under
+      scripts/), which define null_sd/null_mean/p_empirical_1.
+    - ev_data/*.npy, also consumed by scripts/eigenvalue_permutation_test.py
+      and scripts/figures/export_figure3_panels.py.
+    - results/data_metrics/data_metrics.csv, the table this script updates;
+      also read by scripts/figures/figure3.py (see that script's log for a
+      known stale-file inconsistency involving a sibling file, test8.csv).

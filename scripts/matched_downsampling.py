@@ -45,11 +45,23 @@ BATCH_TO_FILE = {
 BATCH_ORDER = ['exp', 'dis1', 'dis2', 'reg1', 'reg2']
 
 REPS = 3
+# row-sum target used by af.get_eig_dist's own 'sum' normalization; since every row
+# here is separately thinned to exactly target_umi counts first, this only rescales
+# the already-uniform row sums and does not itself equalize depth across cells
 NORM_SUM = 50
 SEED = 0
 
 
 def gmp_cor(m):
+    """Compute GMP-Cor for a cells x genes count matrix m.
+
+    Wraps af.get_eig_dist (empirical eigenvalues `pcs` vs. the mean scrambled/null
+    eigenvalues `pcs1`) and reduces it to the same scalar order parameter used
+    throughout the paper: the summed excess of empirical eigenvalues above the
+    scrambled noise threshold (max eigenvalue of the permuted-gene null).
+
+    Returns (gmp_cor, lambda_max, lambda_max_scrambled, n_modes_above_threshold).
+    """
     pcs, pcs1, _ = af.get_eig_dist(m, norm=True, log=False,
                                    norm_method='sum', norm_sum=NORM_SUM)
     thr = float(pcs1.max())
@@ -64,6 +76,9 @@ def thin(M, target, rng):
         row = M[i]
         tot = row.sum()
         if tot <= target:
+            # row already at/below target: caller is expected to have pre-filtered
+            # rows below target_umi, so this branch is a defensive no-op, not the
+            # intended path
             out[i] = row
         else:
             out[i] = rng.multinomial(target, row / tot)
@@ -71,7 +86,13 @@ def thin(M, target, rng):
 
 
 def load_source(name):
-    """Return {batch: (matrix, gene_names)} for one source."""
+    """Return {batch: (matrix, gene_names)} for one source: raw (unfiltered-for-p,
+    unthinned) cells x genes count matrices, read either from the combined h5ad
+    (split by the 'batch' obs column) or from the per-sample data_for_paper CSVs
+    (genes x cells on disk, transposed here via .values on the cells-indexed frame).
+    DROP_GENES is removed from both so the two sources start from the same gene
+    universe before the common-gene intersection in main().
+    """
     if name == 'h5ad':
         adata = ad.read_h5ad(H5AD)
         C = adata.layers['counts']
@@ -90,6 +111,9 @@ def load_source(name):
 
 
 def main():
+    """For each source, match p/n/depth across the 5 samples and compute GMP-Cor
+    REPS times per sample; write the per-run results as CSV/JSON and a plain-text
+    summary table under results/cluster_gmp_cor/."""
     os.makedirs(OUTDIR, exist_ok=True)
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     records = []
@@ -109,9 +133,14 @@ def main():
         p = len(common)
 
         # 2/3. depth and cell-count targets: use the tightest sample
+        # target_umi = the lowest per-sample median depth: every sample must have a
+        # substantial fraction of cells at/above this to be thinned down to it, and
+        # taking the min guarantees no sample is asked to be thinned *up*
         med = {b: float(np.median(M.sum(1))) for b, M in mats.items()}
         target_umi = int(np.floor(min(med.values())))
         n_avail = {b: int((M.sum(1) >= target_umi).sum()) for b, M in mats.items()}
+        # target_n = the scarcest sample's eligible-cell count, so every sample can
+        # supply exactly target_n cells at/above target_umi without replacement
         target_n = min(n_avail.values())
         setup[source] = {
             'n_common_genes': p, 'target_umi': target_umi, 'target_n_cells': target_n,
@@ -124,6 +153,9 @@ def main():
         print(f'  cells at/above target:   {n_avail}')
 
         for rep in range(REPS):
+            # SEED + rep: each rep gets its own reproducible draw (cell subsample +
+            # multinomial thinning), so repeated runs of this script are deterministic
+            # while still sampling REPS independent realizations for the stability check
             rng = np.random.default_rng(SEED + rep)
             for b in BATCH_ORDER:
                 M = mats[b]

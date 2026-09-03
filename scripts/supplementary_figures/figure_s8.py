@@ -102,6 +102,10 @@ def panel_A(ax):
 
 # ==================================================================
 # Panel B — representative correlation-spectrum CCDFs
+# note: the section header numbering here does not match the final panel
+# labels assembled at the bottom of the file (see the "Assemble" section) -
+# panel_A below draws what ends up as the assembled figure's panel C (UMAP),
+# and panel_C below draws what ends up as panel D (the GMP-Cor bar plot).
 # ==================================================================
 def _plot_ccdf(ax, sample, title, gmp_cor, signal_color, show_ylabel=True):
     """loglog CCDF of empirical (row 0) vs scrambled (row 1) eigenvalues.
@@ -111,6 +115,8 @@ def _plot_ccdf(ax, sample, title, gmp_cor, signal_color, show_ylabel=True):
       color -> true signal (at/above scrambled max)
       black -> scrambled
     """
+    # arr has shape (2, P): row 0 = empirical eigenvalues, row 1 = eigenvalues of the
+    # permutation-scrambled matrix, as written by cancer_pc9_correlation_analysis.py
     arr = np.load(os.path.join(EV_DATA_DIR, f'{sample}.npy'))
     data1 = arr[0];  data1 = data1[data1 > 0]
     data2 = arr[1];  data2 = data2[data2 > 0]
@@ -119,9 +125,10 @@ def _plot_ccdf(ax, sample, title, gmp_cor, signal_color, show_ylabel=True):
     d1s = np.sort(data1)
     d2s = np.sort(data2)
     p1, p2 = len(d1s), len(d2s)
+    # empirical CCDF with the usual +1/n correction so the largest point isn't at P=0
     ccdf1 = 1 - np.arange(1, p1 + 1) / p1 + 1 / p1
     ccdf2 = 1 - np.arange(1, p2 + 1) / p2 + 1 / p2
-    noise = d1s < x2
+    noise = d1s < x2   # eigenvalues below the scrambled max: consistent with pure noise
 
     ax.loglog(d1s[noise], ccdf1[noise], '.', linestyle='-',
               color='darkgray', alpha=0.7, label='spurious', markersize=3)
@@ -150,7 +157,9 @@ def _plot_ccdf(ax, sample, title, gmp_cor, signal_color, show_ylabel=True):
 _metrics = pd.read_csv(METRICS_CSV).set_index('sample')
 _gmp = _metrics['GMP_Cor']
 
-# representative pair: highest-cycling (high) vs lowest-cycling (low), rep 1
+# representative pair: highest-cycling (high) vs lowest-cycling (low), rep 1.
+# "high"/"low" name the fluorescent-marker level (see COND_COLOR note above), so
+# REP_LOW (low marker) is the Proliferating sample and REP_HIGH is Arrested.
 REP_HIGH = '14_rep1_high'
 REP_LOW = '14_rep1_low'
 
@@ -176,6 +185,7 @@ def panel_C(ax):
     for cond in COND_ORDER:
         vals = m.loc[m['condition'] == cond, 'GMP_Cor'].to_numpy()
         means.append(vals.mean())
+        # ddof=1: sample (not population) standard deviation, appropriate with n=2 replicates
         sems.append(vals.std(ddof=1) / np.sqrt(len(vals)))   # SEM, n = 2
         colors.append(COND_COLOR[cond])
 
@@ -194,13 +204,16 @@ def panel_C(ax):
                        fontsize=fsize - 2)
     ax.set_ylabel('GMP-Cor', fontsize=fsize - 2)
     ax.tick_params(axis='both', which='major', labelsize=fsize - 2)
-    ax.set_ylim(bottom=50)
+    ax.set_ylim(bottom=50)   # all observed GMP-Cor values are well above 50; crops empty space
     ax.grid(axis='y', linestyle='--', alpha=0.3)
 
 
 # ------------------------------------------------------------------
 # Assemble
 # ------------------------------------------------------------------
+# the draw_func passed to each add_panel here is what actually determines the
+# final panel labels A-D; see the note above _plot_ccdf about the mismatch
+# with the function names panel_A / panel_C.
 pf = PanelFigure(figsize=(7, 5), label_offset=(-0.05, 0.03))
 
 # Row 1 — representative CCDFs (Proliferating | Arrested)

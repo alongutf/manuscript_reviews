@@ -88,7 +88,16 @@ PNG_FIG  = os.path.join(_FIG_DIR, f'subsampling_robustness_rho09_{_ts}.png')
 
 
 def gmp_cor(observed):
-    """GMP-Cor of an observed count matrix (cells x genes)."""
+    """GMP-Cor of an observed count matrix (cells x genes).
+
+    GMP-Cor = sum_i max(lambda_i - lambda*_scrambled, 0): the excess correlation
+    spectral mass above the scrambled-null threshold lambda*_scrambled (the largest
+    eigenvalue of the column-permuted matrix, averaged over repeats by get_eig_dist).
+    norm_sum=100 here differs from the norm_sum=50 default used by src.simulations.gmp_cor
+    and most other scripts in this project; since GMP-Cor is a sum of eigenvalues of the
+    per-row-normalised, z-scored matrix, absolute values from this script are not directly
+    comparable to GMP-Cor numbers computed elsewhere at norm_sum=50 (see FINDINGS).
+    """
     pcs, pcs1, _ = get_eig_dist(observed, norm=True, log=False, norm_sum=100)
     return float(np.sum(np.maximum(pcs - pcs1.max(), 0)))
 
@@ -115,6 +124,8 @@ summary_rows = []      # aggregated per size
 for n_cells, n_genes in zip(CELL_SIZES, GENE_SIZES):
     vals = []
     for rep in range(N_REPEATS):
+        # distinct, reproducible stream per (size, repeat); multiplying n_cells by
+        # 1000 keeps sizes from colliding since N_REPEATS is always well under 1000
         rng = np.random.default_rng(SUBSAMPLE_SEED + 1000 * n_cells + rep)
 
         # 1) random subsample of cells (without replacement)
@@ -128,6 +139,9 @@ for n_cells, n_genes in zip(CELL_SIZES, GENE_SIZES):
         sub = sub_cells[:, top_genes]
 
         g = gmp_cor(sub)
+        # raw GMP-Cor is a sum over genes and so scales with panel size (extensive);
+        # dividing by n_genes gives a per-gene, scale-free index that should be
+        # comparable across the different (n_cells, n_genes) points in this sweep
         g_per_gene = g / n_genes          # intensive (scale-free) index
         vals.append(g)
         records.append({

@@ -53,14 +53,21 @@ _REAL_DATA_PATH = os.path.join(_REPO, 'data_for_paper', 'sample_2b_filtered.csv'
 # ------------------------------------------------------------------
 # Pre-computed data (generated once, reused across panels)
 # ------------------------------------------------------------------
-# Representative correlation matrices for the heatmaps (row 1)
+# Representative correlation matrices for the heatmaps (row 1): same
+# cluster/hub topology (fixed seed), only the shared-variance fraction alpha
+# differs, so the two heatmaps isolate the effect of correlation strength.
 R_high = generate_gram_hub_matrix(alpha=0.9, **_HEATMAP_PARAMS)
 R_low = generate_gram_hub_matrix(alpha=0.5, **_HEATMAP_PARAMS)
 
-# Small correlation matrix used to drive the count-generation schematic (row 2 flow inset)
+# Small correlation matrix used to drive the count-generation schematic (row 2 flow inset).
+# Kept deliberately small (400x400, not the paper-scale 2000x2000) since only a
+# handful of cells/genes are actually rendered in the schematic's mini-panels.
 _N_SMALL = 400
 R_small = generate_gram_hub_matrix(n=_N_SMALL, alpha=0.9, shape=1.5,
                                    hub_probability=0.2, seed=31)
+# inv_gamma_shape/scale here are chosen for a visually clear NB histogram in the
+# schematic, not to match real data (contrast with the defaults used below for
+# rank_obs_counts, which are tuned to reproduce the real marginals).
 true_counts, obs_counts = simulate_scRNA_data(
     n_cells=_N_SMALL, n_genes=_N_SMALL, sigma=R_small, dropout_rate=1, inv_gamma_shape=2, inv_gamma_scale=0.1, seed=0)
 
@@ -115,12 +122,13 @@ def panel_A(ax):
     gx, gy = 0.5, 0.5
     clusters = [(0.17, 0.80), (0.17, 0.20), (0.83, 0.78), (0.83, 0.22)]
     connect = [True, False, True, True]   # subset linked to the global hub
-    radius = 0.10
+    radius = 0.10   # plotting radius of each cluster's gene scatter, in axes units
 
     cluster_hubs = []
     for (cx, cy) in clusters:
-        n_pts = 7
+        n_pts = 7   # genes drawn per cluster, purely for the schematic's visual density
         ang = rng.uniform(0, 2 * np.pi, n_pts)
+        # sqrt of a uniform draw gives points uniform over the disc area, not just the radius
         rr = radius * np.sqrt(rng.uniform(0.15, 1, n_pts))
         xs, ys = cx + rr * np.cos(ang), cy + rr * np.sin(ang)
         for i in range(n_pts):                              # star edges hub->members
@@ -149,6 +157,9 @@ def panel_A(ax):
 
 
 def _heatmap(ax, R, title):
+    """Draw the top-left 100x100 sub-block of a genes x genes correlation matrix R."""
+    # only a corner of the full 2000x2000 matrix is shown; large enough to see the
+    # block/hub structure without the individual cells becoming illegibly small
     im = ax.imshow(R[:100, :100], cmap='RdBu_r', vmin=-1, vmax=1,
                    aspect='auto', interpolation='nearest')
     cb = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
@@ -172,11 +183,14 @@ def panel_D(ax):
 # Row 2 — Generate counts (schematic + mini examples)
 # ==================================================================
 def panel_E(ax):
+    """Flow-chart schematic of the count-generation step: correlated MVN -> NB counts
+    -> observed (scaled + dropout) counts. Uses its own small 2-gene toy example,
+    independent of R_small/obs_counts above, purely to illustrate the mechanism."""
     rng = np.random.default_rng(7)
-    cov = [[1, 0.8], [0.8, 1]]
+    cov = [[1, 0.8], [0.8, 1]]   # toy 2-gene correlation, just for the scatter inset
     g = rng.multivariate_normal([0, 0], cov, size=300)
-    u = norm.cdf(g)
-    mu, r = 3.0, 0.5
+    u = norm.cdf(g)              # Gaussian copula: correlated normal -> correlated uniform
+    mu, r = 3.0, 0.5              # illustrative NB mean/dispersion for the histogram inset
     counts = nbinom.ppf(u[:, 0], r, r / (r + mu))
 
     w, h, y0 = 0.22, 0.60, 0.08
@@ -201,7 +215,9 @@ def panel_E(ax):
 
     # (iii) observed counts (scaled + dropout) — the real generator output
     a3 = ax.inset_axes([xs[2], y0, w, h])
-    sub = obs_counts[:40, :40].astype(float)
+    sub = obs_counts[:40, :40].astype(float)     # small corner, just for a legible thumbnail
+    # clip the color scale below the max so a few very high counts don't wash out
+    # the rest of the (mostly small/zero) matrix
     vmax = np.percentile(sub[sub > 0], 95) if np.any(sub > 0) else 1
     a3.imshow(sub, cmap='Greys', vmin=0, vmax=vmax, aspect='auto',
               interpolation='nearest')
@@ -230,6 +246,7 @@ def panel_E(ax):
 # Row 3 — Representative simulated output vs real data (rank plots)
 # ==================================================================
 def _rank_plot(ax, totals, title, xlabel, show_ylabel=True, drop_top=False, ylim=None):
+    """Semilog-y plot of totals sorted descending against their rank (1 = largest)."""
     ranks, v = _rank(totals, drop_top=drop_top)
     ax.semilogy(ranks, v, '-', color=RANK_C, lw=1)
     ax.set_title(title, fontsize=fsize)
@@ -263,6 +280,8 @@ def panel_G_data(ax):  # real data — genes
 # ------------------------------------------------------------------
 # Assemble — portrait, 3-row narrative
 # ------------------------------------------------------------------
+# panel_pos entries are [left, bottom, width, height] in normalized figure
+# coordinates, one per PanelFigure.add_panel call below, in the same order.
 pf = PanelFigure(figsize=(7, 6.5), label_offset=(-0.02, 0.02))
 
 panel_pos = [

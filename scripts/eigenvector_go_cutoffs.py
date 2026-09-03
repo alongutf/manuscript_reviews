@@ -51,6 +51,10 @@ def clean_gene(col):
 
 
 # condition labels + published GMP-Cor from the metrics table
+# NOTE: METRICS points at test8.csv, the same file eigenvector_analysis.py reads;
+# see this script's findings log -- results/data_metrics/data_metrics.csv is the
+# current metrics table elsewhere in the repo, so the GMP-Cor values printed in the
+# per-file headers below may not match the currently published ones.
 metrics = pd.read_csv(METRICS, index_col=0)
 cat_map = dict(zip(metrics["file_name"], metrics["category"]))
 gmp_map = dict(zip(metrics["file_name"], metrics["sum_denoised_ev"]))
@@ -71,6 +75,8 @@ print("GO machinery loaded.")
 
 
 def names_to_ids(names):
+    """Map gene-panel column names to NCBI gene IDs, dropping names not in the
+    GTF-derived conversion table (silently, e.g. reporter/spike-in probes)."""
     out = []
     for g in names:
         gid = _conv.get(clean_gene(g).lower())
@@ -83,6 +89,7 @@ def go_for_genes(study_genes, background_genes, out_path):
     """Run GO enrichment of study_genes against background_genes; write significant rows."""
     bg_ids = names_to_ids(background_genes)
     study_ids = names_to_ids(study_genes)
+    # too few mapped genes for GO enrichment to be meaningful (or valid) -- skip
     if len(study_ids) < 3 or len(bg_ids) < 10:
         return None
     goea = GOEnrichmentStudy(
@@ -90,6 +97,7 @@ def go_for_genes(study_genes, background_genes, out_path):
         propagate_counts=False, alpha=0.05, methods=["fdr_bh"],
     )
     res = goea.run_study(study_ids, prt=None)
+    # keep only enriched ("e", vs purged "p") terms passing the 5% FDR threshold
     sig = [r for r in res if r.enrichment == "e" and r.p_fdr_bh < 0.05]
     sig.sort(key=lambda r: r.p_fdr_bh)
     if not sig:
@@ -114,6 +122,10 @@ files = sorted(f for f in os.listdir(DATA_DIR) if f.endswith(".csv"))
 text_blocks = []
 
 for fname in files:
+    # data_for_paper/*.csv is cells x genes; af.get_eig_vectors applies the same
+    # zero-gene/zero-cell filtering, normalization and z-transform as get_eig_dist
+    # (used to compute the published spectra), so eigvals/threshold line up with the
+    # GMP-Cor numbers in the metrics table
     df = pd.read_csv(os.path.join(DATA_DIR, fname), index_col=0)
     genes = np.array(df.columns)
     m = df.values.astype(float)
@@ -130,11 +142,14 @@ for fname in files:
 
     for k in range(len(eigvals)):
         v = eigvecs[k]
+        # rank genes within this mode by |loading|, largest first, regardless of sign
         order = np.argsort(np.abs(v))[::-1]
         above = "ABOVE" if eigvals[k] > threshold else "below"
         block.append(f"  mode {k+1}: eig={eigvals[k]:.3f} ({above} thr)")
 
         for cutoff in GO_CUTOFFS:
+            # clip to the number of genes actually available (small panels can have
+            # fewer than 200 genes surviving the zero-filter)
             n = min(cutoff, len(kept_genes))
             study = kept_genes[order[:n]]
             out_path = os.path.join(OUT_DIR, f"go_top{cutoff}", f"{fname[:-4]}_mode{k+1}.csv")

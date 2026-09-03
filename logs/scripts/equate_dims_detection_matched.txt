@@ -1,0 +1,151 @@
+================================================================================
+scripts/equate_dims_detection_matched.py
+239 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Compares GMP-Cor between the dysregulated (dis1/dis2) and regulated
+    (reg1/reg2) scRNA-seq replicate pairs after matching the samples on genes
+    detected per cell, rather than on total UMI count. It is a follow-up to
+    prior equate_dims-style comparisons (see project memory: matching total
+    counts across all four samples left "reg" detecting ~2x more genes than
+    "dis" at equal depth, and detection rather than raw depth is what the
+    eigenvalue spectrum responds to). It sits in the same "reproduce/stress-
+    test the published GMP-Cor comparison" family as
+    scripts/thinned_match_all.py and scripts/reproduce_filter_paths.py.
+
+INPUTS
+    - OTHER (hard-coded absolute path to a sibling repo,
+      C:\Users\owner\Documents\Projects\rnaseq_correlations): source of the
+      raw unfiltered per-sample CSVs named in UNFILT (sample_13a, sample_15a,
+      sample_13b, sample_15b unfiltered.csv), read in CHUNK-row pieces.
+    - results/cluster_gmp_cor/eligible_pools/<sample>.npz: optional cache of
+      each sample's UMI-window-filtered cell pool (M, bc, genes); if present,
+      load_eligible() uses it and skips the raw CSV entirely.
+    - data_for_paper/<sample>_filtered.csv (PUBLISHED): index-only read, for
+      the barcode-overlap-with-published-file diagnostic.
+
+OUTPUTS
+    All under results/cluster_gmp_cor/, timestamped:
+    - equate_detection_matched_<stamp>.csv: one row per (sample, pair, rep)
+      with cell/gene counts, mean/median genes detected, mean/median depth,
+      lambda_max, lambda_max_scrambled, gmp_cor.
+    - equate_detection_overlap_<stamp>.csv: per (sample, rep), how many of the
+      newly-drawn cells overlap the published barcode set for that sample.
+    - equate_detection_matched_<stamp>.json: run parameters plus the same
+      records and overlaps as JSON.
+    - results/cluster_gmp_cor/eligible_pools/<sample>.npz: written as a cache
+      the first time each sample is loaded.
+
+HOW IT WORKS
+    load_eligible() streams a sample's raw unfiltered CSV in CHUNK-row pieces
+    (the files are too large to load at once), keeps only cells with
+    UMI_MIN < total UMI < UMI_MAX, and caches the result as .npz so repeat runs
+    skip the CSV pass. dispersion_genes() reproduces AnnMat.filter_by_gene_
+    dispersion (variance/mean > MIN_DISPERSION) on that pool.
+
+    main() builds, for each replicate pair separately (dis1+dis2, reg1+reg2),
+    a gene panel = the dispersion-passing genes common to both replicates of
+    that pair, minus DROP_GENES (rRNA/reporter genes). Because the panel is
+    built per pair rather than across all four samples, the dis panel and the
+    reg panel are not required to have -- and in general will not have -- the
+    same number of genes; see FINDINGS [1].
+
+    For each of REPS independent repeats, matched_draw() draws a cell subset
+    from each pair's two replicates that shares one binned histogram of genes-
+    detected-per-cell: values from both replicates are pooled to define shared
+    quantile bin edges (N_BINS), then within each bin the number of cells drawn
+    is capped by whichever replicate has fewer cells in that bin, so the two
+    returned per-sample cell sets have matched detection distributions by
+    construction. gmp_cor() then computes GMP-Cor via
+    af.get_eig_dist(norm_sum=NORM_SUM) as the sum of eigenvalue excess above
+    the scrambled-null maximum eigenvalue.
+
+    Results are aggregated per sample (mean/std of cells, genes-detected,
+    depth, GMP-Cor) and the within-dis, within-reg and between-condition GMP-
+    Cor gaps are printed for a direct read of whether the condition difference
+    exceeds the replicate spread. A barcode-overlap table against the
+    originally published data_for_paper files is also produced, showing how
+    much this detection-matched redraw departs from the published cell set.
+
+KEY PARAMETERS AND CONSTANTS
+    UMI_MIN, UMI_MAX = 400, 20000: total-count eligibility window for the cell
+      pool (paper pipeline's wider window, not the narrower notebook default).
+    MIN_DISPERSION = 1.0: AnnMat.filter_by_gene_dispersion's default threshold.
+    DROP_GENES: 16s_mature, 16s_unprocessed, LELOBEKK, kanR, mCherry --
+      16s_mature alone is ~92% of raw counts (per project memory), so leaving
+      it in would dominate the spectrum.
+    TARGET_CELLS = 1000: requested draw size per matched_draw call; the actual
+      yield can be lower if the shared histogram doesn't have enough cells in
+      some bins (n_got is reported, not silently substituted).
+    N_BINS = 40: quantile bins used to match the genes-detected distribution.
+    REPS = 5: independent matched draws per pair.
+    NORM_SUM = 50: row-sum target passed into af.get_eig_dist.
+    SEED = 0: base RNG seed; repeat k uses SEED + k, so reruns are
+      reproducible per repeat.
+
+FINDINGS
+    [1] RISK - gene-panel size (dimensionality p) is not matched between the
+        dis and reg conditions, only within each replicate pair
+        Location: main(), panel-construction loop (~line 158-163, "panel =
+        {}")
+        What the code does: builds a separate gene panel per replicate pair
+        (dis1&dis2 -> one panel, reg1&reg2 -> a different panel), each being
+        the pair's own dispersion-gene intersection minus DROP_GENES. Nothing
+        equalises the two panels' sizes against each other.
+        Why that is a problem: per src/analysis_functions.py's get_eig_dist /
+        get_pcs and this repo's own project memory, GMP-Cor is dimension-
+        dependent -- it is (roughly) extensive in p, the number of genes/modes
+        kept. This script carefully matches cell count and genes-detected-per-
+        cell distribution within each pair, and reports (but does not match)
+        depth -- but if the two conditions' gene panels differ in size, the
+        dis-vs-reg GMP-Cor comparison can be partly or wholly an artifact of
+        that dimensionality difference rather than genuine biology. The script
+        does print n_genes per sample, so the gap is visible if inspected, but
+        nothing in the summary statistics accounts for it.
+        Suggested fix: either intersect the gene panel across all four samples
+        (as scripts/thinned_match_all.py does) so p is identical for every
+        condition, or report gmp_cor_per_gene (gmp_cor / p_kept, as
+        src/simulations.py's gmp_cor() does) alongside the raw GMP-Cor so the
+        reader can judge how much of any gap is dimension-driven.
+
+    [2] INCONSISTENCY - contradicts how the same depth/dimensionality confound
+        is handled in the sibling script thinned_match_all.py
+        Location: main(), panel-construction loop (same as [1]); compare
+        scripts/thinned_match_all.py's `keep` intersection loop over ORDER
+        What the code does: this script matches genes-detected within pairs
+        only, leaving p to vary between conditions (see [1]).
+        thinned_match_all.py instead intersects its gene panel across ALL five
+        samples (exp, dis1, dis2, reg1, reg2), holds n_cells equal across every
+        sample via a shared "binding sample", and additionally thins every
+        cell to the same total UMI count -- so both depth and p are held fixed
+        across the whole comparison, not just within pairs.
+        Why that is a problem: two scripts in the same "does the dis-vs-reg
+        GMP-Cor gap survive confound control" family use materially different
+        standards of what counts as "matched", and could report different
+        conclusions about the same underlying question without either script
+        indicating that the standard differs.
+        Suggested fix: note in this script's docstring that its p-matching is
+        weaker than thinned_match_all.py's (within-pair vs. global), or adopt
+        the same global-panel construction here.
+
+    [3] RISK - hard-coded, machine-specific absolute path
+        Location: line 34 (OTHER)
+        What the code does: OTHER points at
+        C:\Users\owner\Documents\Projects\rnaseq_correlations, a sibling repo
+        on this specific machine.
+        Why that is a problem: the script cannot run elsewhere without editing
+        the source.
+        Suggested fix: read from an environment variable or config file.
+
+RELATED FILES
+    scripts/thinned_match_all.py: sibling reproduction script; matches p
+      globally across all five samples plus depth via multinomial thinning
+      (see [1]/[2]).
+    scripts/reproduce_filter_paths.py: reproduces the notebook's own filter
+      paths (not detection-matched) for provenance of the published files.
+    src/analysis_functions.py (get_eig_dist, get_pcs): the eigenvalue-spectrum
+      routine this script's gmp_cor() calls; p_kept there is the surviving
+      gene count driving the dimensionality dependence noted in [1].
+    src/data_functions.py (AnnMat.filter_by_gene_dispersion): the library
+      method dispersion_genes() here reproduces.

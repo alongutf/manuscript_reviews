@@ -1,4 +1,13 @@
 # This is a sample Python script.
+#
+# Standalone, exploratory numba simulation of two sub-populations of trajectories
+# ("competitive binding" dynamics) that share partially overlapping random
+# activation/repression interaction matrices. Not imported by any other script or
+# notebook in this repo (confirmed by grep) and not part of the documented
+# simulations/ -> results/simulation_results/ pipeline described in CLAUDE.md; it
+# writes its raw trajectory array to a local `results\` folder relative to wherever
+# it is invoked from, rather than to results/simulation_results/. Treat this file as
+# scratch/prototype code, not a reproducible analysis step for the manuscript.
 import numpy as np
 from numba import njit, prange
 import matplotlib.pyplot as plt
@@ -8,6 +17,13 @@ import time
 
 @njit
 def generate_interaction_matrix(J,n_features):
+    """Random activation/repression interaction matrices for one sub-population.
+
+    Draws a single |N(0, (J/sqrt(n_features))^2)| matrix W and a random 0/1 mask A,
+    then splits W into an "activation" matrix W_1 = W*A and a "repression" matrix
+    W_2 = W*(1-A) that partition the same entries. See FINDINGS for why `W -
+    np.diag(W)` does not zero only the diagonal of W here.
+    """
     # We generate standard normal noise once
     W = (np.abs((J / np.sqrt(n_features)) * np.random.randn(n_features, n_features))).astype(np.float32)
     A = np.random.randint(0, 2, size=(n_features, n_features)).astype(np.float32)
@@ -21,6 +37,15 @@ def generate_interaction_matrix(J,n_features):
 
 @njit
 def regenerate_interaction_matrix(W1, W2, J , ratio=1):
+    """Build population 2's interaction matrices by mixing a fresh draw into population 1's.
+
+    A fraction `ratio` of ROWS (the first k = n_features*ratio rows) is replaced
+    entirely by a new random draw; the remaining rows keep population 1's values
+    for the first k columns only. ratio=1 (the value actually used below) replaces
+    every row, so with ratio=1 the `W1[k:, :k]` / `W2[k:, :k]` lines are dead code
+    (k already equals n_features). See FINDINGS about the caller passing the same
+    array as both W1 and W2.
+    """
     k = int(W1.shape[1] * ratio)
     new_W1, new_W2 = generate_interaction_matrix(J, W1.shape[1])
     W1[:k,:] = new_W1[:k,:]
@@ -32,6 +57,15 @@ def regenerate_interaction_matrix(W1, W2, J , ratio=1):
 
 @njit(parallel=True, fastmath=True)
 def competitive_binding(n_trajectories, n_features, n_steps, dt, random_state=None):
+    """Simulate two blocks of trajectories under a simple activation/repression ODE.
+
+    Trajectories with index < n_trajectories/2 use interaction matrices
+    (W_act1, W_rep1); the rest use (W_act2, W_rep2). Each step is an Euler update
+    x += dt * (-DEG*x + RATE*activation/(1+repression+activation) + NOISE*noise),
+    clipped at zero (concentrations cannot go negative). `J`, `degradation_rate`,
+    `RATIO` and `noise_amp` are read as module-level globals (numba compiles them
+    in as constants), not passed as arguments.
+    """
     #convert to float32
     dt = np.float32(dt)
     ONE = np.float32(1.0)
@@ -41,6 +75,10 @@ def competitive_binding(n_trajectories, n_features, n_steps, dt, random_state=No
     NOISE = np.float32(noise_amp)
     # 2. Pre-calculate matrices OUTSIDE the loops
     W_act1, W_rep1 = generate_interaction_matrix(J,n_features)
+    # NOTE: both arguments here are W_rep1 (see FINDINGS) -- population 2's
+    # activation matrix W_act2 is therefore derived from population 1's REPRESSION
+    # matrix, not its activation matrix, and W1/W2 alias the same array inside
+    # regenerate_interaction_matrix
     W_act2, W_rep2 = regenerate_interaction_matrix(W_rep1, W_rep1, J, RATIO)
 
     results = np.zeros((n_trajectories, n_features, n_steps),dtype=np.float32)
@@ -55,7 +93,7 @@ def competitive_binding(n_trajectories, n_features, n_steps, dt, random_state=No
 
         for j in range(n_steps):
             # Calculate the common term v = 1 / (x + 1)
-            if i<int(n_trajectories/2):
+            if i<int(n_trajectories/2):   # first half of trajectories = sub-population 1
                 act_interaction = np.dot(W_act1, x)
                 rep_interaction = np.dot(W_rep1, x)
             else:
@@ -76,23 +114,29 @@ def competitive_binding(n_trajectories, n_features, n_steps, dt, random_state=No
 
     return results
 
+# ---- parameters (module-level globals, read directly inside the njit functions) ----
 N_TRAJ = 500
 N_FEATURES = 1000
 N_STEPS = 1000
 J= 1.5
 source=0
 degradation_rate=2
-RATIO = 1
+RATIO = 1          # fraction of rows fully replaced when building population 2 (see above)
 noise_amp=1
 start = time.perf_counter()
+# seed=None -> numpy's own unseeded global RNG state; each run of this script therefore
+# draws different noise/interaction matrices (see FINDINGS: no reproducibility control)
 seeds = [None]
 for k,seed in enumerate(seeds):
     results = competitive_binding(N_TRAJ,N_FEATURES, N_STEPS, 0.01, random_state=seed)
     stop = time.perf_counter()
     print(results.shape)
+    # plot feature 0's trajectory for every 20th simulated cell, as a quick sanity check
     for i in range(0,results.shape[0],20):
         for j in range(1):
             plt.plot(results[i,j,:])
     plt.show()
     print(f"Total time: {stop - start:.6f} seconds")
+    # relative path: written under a `results\` folder inside whatever directory this
+    # script happens to be run from, NOT results/simulation_results/ (see FINDINGS)
     np.save(f"results\\sim_subpopulations_J-{J}.npy", results)

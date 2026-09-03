@@ -31,6 +31,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import src.analysis_functions as af
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# absolute, machine-specific path to a sibling repo holding the raw (unfiltered)
+# probe-count CSVs -- this script only runs on a machine with that checkout
+# present at this exact path; see FINDINGS log
 OTHER = r'C:\Users\owner\Documents\Projects\rnaseq_correlations'
 DATA = os.path.join(OTHER, 'data')
 PAPER = os.path.join(ROOT, 'data_for_paper')
@@ -52,17 +55,31 @@ PAIRS = [('dis1', 'dis2'), ('reg1', 'reg2')]
 ORDER = ['dis1', 'dis2', 'reg1', 'reg2']
 
 UMI_MIN, UMI_MAX = 400, 20000     # as in analysis_notebook cell 3
-MIN_DISPERSION = 1.0
-TARGET_CELLS = 1000
-N_BINS = 40
-REPS = 5
-CHUNK = 20000
-NORM_SUM = 50
-SEED = 0
+MIN_DISPERSION = 1.0              # filter_by_gene_dispersion default, as in the paper pipeline
+TARGET_CELLS = 1000                # ~1000 cells/sample, matching the published output size
+N_BINS = 40                        # depth-histogram resolution for matched_draw's quantile bins
+REPS = 5                           # independent matched draws, to report mean +/- sd of GMP-Cor
+CHUNK = 20000                      # rows per streaming read of the unfiltered CSV (memory control)
+NORM_SUM = 50                      # row-sum target for get_eig_dist's normalization (see gmp_cor())
+SEED = 0                           # base RNG seed; rep r uses SEED + r, so reps are independent
+                                    # but the whole run is still reproducible
 
 
 def load_eligible(sample):
-    """One streaming pass: keep rows with UMI_MIN < total < UMI_MAX."""
+    """One streaming pass: keep rows with UMI_MIN < total < UMI_MAX.
+
+    Reads the unfiltered probe-count CSV in CHUNK-row pieces (it is too large to
+    load whole), applying the same UMI-count cell filter as
+    AnnMat.filter_by_umi_count(UMI_MIN, UMI_MAX) in the paper pipeline, but before
+    any gene filtering -- so the returned pool is the full set of cells eligible
+    for downstream sampling, not yet cut down to a gene panel or target size.
+    Barcodes are truncated at the first '-' (strips a 10x-style suffix) to match
+    the barcode format used in the published, filtered CSVs (see `published` in
+    main()).
+
+    :return: (M, barcodes, genes) where M is cells x genes (float), barcodes is a
+        1D array aligned with M's rows, genes is the column name array
+    """
     path = os.path.join(DATA, UNFILT[sample])
     header = pd.read_csv(path, nrows=0)
     dtypes = {c: np.int32 for c in header.columns[1:]}
@@ -81,7 +98,11 @@ def load_eligible(sample):
 
 
 def dispersion_genes(M, genes):
-    """filter_by_gene_dispersion(min_dispersion=1)."""
+    """filter_by_gene_dispersion(min_dispersion=1): genes with var/mean > 1.
+
+    Mirrors AnnMat.filter_by_gene_dispersion in src/data_functions.py (dispersion
+    set to 0, i.e. excluded, wherever mean is 0 to avoid a divide-by-zero).
+    """
     mean = M.mean(axis=0)
     var = M.var(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -90,7 +111,25 @@ def dispersion_genes(M, genes):
 
 
 def matched_draw(depths, target, n_bins, rng):
-    """Draw `target` indices per sample so all share one depth histogram."""
+    """Draw `target` indices per sample so all share one depth histogram.
+
+    :param depths: dict sample -> 1D array of per-cell depth (row-sum on that
+        sample's gene panel); one array per sample, lengths may differ
+    :param target: desired number of cells per sample (TARGET_CELLS)
+    :param n_bins: number of quantile bins used to define the shared histogram
+    :param rng: numpy Generator, one fresh instance per replicate (see main())
+    :return: (picks, n_got) where picks maps sample -> array of row indices into
+        that sample's own depth/count matrix, and n_got is the actual number of
+        cells drawn per sample (== target unless the depth ranges don't overlap
+        enough, in which case it is capped at total_avail)
+
+    Bin edges are quantiles of the POOLED depth values across all samples, so
+    every sample sees the same bin boundaries. For each bin, `avail` is the
+    minimum count across samples in that bin -- i.e. how many cells could be
+    drawn from every sample at once without one sample running out -- which is
+    exactly what forces the samples onto a common depth histogram instead of
+    each keeping its own (possibly very different) distribution.
+    """
     alld = np.concatenate(list(depths.values()))
     edges = np.unique(np.quantile(alld, np.linspace(0, 1, n_bins + 1)))
     binned = {s: np.digitize(d, edges[1:-1]) for s, d in depths.items()}
@@ -102,6 +141,9 @@ def matched_draw(depths, target, n_bins, rng):
     if total_avail == 0:
         raise RuntimeError('no overlapping depth range across samples')
 
+    # scale each bin's availability down proportionally to hit `target` overall,
+    # unless there simply aren't enough matched cells (total_avail <= target), in
+    # which case take everything available
     take = avail if total_avail <= target else np.floor(
         avail * target / total_avail).astype(int)
     # distribute any remainder to the bins with most headroom
@@ -122,6 +164,16 @@ def matched_draw(depths, target, n_bins, rng):
 
 
 def gmp_cor(m):
+    """GMP-Cor for one cells x genes matrix: sum of eigenvalues above the
+    scrambled-null maximum.
+
+    Delegates to af.get_eig_dist (empirical vs. scrambled eigenvalue spectra;
+    see CLAUDE.md / src/analysis_functions.py). `thr` is the scrambled maximum
+    eigenvalue (the noise threshold); GMP-Cor is the excess signal mass above it,
+    summed over every eigenvalue that clears the threshold.
+
+    :return: (gmp_cor, lambda_max, lambda_max_scrambled)
+    """
     pcs, pcs1, _ = af.get_eig_dist(m, norm=True, log=False,
                                    norm_method='sum', norm_sum=NORM_SUM)
     thr = float(pcs1.max())
@@ -131,6 +183,7 @@ def gmp_cor(m):
 def main():
     stamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
+    # -------------------------------------------------- load the eligible cell pool
     pool = {}
     for s in ORDER:
         M, bc, genes = load_eligible(s)
@@ -155,12 +208,15 @@ def main():
         print(f'{s}: pool depth on panel  median {np.median(depth[s]):7.1f}  '
               f'mean {depth[s].mean():7.1f}')
 
+    # barcodes of the cells that made it into the PUBLISHED (uniform-draw) matrices,
+    # used below only to report how much the depth-matched draw overlaps with them
     published = {}
     for s in ORDER:
         idx = pd.read_csv(os.path.join(PAPER, PUBLISHED[s]),
                           index_col=0, usecols=[0]).index
         published[s] = set(str(i).split('-')[0] for i in idx)
 
+    # --------------------------------------------------- depth-matched draws + GMP-Cor
     records, overlaps = [], []
     for rep in range(REPS):
         rng = np.random.default_rng(SEED + rep)
@@ -198,6 +254,7 @@ def main():
                       f'barcodes with published '
                       f'({overlaps[-1]["pct_of_published_retained"]}%)')
 
+    # ------------------------------------------------------------------ summarize
     df = pd.DataFrame(records)
     ov = pd.DataFrame(overlaps)
 
@@ -221,6 +278,7 @@ def main():
     print(f'  within-dis gap {abs(d1-d2):.3f} | within-reg gap {abs(r1-r2):.3f} '
           f'| between-condition gap {abs(np.mean([d1,d2])-np.mean([r1,r2])):.3f}')
 
+    # ------------------------------------------------------------------- write outputs
     df.to_csv(os.path.join(OUTDIR, f'equate_depth_matched_{stamp}.csv'), index=False)
     ov.to_csv(os.path.join(OUTDIR, f'equate_depth_overlap_{stamp}.csv'), index=False)
     with open(os.path.join(OUTDIR, f'equate_depth_matched_{stamp}.json'), 'w') as fh:

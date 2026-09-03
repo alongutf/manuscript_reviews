@@ -1,0 +1,31 @@
+================================================================================
+src/__init__.py
+0 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Empty package-init file. Its only role is to make `src` importable as a
+    regular Python package so that notebooks and scripts run from `scripts/`
+    can do `import src.data_functions as df`, `import src.analysis_functions
+    as af`, etc., as documented in the README installation section.
+
+INPUTS
+    None.
+
+OUTPUTS
+    None.
+
+HOW IT WORKS
+    N/A - the file is empty. No package-level re-exports or shared state are
+    defined; every consumer imports submodules directly.
+
+KEY PARAMETERS AND CONSTANTS
+    None.
+
+FINDINGS
+    No logical errors or inconsistencies found.
+
+RELATED FILES
+    All modules under src/ (analysis_functions.py, data_functions.py,
+    bulk_functions.py, reader_functions.py, tecan_func.py, simulations.py)
+    are imported as src.<module> and rely on this file existing.

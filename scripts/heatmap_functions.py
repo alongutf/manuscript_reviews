@@ -41,21 +41,30 @@ def select_markers(adata, cats, topN=100, p_cut=0.05, groupby="leiden",
     list is kept once, assigned to the cluster where its score is strongest, so
     the total is at most ``topN * len(cats)`` and usually less.
     """
+    # reuse a rank_genes_groups run already stashed on adata.uns instead of
+    # recomputing the (slow) Wilcoxon test on every call
     if "rank_genes_groups" not in adata.uns:
         sc.tl.rank_genes_groups(adata, groupby=groupby, method="wilcoxon",
                                 layer=layer, use_raw=use_raw)
 
     df = sc.get.rank_genes_groups_df(adata, None).copy()
+    # a gene with zero counts in one group can blow up the Wilcoxon score to +/-inf;
+    # such rows can't be ranked meaningfully, so they are dropped rather than kept
     df = df.replace([np.inf, -np.inf], np.nan).dropna(subset=["pvals_adj", "scores"])
 
     picked = []
     for grp in cats:
+        # "scores" > 0 keeps only genes that are UP in this cluster, not just
+        # differentially expressed in either direction
         sub = df[(df["group"] == grp) & (df["pvals_adj"] < p_cut) & (df["scores"] > 0)]
         pick = sub.nlargest(topN, "scores").copy()
         pick["chosen_group"] = grp
         picked.append(pick)
 
     sel = pd.concat(picked, ignore_index=False)
+    # resolve genes shared between clusters' top-N lists: keep the single row where
+    # the gene's score magnitude is largest, so each gene is assigned once, to
+    # whichever cluster it marks most strongly
     sel["abs_score"] = sel["scores"].abs()
     sel = sel.loc[sel.groupby("names")["abs_score"].idxmax()].sort_index()
     return sel
@@ -71,9 +80,13 @@ def build_matrix(adata, sel, cats, gene_groups, groupby="leiden", layer="counts"
     if sp.issparse(Xfull):
         Xfull = Xfull.toarray()
 
+    # restrict to the marker genes selected upstream, in adata's own var order
     genes_present = [g for g in sel["names"].tolist() if g in A.var_names]
     Xsel = Xfull[:, A.var_names.get_indexer(genes_present)]
 
+    # per-gene z-score (cells x genes here; transposed to genes x cells below).
+    # a gene with zero variance across cells would divide by zero, so its sd is
+    # pinned to 1 -- the z-scored column is then all zeros instead of NaN/inf
     mu, sd = np.nanmean(Xsel, axis=0), np.nanstd(Xsel, axis=0)
     sd[sd == 0] = 1.0
     Xz = (Xsel - mu) / sd
@@ -86,6 +99,8 @@ def build_matrix(adata, sel, cats, gene_groups, groupby="leiden", layer="counts"
         if len(idx) == 0:
             continue
         if order_cells_within_cluster == "umap" and "X_umap" in A.obsm:
+            # cheap proxy for within-cluster structure: sort along UMAP-1 instead
+            # of clustering (which would be expensive at cell count)
             sub = idx[np.argsort(A.obsm["X_umap"][idx, 0])]
         elif order_cells_within_cluster == "cluster":
             sub = idx[leaves_list(linkage(Xz[idx, :], method=method, metric=metric))]
@@ -107,6 +122,8 @@ def build_matrix(adata, sel, cats, gene_groups, groupby="leiden", layer="counts"
     def order_section(section_genes):
         """Hierarchical order of one section, with curated groups blockified."""
         cols = [genes_present.index(g) for g in section_genes]
+        # linkage on 2 or fewer rows is degenerate/uninformative, so just keep them
+        # in their existing order instead of clustering
         if len(cols) > 2:
             Z = linkage(Xz_cells[:, cols].T, method=method, metric=metric)
             base = [section_genes[i] for i in leaves_list(Z)]
@@ -124,6 +141,7 @@ def build_matrix(adata, sel, cats, gene_groups, groupby="leiden", layer="counts"
                            if x in in_section and x not in placed]
                 if members:
                     idx = [genes_present.index(x) for x in members]
+                    # same >2 guard as above: clustering needs at least 3 rows
                     if len(idx) > 2:
                         Zg = linkage(Xz_cells[:, idx].T, method=method, metric=metric)
                         idx = np.array(idx)[leaves_list(Zg)].tolist()
@@ -159,6 +177,7 @@ def build_matrix(adata, sel, cats, gene_groups, groupby="leiden", layer="counts"
 
 
 def _wrap_genes(genes, width=30):
+    """Comma-join gene names and word-wrap to ``width`` chars per line for a label."""
     return textwrap.wrap(", ".join(genes), width=width) or [""]
 
 
@@ -173,6 +192,7 @@ def _place_labels(blocks, n_genes, row_h_pt, line_h_pt, title_h_pt):
         h_pt = (title_h_pt if has_title else 0.0) + n_lines * line_h_pt
         half = (h_pt / 2.0) / row_h_pt
         mid = max((s + e - 1) / 2.0, cursor + half)
+        # 1.2x line height as a fixed gap between consecutive stacked labels
         cursor = mid + half + (1.2 * line_h_pt / row_h_pt)
         placed.append([label, s, e, mid, half])
 
@@ -192,7 +212,17 @@ def plot_marker_heatmap(adata, cats, cluster_labels, gene_groups,
                         order_cells_within_cluster="umap",
                         vmin=-2, vmax=2, cmap="viridis", fontsize=10,
                         label_width=30):
-    """Draw and save the annotated marker heatmap.  Returns (fig, info dict)."""
+    """Draw and save the annotated marker heatmap.
+
+    Selects up to ``topN`` marker genes per cluster in ``cats`` (see
+    ``select_markers``), builds the genes x cells z-score matrix (see
+    ``build_matrix``), and renders it with the cluster-identity bar, "marker of"
+    colour strip and curated group labels described in the module docstring.
+    ``vmin``/``vmax`` clip the z-score colour scale (default +/-2 std). The figure
+    is written to ``outfile``. Returns (fig, info dict), where info carries the
+    row/column ordering and boundary metadata used to draw the panel, for anyone
+    who wants to reuse or annotate it further.
+    """
     sel = select_markers(adata, cats, topN=topN, p_cut=p_cut,
                          groupby=groupby, layer=layer, use_raw=use_raw)
     H, gene_order, group_ranges, cluster_boundaries, gene_sections = build_matrix(
@@ -206,9 +236,13 @@ def plot_marker_heatmap(adata, cats, cluster_labels, gene_groups,
                 for i, grp in enumerate(cats)}
 
     # ---- canvas -------------------------------------------------------------
+    # figure size scales with the row/column counts (with a floor) so labels and
+    # cells stay legible regardless of how many genes/cells this call ends up with
     fig_h = max(10, 0.012 * n_genes + 4)
     fig_w = max(9, 0.004 * n_cells + 4)
     fig = plt.figure(figsize=(fig_w, fig_h))
+    # 2x4 grid: (label col, colour-strip col, heatmap col, colourbar col) x
+    # (top identity-bar row, main row); ratios were tuned by eye for this layout
     gs = fig.add_gridspec(
         2, 4, width_ratios=[2.5, 0.16, 7.5, 0.32], height_ratios=[0.6, 10],
         wspace=0.03, hspace=0.02, left=0.02, right=0.93, top=0.95, bottom=0.05)
@@ -222,6 +256,8 @@ def plot_marker_heatmap(adata, cats, cluster_labels, gene_groups,
     im = ax.imshow(H, aspect="auto", cmap=cmap, vmin=vmin, vmax=vmax,
                    interpolation="nearest", origin="upper",
                    extent=(-0.5, n_cells - 0.5, n_genes - 0.5, -0.5))
+    # rasterize the (potentially huge) pixel grid so the saved SVG stays a
+    # manageable size; vector elements (labels, brackets) are unaffected
     im.set_rasterized(True)
     ax.set_xticks([])
     ax.set_yticks([])
@@ -243,10 +279,14 @@ def plot_marker_heatmap(adata, cats, cluster_labels, gene_groups,
     ax_top.axis("off")
 
     # ---- "marker of" colour strip on the y axis -----------------------------
+    # one categorical colour per gene, encoded as its index into cats; genes with
+    # no recognised cluster (should not happen) fall back to grey via set_bad
     strip = np.array([[cats.index(gene2cluster[g]) if gene2cluster.get(g) in cats
                        else np.nan] for g in gene_order], dtype=float)
     cmap_strip = ListedColormap([color_of[c] for c in cats])
     cmap_strip.set_bad("#dddddd")
+    # integer-valued bins centred on each cluster index, so imshow maps each
+    # discrete category to its own solid colour rather than interpolating
     norm = BoundaryNorm(np.arange(-0.5, len(cats) + 0.5), len(cats))
     ax_strip.imshow(np.ma.masked_invalid(strip), aspect="auto", cmap=cmap_strip,
                     norm=norm, interpolation="nearest", origin="upper",
@@ -263,6 +303,8 @@ def plot_marker_heatmap(adata, cats, cluster_labels, gene_groups,
     ax_lab.set_ylim(n_genes - 0.5, -0.5)
     ax_lab.axis("off")
 
+    # label geometry is worked out in points (72 pt = 1 inch) so label heights can
+    # be compared directly against the heatmap's per-row height in points
     line_h = (fontsize - 1) * 1.35
     title_h = (fontsize + 1) * 1.45
     row_h = (fig_h * gs[1, 2].get_position(fig).height) * 72 / n_genes

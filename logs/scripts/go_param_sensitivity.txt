@@ -1,0 +1,173 @@
+================================================================================
+scripts/go_param_sensitivity.py
+349 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Answers a manuscript-revision request (Reviewer #1, Comment 4) about the
+    robustness of the Fig. 4 GO over-representation results. It runs three checks on
+    the goatools Fisher-exact + Benjamini-Hochberg pipeline behind Fig. 4: (4.1)
+    whether the Fig. 4A chemotaxis panel is really specific to motility-related GO
+    terms or picks up many unrelated annotations; (4.2) whether the Dis- vs
+    Reg-Arrest -log10(FDR) comparison and the significance of the core
+    motility/translation program survive restricting the tested GO terms to
+    different gene-set-size windows; (4.3) whether the between-condition difference
+    in significance is itself correlated with gene-set size (a possible confound).
+    It sits downstream of the bulk RNA-seq DESeq2 pipeline (results/deseq_results)
+    and the GO enrichment pipeline (results/GO_results), both described in
+    CLAUDE.md/README.md as bulk_analysis.ipynb output, and it reuses
+    src/bulk_functions.py's DEG-selection and gene-ID-mapping helpers so the DEG
+    sets it re-derives match the ones behind the published Fig. 4B GO tables.
+
+INPUTS
+    - results/deseq_results/from counts/deseq2_results_{disrupted,regulated}.csv
+      DESeq2 output tables, gene-indexed, with padj and log2FoldChange columns.
+    - results/GO_results/from_counts/GOATOOLS_GO_enrichment_results_{disrupted,
+      regulated}_down.csv
+      The published, already FDR-filtered (goatools' internal fdr_bh, alpha=0.05)
+      GO term tables plotted in Fig. 4B. Columns used: GO_ID, Term, FDR,
+      "Ratio in Population" (a string like "(34, 3938)").
+    - scripts/figures/figure4/GO_terms_heatmap.csv
+      Gene x GO-term membership table behind the Fig. 4A heatmap; index is gene
+      name, has a GO_term column.
+    - metadata/go-basic.obo, metadata/ecocyc.gaf
+      GO DAG and gene-to-GO association file (goatools inputs).
+    - src/bulk_functions.GTF_FILE (metadata/genomic.gtf) via get_ID_conversion, for
+      gene-name -> UniProt-accession mapping.
+    - Working-directory assumption: must be run from scripts/ (or REPO itself), so
+      that os.path.dirname(os.getcwd()) resolves to the repo root (see REPO logic).
+
+OUTPUTS (all under results/GO_results/param_sensitivity/)
+    - fig4a_gene_go_annotations.csv       every (gene, GO term) pair for Fig. 4A genes
+    - fig4a_go_membership_summary.csv     per-GO-term count of Fig. 4A genes
+    - ora_full_terms_{disrupted,regulated}.csv
+                                          every GO term tested (not just significant),
+                                          with uncorrected p and gene-set size
+    - go_size_sensitivity_paired.csv      paired Reg-vs-Dis Wilcoxon result per
+                                          gene-set-size window (analysis 4.2a)
+    - go_size_keyterm_recovery.csv        which key motility/translation terms stay
+                                          BH-significant per window (analysis 4.2b)
+    - go_size_confound.csv                per-term Reg-Dis -log10(FDR) difference vs.
+                                          gene-set size (analysis 4.3)
+    - go_size_confound.svg / .png         scatter plot of the above
+    - go_param_sensitivity_log.json       combined parameters + all summary stats
+
+HOW IT WORKS
+    load_go_annotations() loads the GO DAG, the UniProt-to-GO-ID association map, and
+    the gene-name-to-UniProt map shared by all three analyses.
+
+    4.1 (analyse_fig4a_specificity): for every gene shown under GO:0006935
+    (chemotaxis) in the Fig. 4A heatmap, look up every GO term that gene is annotated
+    to (not just chemotaxis) via the UniProt accession, and flag each term as
+    "motility" if its name contains one of a small set of keywords (flagel, chemotax,
+    motil, taxis). It reports what fraction of genes carry at least one such
+    annotation and lists the top non-motility terms the reviewer might otherwise
+    suspect the panel of picking up.
+
+    Shared step (run_full_ora): for a given condition ("disrupted" or "regulated"),
+    reload the DESeq2 table, reproduce the same padj/LFC-threshold DEG selection
+    used by src.bulk_functions.run_go_enrichment (get_lfc_thresh picks the LFC cutoff
+    that yields ~TARGET_SIZE down-regulated genes at padj < P_CUTOFF), and run
+    goatools' GOEnrichmentStudy with propagate_counts=False (only direct
+    annotations, not ancestor terms) exactly as run_go_enrichment does. Unlike the
+    published pipeline, it keeps every tested "enriched" term (not just the
+    FDR-significant ones), together with its uncorrected p-value and its background
+    gene-set size (goatools' ratio_in_pop[0]).
+
+    4.2 (analyse_size_sensitivity) takes two views of robustness across a grid of
+    (min, max) gene-set-size windows. View (a) restricts the shared-program terms
+    common to both published Fig. 4B tables to each window and re-runs a one-sided
+    paired Wilcoxon signed-rank test (Reg > Dis on -log10(FDR)) to see if the
+    direction and significance of the headline comparison survive. View (b) takes
+    the full re-run term universe from run_full_ora, restricts it to each window,
+    re-applies Benjamini-Hochberg within that restricted universe (necessary because
+    trimming the tested-term set changes the multiple-testing correction), and
+    checks whether the core motility/translation KEY_TERMS remain significant in
+    each condition.
+
+    4.3 (analyse_size_confound) takes the terms significant in both published Fig.
+    4B tables, computes the signed and absolute Reg-minus-Dis difference in
+    -log10(FDR) per term, and correlates each against the term's gene-set size with
+    Spearman's rho -- a large |rho| would mean the reported between-condition
+    difference is really a gene-set-size artifact rather than biology.
+
+    main() runs 4.1, then loads the two published Fig. 4B tables (used by both 4.2
+    and 4.3), runs 4.2 and 4.3, and writes every intermediate table plus a combined
+    JSON log with all parameters and summary statistics.
+
+KEY PARAMETERS AND CONSTANTS
+    P_CUTOFF = 0.01          DESeq2 padj cutoff for DEG selection; matches the
+                              published pipeline's default DEG cutoff used elsewhere
+                              in the repo (e.g. src.bulk_functions default calls).
+    TARGET_SIZE = 1000       Target number of down-regulated DEGs; sets the LFC
+                              threshold via get_lfc_thresh. Changing it shifts which
+                              genes enter the study set and hence which terms are
+                              tested at all.
+    FOLD = 'down'            Only down-regulated DEGs are tested, matching the
+                              "_down" suffix in the published GOATOOLS filenames.
+    FIG4A_GO = 'GO:0006935'  The chemotaxis term shown in Fig. 4A; hard-codes which
+                              heatmap rows count as "the Fig. 4A gene set".
+    KEY_TERMS                Six GO IDs (chemotaxis, two flagellum terms, cytoplasmic
+                              translation, translation) whose FDR-significance is
+                              tracked across size windows as the "core program".
+    MOTILITY_KEYWORDS         Substring list ('flagel','chemotax','motil','taxis')
+                              used for a case-insensitive containment test; a term
+                              like "negative regulation of chemotaxis" would still
+                              count as motility, which is intended (broad net for the
+                              specificity check).
+    windows (in analyse_size_sensitivity)
+                              8 (min,max) gene-set-size pairs from (5,100) to
+                              (15,200)/no upper bound; chosen to bracket plausible
+                              "too broad/too narrow" cutoffs a reviewer could ask for.
+    n >= 3 (analyse_size_sensitivity)
+                              Minimum number of paired terms required before running
+                              the Wilcoxon test in a window; below that the test is
+                              skipped (NaN) as statistically meaningless.
+    alpha=0.05, methods=['fdr_bh']
+                              goatools GOEnrichmentStudy settings, matching
+                              src.bulk_functions.run_go_enrichment exactly.
+
+FINDINGS
+    [1] RISK - provenance of the published Fig. 4B parameters is not independently
+        confirmed
+        Location: module docstring / P_CUTOFF, TARGET_SIZE, FOLD constants
+        What the code does: asserts these three constants "reproduce the published
+        Fig. 4B study set", and run_full_ora() re-derives the DEG/study gene set from
+        them to build the size-sensitivity analyses.
+        Why that is a problem: searching scripts/bulk_analysis.ipynb and the other
+        notebooks/scripts in the repo did not turn up a cell that calls
+        run_go_enrichment (or an equivalent inline block) with these exact
+        parameters against the "from counts" disrupted/regulated DESeq2 tables to
+        produce results/GO_results/from_counts/GOATOOLS_GO_enrichment_results_
+        {disrupted,regulated}_down.csv. The values are plausible (P_CUTOFF=0.01 and
+        TARGET_SIZE-style thresholds appear elsewhere in the notebook for other
+        comparisons, and FOLD='down' matches the file-name suffix) but could not be
+        checked against the actual generating code. If the true generating
+        parameters differ, run_full_ora's re-derived DEG set (and everything in 4.2)
+        would silently disagree with the published term list.
+        Suggested fix: locate (or re-run and diff against) the exact script/notebook
+        cell that wrote the from_counts disrupted/regulated GO files, and confirm
+        P_CUTOFF/TARGET_SIZE/FOLD match; if that provenance is truly lost, say so
+        explicitly in the docstring rather than asserting reproduction.
+
+    [2] SMELL - unused variable in the Wilcoxon branch
+        Location: analyse_size_sensitivity, "if n >= 3:" block
+        What the code does: assigns w_stat from wilcoxon(...) but never uses it
+        (only w_p is stored in paired_rows).
+        Why that is a problem: harmless, but slightly misleading to a reader
+        expecting the statistic to be reported somewhere.
+        Suggested fix: none needed; low priority.
+
+RELATED FILES
+    - src/bulk_functions.py: get_lfc_thresh, remove_unidentified_genes,
+      get_ID_conversion, run_go_enrichment - the DEG-selection and GO-enrichment
+      logic this script mirrors (propagate_counts=False, alpha=0.05, fdr_bh, same
+      LFC-threshold search).
+    - scripts/figures/figure4.py, scripts/supplementary_figures/figure_s4.py - read
+      the same results/deseq_results/from counts and results/GO_results/from_counts
+      files to draw the published Fig. 4 panels; this script's job is to stress-test
+      the numbers those figures show, not to regenerate them.
+    - scripts/bulk_analysis.ipynb - the DESeq2/GO enrichment notebook that appears to
+      be the intended source of the "from counts" / "from_counts" result files, but
+      does not show a traceable cell for the disrupted/regulated_down GO run at
+      P_CUTOFF=0.01, TARGET_SIZE=1000 (see Finding 1).

@@ -1,0 +1,112 @@
+================================================================================
+scripts/bulk_correlation_dendrogram.py
+259 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Draws a four-panel figure of Spearman sample-sample correlation for the
+    12-sample bulk RNA-seq set, crossing "log fold change vs. absolute
+    expression" with "raw vs. batch-corrected". Each panel is a
+    hierarchically-clustered heatmap (average-linkage dendrogram on 1 - rho) with
+    condition/batch color strips, so it answers whether replicate samples group
+    by biological condition once the batch effect (bulk vs. time-course dataset)
+    is accounted for. Companion to bulk_lfc_correlation.py, which computes the
+    same correlations without the dendrogram/clustering layer.
+
+INPUTS
+    results/bulk_pca/bulk_log_fold_changes<SUFFIX>.csv       genes x samples
+    results/bulk_pca/bulk_normalized_counts<SUFFIX>.csv      genes x samples
+    both written by `python bulk_lfc_pca.py --bulk-control matched --shx-late`.
+    CLI flags: --no-dendrogram (drop trees, use a fixed condition>batch>sample
+    order), --cmap {viridis,bluered}, --suffix (default "_log2_matched_late").
+
+OUTPUTS
+    results/bulk_pca/bulk_spearman_<layout><SUFFIX>.svg and .png
+        <layout> is "dendrogram" or "blocks" (+ "_bluered" if that cmap is used).
+    results/bulk_pca/bulk_spearman_dendrogram_clusters<SUFFIX>.csv
+        the 2-cluster maxclust assignment per panel per sample; written only when
+        dendrograms are actually computed for ordering (i.e. not --no-dendrogram).
+
+HOW IT WORKS
+    load() reads the two genes x samples matrices for the given --suffix and
+    log10(+1)-transforms the expression matrix (a +1 pseudocount, safe because
+    every gene here already passed the pipeline's mean-count filter). annotate()
+    parses each "dataset|sample" column name into a condition (Reg-Arrest /
+    Dis-Arrest) and batch (bulk / timecourse) label, matching the same convention
+    used by bulk_lfc_correlation.py and bulk_lfc_pca.py. remove_batch() fits
+    y ~ 1 + condition + batch by ordinary least squares (np.linalg.lstsq) per
+    gene, checks the design matrix is full rank (guards against condition/batch
+    being confounded, which would make the batch term unidentified), and
+    subtracts only the fitted batch coefficient, leaving the condition contrast
+    intact -- this is a from-scratch reimplementation of limma's
+    removeBatchEffect, not a call into limma/R.
+
+    The main loop iterates the four PANELS: for each, get the (possibly
+    batch-corrected) matrix, compute the Spearman correlation matrix, and its
+    distance-for-clustering d = 1 - rho (symmetrized to kill float rounding
+    asymmetry, diagonal forced to zero) with an average-linkage dendrogram
+    (scipy linkage/squareform). If --no-dendrogram, samples are shown in a fixed
+    condition>batch>sample order instead of the dendrogram leaf order, so the
+    four panels line up cell-for-cell. Either way a 2-cluster cut of the
+    dendrogram (fcluster, maxclust=2) is recorded and checked against condition
+    for a "clean"/"mixed" print-out, independent of whether the tree is drawn.
+    Heatmap cells are colored on a stretched (not zero-centered) scale since
+    every correlation here is strongly positive, with per-cell numeric labels
+    colored for contrast against the cell's cmap-relative brightness. Below each
+    heatmap, a two-row color strip re-encodes condition and batch per sample so
+    the design is legible regardless of leaf order.
+
+KEY PARAMETERS AND CONSTANTS
+    --suffix default "_log2_matched_late" -- selects the 12-sample matched-control
+        / late-SHX input matrices; changing it points at a different bulk_lfc_pca
+        output (e.g. an unmatched-control run) and both matrices must share it.
+    average linkage / 1 - rho distance -- standard choice for a correlation
+        dendrogram; average linkage keeps a cluster's position tied to the mean of
+        its members rather than its nearest or farthest member.
+    fcluster(..., 2, criterion="maxclust") -- always cuts to exactly 2 clusters
+        (matching the 2 conditions), regardless of how the actual dendrogram
+        branches; a genuinely 3-or-more-way structure would still be forced into 2.
+    vmin = floor(min observed rho * 20) / 20 -- rounds the color-scale floor down
+        to the nearest 0.05 so the stretched color scale has a "clean" lower bound
+        instead of an arbitrary decimal.
+    "timecourse" batch dummy only (drop_first=False then select ["timecourse"]) --
+        assumes exactly two batch values, "bulk" and "timecourse"; a third batch
+        value would silently be absorbed into the intercept rather than raising.
+
+FINDINGS
+    [1] SMELL - LABELS / annotate() / short() duplicated verbatim in
+        bulk_lfc_correlation.py
+        Location: lines 86-108 here vs. bulk_lfc_correlation.py lines 79-134
+        What the code does: both scripts carry independent copies of the
+        dataset|sample -> condition/batch/label parsing and the axis-label
+        shortener.
+        Why that is a problem: a change to the sample-naming convention (e.g. a
+        new dataset/batch) must be made in both files or the two figures'
+        labeling silently diverges; already, short()'s CASP time-point regex
+        differs cosmetically between the two files ("%s min" here vs. "%s'" in
+        bulk_lfc_correlation.py), so the two figures render CASP time points with
+        different suffixes ("30 min" vs "30'") for what should be the same label.
+        Suggested fix: factor annotate()/short()/LABELS into a shared helper
+        module imported by both scripts.
+
+    [2] SMELL - remove_batch() duplicated between this file and
+        bulk_lfc_correlation.py
+        Location: remove_batch(), lines 115-132, vs. the --remove-batch block in
+        bulk_lfc_correlation.py.
+        What the code does: identical OLS batch-removal logic reimplemented in
+        both scripts.
+        Why that is a problem: same maintenance-drift risk as [1] -- e.g. the
+        rank-deficiency SystemExit message differs slightly, but the numerics
+        must stay identical for the two figures to be comparable, and nothing
+        enforces that beyond eyeballing.
+        Suggested fix: same as [1], share the implementation.
+
+RELATED FILES
+    scripts/bulk_lfc_correlation.py -- computes the same Pearson/Spearman
+        correlations without the clustering/dendrogram layer; shares (via
+        copy-paste, not import) LABELS, annotate(), short(), and the batch-removal
+        formula. Read for style reference per the task instructions.
+    scripts/bulk_lfc_pca.py -- upstream producer of both input CSVs; must be run
+        first with matching --bulk-control/--shx-late flags for --suffix to match.
+    src/bulk_functions.py -- separate bulk-analysis library (DESeq2 / GO), not
+        used by this script (this script works directly with pandas/numpy/scipy).

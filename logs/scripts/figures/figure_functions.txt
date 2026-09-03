@@ -1,0 +1,95 @@
+================================================================================
+scripts/figures/figure_functions.py
+111 lines | reviewed 2026-09-03
+================================================================================
+
+PURPOSE
+    Defines PanelFigure, the shared layout helper used by the figureN.py scripts to
+    assemble multi-panel publication figures. It is not itself an analysis or a
+    figure; it is infrastructure that every figureN.py script imports so that panel
+    placement (exact normalized figure coordinates) and panel lettering (A, B, C...)
+    are handled consistently across the whole figure set described in CLAUDE.md.
+
+INPUTS
+    None from disk. All inputs are the arguments a calling script passes to
+    PanelFigure(), add_panel(), and add_grid_panel() (figure size, panel rects,
+    draw callbacks, images).
+
+OUTPUTS
+    None on its own. PanelFigure.save() writes whatever file the caller names
+    (each figureN.py script chooses its own output path, typically a .pdf/.svg
+    plus a _preview.png in scripts/figures/).
+
+HOW IT WORKS
+    PanelFigure.__init__ creates a matplotlib Figure of the requested size and sets
+    up an auto-labeling counter starting at "A" (via ord("A")/chr()), plus a default
+    bold-text style for panel labels.
+
+    add_panel(rect, ...) adds a single Axes at the exact [left, bottom, width,
+    height] figure-fraction rect, optionally hides its axis, calls a caller-supplied
+    draw_func(ax) to do the actual plotting, or displays a raw image, then stamps
+    the panel label at the rect's top-left corner via _label_at.
+
+    add_grid_panel(rect, nrows, ncols, ...) is the same idea but for a panel that is
+    itself a sub-grid: it builds a GridSpec anchored directly to the same figure
+    rect (not to an intervening Axes), so the sub-plots occupy exactly the rect the
+    caller specified, then labels the whole rect once.
+
+    _label_at places a panel label using fig.text() in figure-fraction coordinates,
+    offset from the rect's top-left corner by label_offset. _auto_label supplies the
+    next letter when the caller does not pass one explicitly.
+
+    _label_axes is an alternate, axes-relative version of the labeling logic (uses
+    ax.transAxes instead of fig.transFigure). It is not called anywhere in this file
+    or, as far as this review checked, by any figureN.py script that imports
+    PanelFigure -- see FINDINGS.
+
+    save() forces a canvas draw (so the renderer exists, which some backends need
+    before text extents are correct) and then calls fig.savefig with whatever
+    kwargs the caller passes (dpi, transparent, etc).
+
+KEY PARAMETERS AND CONSTANTS
+    label_offset=(0, 0.02) - default figure-fraction offset of a panel's label from
+        its top-left corner; enlarging the y-component pushes the label further
+        above the panel.
+    default_style = fontweight="bold", fontsize=12, ha="left", va="top" - the panel
+        label typography used for every figure unless a script changes it after
+        construction (see BUG below - passing label_style has no effect).
+    next_label starts at ord("A") = 65; each unlabeled panel consumes the next
+        letter in sequence, so panel call order determines the auto-generated
+        lettering.
+
+FINDINGS
+
+    [1] BUG - label_style constructor argument is silently ignored
+        Location: __init__, line "self.label_style = default_style or (label_style or {})"
+        What the code does: default_style is built as a dict with four keys, which is
+            always truthy, so `default_style or (label_style or {})` always evaluates
+            to default_style regardless of what label_style the caller passed.
+        Why that is a problem: any figureN.py script that tries to customize panel
+            label styling via PanelFigure(..., label_style={...}) will see no effect;
+            the constructor's own default silently wins every time. Callers cannot
+            discover this without reading the source.
+        Suggested fix: the expression almost certainly should be
+            `label_style or default_style` (custom style wins if given, else the
+            default) -- but per the documentation-pass rule this was left unfixed
+            and only commented.
+
+    [2] SMELL - _label_axes is unreferenced
+        Location: _label_axes method
+        What the code does: implements an axes-relative alternative to _label_at,
+            but nothing in this file or (per a grep of scripts/figures/figure4.py)
+            in figure4.py calls it.
+        Why that is a problem: dead code adds a second, divergent code path for
+            "place a panel label" that could rot without anyone noticing.
+        Suggested fix: remove it, or call it out in a comment as intentionally kept
+            for ad hoc use (now done).
+
+RELATED FILES
+    scripts/figures/figure4.py - the only file in this documentation batch that
+        imports PanelFigure (from figure_functions import PanelFigure) and uses
+        add_panel for all four of its panels; does not use add_grid_panel or
+        _label_axes.
+    Other scripts/figures/figureN.py scripts (not reviewed in this pass) are
+        expected to depend on this module the same way, per CLAUDE.md's description
+        of the figures/ directory.

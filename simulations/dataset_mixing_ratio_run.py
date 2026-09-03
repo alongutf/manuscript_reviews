@@ -87,6 +87,7 @@ _LOG_DIR = os.path.join(_SIM_RESULTS, 'logs')
 
 
 def parse_args():
+    """Command-line options controlling the two source datasets and the mixing design."""
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--file1', default='EXP_biorep_t0A_filtered.csv',
@@ -131,6 +132,11 @@ def parse_args():
 # ── Data ─────────────────────────────────────────────────────────────────────
 
 def load_matrix(path, fname, reporter_handling='clean'):
+    """Read one cells x genes CSV, drop bookkeeping columns, and case-fold gene names.
+
+    `reporter_handling='published'` additionally reproduces the paper pipeline's
+    exact-case reporter drop, see PUBLISHED_EXACT_DROP above.
+    """
     d = pd.read_csv(path, index_col=0).fillna(0.0)
     drop = [c for c in d.columns
             if str(c).lower().startswith('unnamed') or str(c).startswith('INTR_')]
@@ -149,6 +155,17 @@ def load_matrix(path, fname, reporter_handling='clean'):
 
 
 def build_pools(args):
+    """Load both datasets, build the fixed gene panel, and return the two cell pools.
+
+    Returns (a, b, genes, reporters_present, n_shared, n_exclusive):
+      a, b               cells x len(genes) float arrays, the highest-count cells of
+                         each dataset restricted to the fixed panel
+      genes              the panel itself, gene names in fixed order
+      reporters_present  reporter/plasmid genes seen in either dataset (for logging)
+      n_shared           number of genes shared by both datasets before panel selection
+      n_exclusive        number of panel genes present in only one dataset (see the
+                         warning below - these act as a perfect population separator)
+    """
     data_dir = args.data_dir if os.path.isabs(args.data_dir) \
         else os.path.join(_REPO_ROOT, args.data_dir)
     d1 = load_matrix(os.path.join(data_dir, args.file1), args.file1, args.reporter_handling)
@@ -173,10 +190,14 @@ def build_pools(args):
 
     combined = pd.concat([p1, p2]).to_numpy(dtype=float)
     mean, var = combined.mean(axis=0), combined.var(axis=0)
+    # Fano factor (var/mean) on the pooled cells: picks genes that vary a lot relative
+    # to their own level, which is what a correlation-based metric like GMP-Cor is
+    # sensitive to. Computed once on the combined pool and then held fixed at every
+    # ratio, so the panel itself cannot be responsible for any ratio-dependent effect.
     with np.errstate(divide='ignore', invalid='ignore'):
         fano = np.where(mean > 0, var / mean, 0.0)
     n_genes = min(args.n_genes, combined.shape[1])
-    idx = np.sort(np.argsort(fano)[::-1][:n_genes])
+    idx = np.sort(np.argsort(fano)[::-1][:n_genes])   # top-Fano genes, back in name order
     genes = [space[i] for i in idx]
     n_exclusive = sum(1 for g in genes if g not in shared_clean)
 
@@ -197,6 +218,9 @@ def build_pools(args):
 # ── Run ──────────────────────────────────────────────────────────────────────
 
 def run(a, b, args):
+    """Compute GMP-Cor at every ratio x repeat, and its group-centered counterpart
+    for mixtures. Returns a tidy long-form DataFrame, one row per (ratio, repeat).
+    """
     records = []
     for r in args.ratios:
         if args.all_cells:
@@ -206,6 +230,9 @@ def run(a, b, args):
             n_a = int(round(args.n_total * r))
             n_b = args.n_total - n_a
         for rep in range(args.repeats):
+            # a fresh, independent stream per (ratio, repeat); ratio is folded in via
+            # int(r * 100) (e.g. r=0.25 -> 25) so distinct ratios cannot collide, and
+            # repeat is added last since it is always < 1000
             rng = np.random.default_rng(args.seed + 1000 * int(r * 100) + rep)
             parts, labels = [], []
             if n_a:
@@ -225,6 +252,12 @@ def run(a, b, args):
                        mean_depth=float(m.sum(axis=1).mean()),
                        mean_detected=float((m > 0).sum(axis=1).mean()), **res)
             if (lab == 0).any() and (lab == 1).any():
+                # group_centered subtracts each dataset's OWN per-gene mean before
+                # normalizing, which removes the between-population mean shift but
+                # keeps within-cell structure; norm=False because group_centered has
+                # already normalized. The drop from raw to centered GMP-Cor (d_gmp)
+                # is therefore the share of the mixture's signal that is purely the
+                # two populations sitting apart, not new gene-gene coordination.
                 cen = gmp_cor(group_centered(m, lab, norm_sum=args.norm_sum), norm=False)
                 rec['gmp_cor_group_centered'] = cen['gmp_cor']
                 rec['d_gmp'] = 1 - cen['gmp_cor'] / res['gmp_cor'] if res['gmp_cor'] else np.nan
@@ -240,6 +273,7 @@ def run(a, b, args):
 
 
 def summarize(df):
+    """Collapse the per-repeat records to per-ratio mean/std of every numeric column."""
     num = df.select_dtypes(include=[np.number]).columns.drop(['repeat'])
     g = df.groupby('ratio_1')[list(num)]
     out = g.mean()
@@ -252,6 +286,8 @@ def summarize(df):
 # ── Figure ───────────────────────────────────────────────────────────────────
 
 def make_figure(df, summary, args, path_svg, path_png):
+    """Two-panel figure: GMP-Cor vs mixing ratio (left), and raw vs group-centered
+    GMP-Cor at each mixture with the dGMP fraction annotated (right)."""
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.2))
     fig.subplots_adjust(wspace=0.3, bottom=0.16)
     fs = 11
@@ -303,6 +339,7 @@ def make_figure(df, summary, args, path_svg, path_png):
 
 
 def write_summary(summary, args, meta, paths, timestamp):
+    """Build the human-readable .txt report (design, results table, interpretation)."""
     out = []
     w = out.append
     w('=' * 70)
@@ -425,6 +462,7 @@ def write_summary(summary, args, meta, paths, timestamp):
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
+    """Build the cell pools and fixed gene panel, run the ratio sweep, and write outputs."""
     args = parse_args()
     for d in (_FIG_DIR, _RAW_DIR, _LOG_DIR):
         os.makedirs(d, exist_ok=True)

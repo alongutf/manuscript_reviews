@@ -1,0 +1,855 @@
+{
+  "experiment": "gmp_cor_alpha2_sigma_sweep",
+  "timestamp": "20260906_142415",
+  "generated": "2026-09-06T14:31:40.954434",
+  "engine": "Wolfram Mathematica 13.0 via wolframscript",
+  "source_notebook": "model fit/model_fit.nb (GMP density cell, line 140)",
+  "question": "symbolic expression for GMP-Cor = excess eigenvalue mass above the MP edge",
+  "symbolic_outcome": {
+    "direct_integral": "NOT AVAILABLE - Integrate[(lam-aMP) rho_GMP, {lam,aMP,Inf}] did not evaluate in 240 s; rho_GMP is Im of roots of a quartic (~6500 leaves each)",
+    "lambda_of_q": "CLOSED FORM: lambda(q) = (alpha(q-1)-q)(alpha(q-1)-q sigma^2 +/- D)/(2 alpha (q-1)^2 q), with D = sqrt(alpha^2 (q-1)^2 + q^2 sigma^4 - 2 alpha (q-1) q sigma^2 (2 sigma^2 - 1))",
+    "quartic_for_q": {
+      "note": "q satisfies an explicit quartic with polynomial coefficients in lambda, alpha, sigma (common factor 4 sigma^2 removed)",
+      "c4": "-alpha lam^2",
+      "c3": "lam (alpha^2 + sigma^2 + alpha(3 lam - 1 - sigma^2))",
+      "c2": "-(sigma^2 (lam + sigma^2 - 1) + alpha^2 (3 lam - sigma^2 + sigma^4) + alpha(3 lam^2 - 2 sigma^2 (sigma^2 - 1) - 2 lam (1 + sigma^2)))",
+      "c1": "alpha(lam^2 + lam(3 alpha - 1 - sigma^2) + 2(alpha-1) sigma^2 (sigma^2 - 1))",
+      "c0": "-alpha^2 (lam - sigma^2 + sigma^4)"
+    },
+    "sigma0_limit": "lambda(q) -> 1/(1-q) + alpha/q (classical MP inverse Stieltjes map); critical point q* = sqrt(alpha)/(1+sqrt(alpha)) gives lambda_+ = (1+sqrt(alpha))^2 EXACTLY",
+    "edge_closed_form": "NOT VERIFIED - rationalising dlambda/dq = 0 gives a quartic in q, but its roots yielded lambda_+ = 6.171 at sigma=0 (true 5.828) and 6.43/8.17 at sigma=0.5 (true 6.107). Extraneous roots from Resultant; correct branch not identified. All lambda_+ reported here are numerical (bisection)."
+  },
+  "gmp_cor": {
+    "definition": "sum_i max(lambda_i - lambda_max_scrambled, 0)  [src/simulations.py:597]",
+    "continuum": "gmp_cor_per_gene = int_{aMP}^{lambda_+} (lambda - aMP) rho_GMP(lambda) dlambda",
+    "threshold_aMP": 5.82842712474619,
+    "normalisation": "notebook density is per gene (int rho = 1/alpha, atom 1-1/alpha at zero), so the integral equals gmp_cor_per_gene directly; extensive gmp_cor = p * integral"
+  },
+  "method": {
+    "gmp_cor_sweep": "Mathematica NIntegrate GlobalAdaptive, AccuracyGoal 12, PrecisionGoal 10; sigma = 0.01..0.99 step 0.01",
+    "lambda_plus": "bisection on rho > 1e-11, 60 iterations",
+    "density_curves": "lambda 0.005..14.0 step 0.005; sigma = 0.001 then 0.02..1.00 step 0.02"
+  },
+  "validation": {
+    "reproduces_committed_file": "model fit/model_alpha2_sigma09.txt reproduced with max abs diff 0",
+    "mass": "0.499984 (expected 1/alpha = 0.5)",
+    "mean_eigenvalue": "0.999998 (expected 1.0)",
+    "lambda_plus_at_sigma_0p01": "5.828427162487 vs MP edge 5.828427124746 (excess 3.8e-8)",
+    "nintegrate_vs_trapezoid": "agree to ~5e-5 relative for sigma >= 0.6; trapezoid unreliable below sigma ~ 0.4 (26% low at sigma=0.2) because the excess region spans only a few grid points - NIntegrate values are authoritative"
+  },
+  "findings": [
+    "GMP-Cor is strictly positive for every sigma > 0: there is NO sharp onset threshold. It falls to 2.8e-21 at sigma=0.01 but never reaches zero.",
+    "GMP-Cor rises monotonically to 0.0374 per gene at sigma=0.99.",
+    "sigma = 1.0 is degenerate: support jumps from 8.73 to ~12. Sweep is valid on [0,1)."
+  ],
+  "outputs": {
+    "density_curves": "model fit/gmp_sweep_alpha2/curve_sigma_*.txt (51 files; columns lambda, rho)",
+    "summary": "results/simulation_results/raw/gmp_cor_alpha2_sigma_sweep_20260906_142415.txt",
+    "figure": "results/simulation_results/figures/gmp_cor_alpha2_sigma_sweep_20260906_142415.svg"
+  },
+  "results_nintegrate": [
+    {
+      "sigma": 0.01,
+      "lambda_plus": 5.828427162487057,
+      "gmp_cor_per_gene": 2.812947872174464e-21
+    },
+    {
+      "sigma": 0.02,
+      "lambda_plus": 5.828427784343867,
+      "gmp_cor_per_gene": 3.06019532797282e-18
+    },
+    {
+      "sigma": 0.03,
+      "lambda_plus": 5.828430465136974,
+      "gmp_cor_per_gene": 1.7662167777381965e-16
+    },
+    {
+      "sigma": 0.04,
+      "lambda_plus": 5.828437687236202,
+      "gmp_cor_per_gene": 3.1402494468228e-15
+    },
+    {
+      "sigma": 0.05,
+      "lambda_plus": 5.828452928381072,
+      "gmp_cor_per_gene": 2.929175975258352e-14
+    },
+    {
+      "sigma": 0.060000000000000005,
+      "lambda_plus": 5.828480672356817,
+      "gmp_cor_per_gene": 1.8171241690923697e-13
+    },
+    {
+      "sigma": 0.06999999999999999,
+      "lambda_plus": 5.828526418216062,
+      "gmp_cor_per_gene": 8.507875363566671e-13
+    },
+    {
+      "sigma": 0.08,
+      "lambda_plus": 5.8285966913593334,
+      "gmp_cor_per_gene": 3.2422528966920065e-12
+    },
+    {
+      "sigma": 0.09,
+      "lambda_plus": 5.828699056244214,
+      "gmp_cor_per_gene": 1.0558715400666619e-11
+    },
+    {
+      "sigma": 0.09999999999999999,
+      "lambda_plus": 5.828842131107645,
+      "gmp_cor_per_gene": 3.0377493323222436e-11
+    },
+    {
+      "sigma": 0.11,
+      "lambda_plus": 5.829035603867072,
+      "gmp_cor_per_gene": 7.906153083626621e-11
+    },
+    {
+      "sigma": 0.12,
+      "lambda_plus": 5.829290249509225,
+      "gmp_cor_per_gene": 1.8943074825852724e-10
+    },
+    {
+      "sigma": 0.13,
+      "lambda_plus": 5.829617948557801,
+      "gmp_cor_per_gene": 4.234248036202103e-10
+    },
+    {
+      "sigma": 0.14,
+      "lambda_plus": 5.830031706381894,
+      "gmp_cor_per_gene": 8.920462208501557e-10
+    },
+    {
+      "sigma": 0.15000000000000002,
+      "lambda_plus": 5.8305456730735035,
+      "gmp_cor_per_gene": 1.7860509463370843e-09
+    },
+    {
+      "sigma": 0.16,
+      "lambda_plus": 5.8311751635011895,
+      "gmp_cor_per_gene": 3.4209268044062616e-09
+    },
+    {
+      "sigma": 0.17,
+      "lambda_plus": 5.831936677185373,
+      "gmp_cor_per_gene": 6.301661190689591e-09
+    },
+    {
+      "sigma": 0.18000000000000002,
+      "lambda_plus": 5.832847917485939,
+      "gmp_cor_per_gene": 1.1214159287981716e-08
+    },
+    {
+      "sigma": 0.19,
+      "lambda_plus": 5.833927809566152,
+      "gmp_cor_per_gene": 1.9350506389707442e-08
+    },
+    {
+      "sigma": 0.2,
+      "lambda_plus": 5.835196516605687,
+      "gmp_cor_per_gene": 3.2478233689885584e-08
+    },
+    {
+      "sigma": 0.21000000000000002,
+      "lambda_plus": 5.836675453498068,
+      "gmp_cor_per_gene": 5.316536450919147e-08
+    },
+    {
+      "sigma": 0.22,
+      "lambda_plus": 5.838387297381881,
+      "gmp_cor_per_gene": 8.507371389008464e-08
+    },
+    {
+      "sigma": 0.23,
+      "lambda_plus": 5.840355994087086,
+      "gmp_cor_per_gene": 1.3333704219811965e-07
+    },
+    {
+      "sigma": 0.24000000000000002,
+      "lambda_plus": 5.842606759746836,
+      "gmp_cor_per_gene": 2.0504092447863635e-07
+    },
+    {
+      "sigma": 0.25,
+      "lambda_plus": 5.845166076497461,
+      "gmp_cor_per_gene": 3.0982412953744124e-07
+    },
+    {
+      "sigma": 0.26,
+      "lambda_plus": 5.8480616813483906,
+      "gmp_cor_per_gene": 4.606227754831255e-07
+    },
+    {
+      "sigma": 0.27,
+      "lambda_plus": 5.851322547155344,
+      "gmp_cor_per_gene": 6.745799681586826e-07
+    },
+    {
+      "sigma": 0.28,
+      "lambda_plus": 5.854978854640875,
+      "gmp_cor_per_gene": 9.741444826296535e-07
+    },
+    {
+      "sigma": 0.29000000000000004,
+      "lambda_plus": 5.859061954411988,
+      "gmp_cor_per_gene": 1.388382151523783e-06
+    },
+    {
+      "sigma": 0.3,
+      "lambda_plus": 5.863604317970476,
+      "gmp_cor_per_gene": 1.9545227574500264e-06
+    },
+    {
+      "sigma": 0.31,
+      "lambda_plus": 5.868639476769228,
+      "gmp_cor_per_gene": 2.719763169381592e-06
+    },
+    {
+      "sigma": 0.32,
+      "lambda_plus": 5.874201948505303,
+      "gmp_cor_per_gene": 3.743344009335287e-06
+    },
+    {
+      "sigma": 0.33,
+      "lambda_plus": 5.880327150000634,
+      "gmp_cor_per_gene": 5.098912118178431e-06
+    },
+    {
+      "sigma": 0.34,
+      "lambda_plus": 5.887051296240902,
+      "gmp_cor_per_gene": 6.877174403763493e-06
+    },
+    {
+      "sigma": 0.35000000000000003,
+      "lambda_plus": 5.894411285403397,
+      "gmp_cor_per_gene": 9.18884028985926e-06
+    },
+    {
+      "sigma": 0.36000000000000004,
+      "lambda_plus": 5.902444570050012,
+      "gmp_cor_per_gene": 1.2167840039432748e-05
+    },
+    {
+      "sigma": 0.37,
+      "lambda_plus": 5.911189014992902,
+      "gmp_cor_per_gene": 1.5974794947584993e-05
+    },
+    {
+      "sigma": 0.38,
+      "lambda_plus": 5.9206827427707305,
+      "gmp_cor_per_gene": 2.080070317017259e-05
+    },
+    {
+      "sigma": 0.39,
+      "lambda_plus": 5.930963968072316,
+      "gmp_cor_per_gene": 2.6870792312198386e-05
+    },
+    {
+      "sigma": 0.4,
+      "lambda_plus": 5.942070822892895,
+      "gmp_cor_per_gene": 3.444847750304074e-05
+    },
+    {
+      "sigma": 0.41000000000000003,
+      "lambda_plus": 5.954041174587335,
+      "gmp_cor_per_gene": 4.3839352284118684e-05
+    },
+    {
+      "sigma": 0.42000000000000004,
+      "lambda_plus": 5.966912439412023,
+      "gmp_cor_per_gene": 5.5395130013323005e-05
+    },
+    {
+      "sigma": 0.43,
+      "lambda_plus": 5.980721394398736,
+      "gmp_cor_per_gene": 6.951744640153422e-05
+    },
+    {
+      "sigma": 0.44,
+      "lambda_plus": 5.995503990674933,
+      "gmp_cor_per_gene": 8.666142989448514e-05
+    },
+    {
+      "sigma": 0.45,
+      "lambda_plus": 6.011295171504484,
+      "gmp_cor_per_gene": 0.00010733894637249573
+    },
+    {
+      "sigma": 0.46,
+      "lambda_plus": 6.028128698178681,
+      "gmp_cor_per_gene": 0.00013212142831747173
+    },
+    {
+      "sigma": 0.47000000000000003,
+      "lambda_plus": 6.046036987101538,
+      "gmp_cor_per_gene": 0.00016164220617619415
+    },
+    {
+      "sigma": 0.48000000000000004,
+      "lambda_plus": 6.0650509607681276,
+      "gmp_cor_per_gene": 0.0001965982708452489
+    },
+    {
+      "sigma": 0.49,
+      "lambda_plus": 6.085199915368157,
+      "gmp_cor_per_gene": 0.00023775141048410902
+    },
+    {
+      "sigma": 0.5,
+      "lambda_plus": 6.106511407059573,
+      "gmp_cor_per_gene": 0.0002859286814748572
+    },
+    {
+      "sigma": 0.51,
+      "lambda_plus": 6.129011158575428,
+      "gmp_cor_per_gene": 0.0003420221914155268
+    },
+    {
+      "sigma": 0.52,
+      "lambda_plus": 6.152722987175614,
+      "gmp_cor_per_gene": 0.00040698819059656593
+    },
+    {
+      "sigma": 0.53,
+      "lambda_plus": 6.177668754469135,
+      "gmp_cor_per_gene": 0.00048184548654735726
+    },
+    {
+      "sigma": 0.54,
+      "lambda_plus": 6.203868337943958,
+      "gmp_cor_per_gene": 0.0005676732130937986
+    },
+    {
+      "sigma": 0.55,
+      "lambda_plus": 6.2313396236205865,
+      "gmp_cor_per_gene": 0.0006656080002426254
+    },
+    {
+      "sigma": 0.56,
+      "lambda_plus": 6.26009851863498,
+      "gmp_cor_per_gene": 0.0007768406035797875
+    },
+    {
+      "sigma": 0.5700000000000001,
+      "lambda_plus": 6.290158982333639,
+      "gmp_cor_per_gene": 0.0009026120614295349
+    },
+    {
+      "sigma": 0.5800000000000001,
+      "lambda_plus": 6.321533073939178,
+      "gmp_cor_per_gene": 0.0010442094546002144
+    },
+    {
+      "sigma": 0.59,
+      "lambda_plus": 6.354231014790533,
+      "gmp_cor_per_gene": 0.0012029613472489503
+    },
+    {
+      "sigma": 0.6,
+      "lambda_plus": 6.388261262931847,
+      "gmp_cor_per_gene": 0.0013802329883609208
+    },
+    {
+      "sigma": 0.61,
+      "lambda_plus": 6.4236305978239745,
+      "gmp_cor_per_gene": 0.0015774213519144644
+    },
+    {
+      "sigma": 0.62,
+      "lambda_plus": 6.460344212948724,
+      "gmp_cor_per_gene": 0.0017959500903149627
+    },
+    {
+      "sigma": 0.63,
+      "lambda_plus": 6.498405814171555,
+      "gmp_cor_per_gene": 0.0020372644706019866
+    },
+    {
+      "sigma": 0.64,
+      "lambda_plus": 6.5378177218989,
+      "gmp_cor_per_gene": 0.0023028263566056343
+    },
+    {
+      "sigma": 0.65,
+      "lambda_plus": 6.578580975188945,
+      "gmp_cor_per_gene": 0.0025941092931258776
+    },
+    {
+      "sigma": 0.66,
+      "lambda_plus": 6.6206954362182575,
+      "gmp_cor_per_gene": 0.0029125937406222417
+    },
+    {
+      "sigma": 0.67,
+      "lambda_plus": 6.664159893711812,
+      "gmp_cor_per_gene": 0.003259762501212721
+    },
+    {
+      "sigma": 0.68,
+      "lambda_plus": 6.708972164128049,
+      "gmp_cor_per_gene": 0.003637096369181833
+    },
+    {
+      "sigma": 0.6900000000000001,
+      "lambda_plus": 6.755129189663989,
+      "gmp_cor_per_gene": 0.004046070031961066
+    },
+    {
+      "sigma": 0.7000000000000001,
+      "lambda_plus": 6.802627132279418,
+      "gmp_cor_per_gene": 0.0044881482407577245
+    },
+    {
+      "sigma": 0.7100000000000001,
+      "lambda_plus": 6.851461463153138,
+      "gmp_cor_per_gene": 0.004964782263839847
+    },
+    {
+      "sigma": 0.72,
+      "lambda_plus": 6.901627047173151,
+      "gmp_cor_per_gene": 0.005477406629941452
+    },
+    {
+      "sigma": 0.73,
+      "lambda_plus": 6.953118222163798,
+      "gmp_cor_per_gene": 0.006027436164403587
+    },
+    {
+      "sigma": 0.74,
+      "lambda_plus": 7.005928872707218,
+      "gmp_cor_per_gene": 0.006616263316493162
+    },
+    {
+      "sigma": 0.75,
+      "lambda_plus": 7.060052498519017,
+      "gmp_cor_per_gene": 0.007245255772829676
+    },
+    {
+      "sigma": 0.76,
+      "lambda_plus": 7.115482277429202,
+      "gmp_cor_per_gene": 0.00791575434896025
+    },
+    {
+      "sigma": 0.77,
+      "lambda_plus": 7.172211123070001,
+      "gmp_cor_per_gene": 0.00862907114880568
+    },
+    {
+      "sigma": 0.78,
+      "lambda_plus": 7.230231737466029,
+      "gmp_cor_per_gene": 0.00938648797992155
+    },
+    {
+      "sigma": 0.79,
+      "lambda_plus": 7.289536658728747,
+      "gmp_cor_per_gene": 0.01018925501117185
+    },
+    {
+      "sigma": 0.8,
+      "lambda_plus": 7.350118304091519,
+      "gmp_cor_per_gene": 0.011038589658520063
+    },
+    {
+      "sigma": 0.81,
+      "lambda_plus": 7.411969008581019,
+      "gmp_cor_per_gene": 0.011935675684056386
+    },
+    {
+      "sigma": 0.8200000000000001,
+      "lambda_plus": 7.475081059571628,
+      "gmp_cor_per_gene": 0.012881662493124906
+    },
+    {
+      "sigma": 0.8300000000000001,
+      "lambda_plus": 7.539446727524132,
+      "gmp_cor_per_gene": 0.013877664614397623
+    },
+    {
+      "sigma": 0.8400000000000001,
+      "lambda_plus": 7.605058293180129,
+      "gmp_cor_per_gene": 0.014924761347920514
+    },
+    {
+      "sigma": 0.85,
+      "lambda_plus": 7.671908071501455,
+      "gmp_cor_per_gene": 0.01602399656653067
+    },
+    {
+      "sigma": 0.86,
+      "lambda_plus": 7.739988432610115,
+      "gmp_cor_per_gene": 0.017176378656501623
+    },
+    {
+      "sigma": 0.87,
+      "lambda_plus": 7.809291819997136,
+      "gmp_cor_per_gene": 0.018382880583874814
+    },
+    {
+      "sigma": 0.88,
+      "lambda_plus": 7.87981076623361,
+      "gmp_cor_per_gene": 0.01964444007357644
+    },
+    {
+      "sigma": 0.89,
+      "lambda_plus": 7.951537906433277,
+      "gmp_cor_per_gene": 0.020961959889129418
+    },
+    {
+      "sigma": 0.9,
+      "lambda_plus": 8.024465989665302,
+      "gmp_cor_per_gene": 0.022336308201484766
+    },
+    {
+      "sigma": 0.91,
+      "lambda_plus": 8.098587888530668,
+      "gmp_cor_per_gene": 0.023768319036267433
+    },
+    {
+      "sigma": 0.92,
+      "lambda_plus": 8.173896607086398,
+      "gmp_cor_per_gene": 0.025258792789450056
+    },
+    {
+      "sigma": 0.93,
+      "lambda_plus": 8.250385287290307,
+      "gmp_cor_per_gene": 0.02680849680222513
+    },
+    {
+      "sigma": 0.9400000000000001,
+      "lambda_plus": 8.328047214129802,
+      "gmp_cor_per_gene": 0.028418165986556367
+    },
+    {
+      "sigma": 0.9500000000000001,
+      "lambda_plus": 8.406875819571495,
+      "gmp_cor_per_gene": 0.030088503493585605
+    },
+    {
+      "sigma": 0.9600000000000001,
+      "lambda_plus": 8.486864685478514,
+      "gmp_cor_per_gene": 0.03182018141774268
+    },
+    {
+      "sigma": 0.97,
+      "lambda_plus": 8.5680075456037,
+      "gmp_cor_per_gene": 0.033613841530038595
+    },
+    {
+      "sigma": 0.98,
+      "lambda_plus": 8.65029828677633,
+      "gmp_cor_per_gene": 0.03547009603461742
+    },
+    {
+      "sigma": 0.99,
+      "lambda_plus": 8.733730949381314,
+      "gmp_cor_per_gene": 0.03738952834322796
+    }
+  ],
+  "results_trapezoid_crosscheck": [
+    {
+      "sigma": 0.001,
+      "mass": 0.49999406756806153,
+      "mean": 0.9999979970087887,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.02,
+      "mass": 0.49999423927038306,
+      "mean": 0.9999981657134027,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.04,
+      "mass": 0.4999942168821133,
+      "mean": 0.9999980984114448,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.06,
+      "mass": 0.49999411939132943,
+      "mean": 0.9999978036165391,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.08,
+      "mass": 0.4999938531154151,
+      "mean": 0.9999969865608722,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.1,
+      "mass": 0.4999932739373691,
+      "mean": 0.999995158304351,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.12,
+      "mass": 0.49999216218019127,
+      "mean": 0.9999914910565928,
+      "gmp_cor_per_gene": 0.0
+    },
+    {
+      "sigma": 0.14,
+      "mass": 0.49999109264548175,
+      "mean": 0.9999898961696145,
+      "gmp_cor_per_gene": 7.180884741655011e-10
+    },
+    {
+      "sigma": 0.16,
+      "mass": 0.4999923645644122,
+      "mean": 1.0000044572652138,
+      "gmp_cor_per_gene": 4.36811620277078e-09
+    },
+    {
+      "sigma": 0.18,
+      "mass": 0.49998992766606104,
+      "mean": 1.0000007184885935,
+      "gmp_cor_per_gene": 6.791713830171603e-09
+    },
+    {
+      "sigma": 0.2,
+      "mass": 0.49998644670115916,
+      "mean": 0.9999952104315343,
+      "gmp_cor_per_gene": 2.4037559224437647e-08
+    },
+    {
+      "sigma": 0.22,
+      "mass": 0.4999831904120713,
+      "mean": 0.9999965312280741,
+      "gmp_cor_per_gene": 7.323611981084189e-08
+    },
+    {
+      "sigma": 0.24,
+      "mass": 0.4999790916484656,
+      "mean": 0.999999944839761,
+      "gmp_cor_per_gene": 2.0110227168907046e-07
+    },
+    {
+      "sigma": 0.26,
+      "mass": 0.49997232106139067,
+      "mean": 0.9999965725931528,
+      "gmp_cor_per_gene": 4.497319200827249e-07
+    },
+    {
+      "sigma": 0.28,
+      "mass": 0.4999614667008937,
+      "mean": 0.9999803662402509,
+      "gmp_cor_per_gene": 8.979755651470955e-07
+    },
+    {
+      "sigma": 0.3,
+      "mass": 0.4999526540025213,
+      "mean": 0.9999899211451704,
+      "gmp_cor_per_gene": 1.9218154510762688e-06
+    },
+    {
+      "sigma": 0.32,
+      "mass": 0.4999381234104248,
+      "mean": 0.9999831412508295,
+      "gmp_cor_per_gene": 3.6704214975441907e-06
+    },
+    {
+      "sigma": 0.34,
+      "mass": 0.4999226295040491,
+      "mean": 0.9999919801797785,
+      "gmp_cor_per_gene": 6.905465269977472e-06
+    },
+    {
+      "sigma": 0.36,
+      "mass": 0.49999914746215324,
+      "mean": 1.0000037618725868,
+      "gmp_cor_per_gene": 1.2190953367264313e-05
+    },
+    {
+      "sigma": 0.38,
+      "mass": 0.5000258964546357,
+      "mean": 1.0000077556396174,
+      "gmp_cor_per_gene": 2.082695126204901e-05
+    },
+    {
+      "sigma": 0.4,
+      "mass": 0.5000371797239396,
+      "mean": 1.000011197169753,
+      "gmp_cor_per_gene": 3.451252858659848e-05
+    },
+    {
+      "sigma": 0.42,
+      "mass": 0.5000367074690255,
+      "mean": 1.0000113622379856,
+      "gmp_cor_per_gene": 5.5482895167792494e-05
+    },
+    {
+      "sigma": 0.44,
+      "mass": 0.5000244522928233,
+      "mean": 1.0000060383485514,
+      "gmp_cor_per_gene": 8.667887313618266e-05
+    },
+    {
+      "sigma": 0.46,
+      "mass": 0.5000004764761058,
+      "mean": 1.0000009325519452,
+      "gmp_cor_per_gene": 0.00013210619080846693
+    },
+    {
+      "sigma": 0.48,
+      "mass": 0.49996176107048196,
+      "mean": 0.9999872991856379,
+      "gmp_cor_per_gene": 0.00019629927441318243
+    },
+    {
+      "sigma": 0.5,
+      "mass": 0.4999638973003795,
+      "mean": 0.9999990719268446,
+      "gmp_cor_per_gene": 0.00028612034455517937
+    },
+    {
+      "sigma": 0.52,
+      "mass": 0.5000371548829226,
+      "mean": 1.000008505061423,
+      "gmp_cor_per_gene": 0.00040707112279943295
+    },
+    {
+      "sigma": 0.54,
+      "mass": 0.5000284092602199,
+      "mean": 1.0000015293944287,
+      "gmp_cor_per_gene": 0.0005674271957799026
+    },
+    {
+      "sigma": 0.56,
+      "mass": 0.49998207027823843,
+      "mean": 0.9999930422656671,
+      "gmp_cor_per_gene": 0.0007764973018825827
+    },
+    {
+      "sigma": 0.58,
+      "mass": 0.49997631881963706,
+      "mean": 1.0000006883692254,
+      "gmp_cor_per_gene": 0.0010445176627586455
+    },
+    {
+      "sigma": 0.6,
+      "mass": 0.500039823528546,
+      "mean": 1.00000640269664,
+      "gmp_cor_per_gene": 0.001380184284367088
+    },
+    {
+      "sigma": 0.62,
+      "mass": 0.4999884170277765,
+      "mean": 0.9999983626024831,
+      "gmp_cor_per_gene": 0.0017959048623612185
+    },
+    {
+      "sigma": 0.64,
+      "mass": 0.5000148118641007,
+      "mean": 1.0000039570842247,
+      "gmp_cor_per_gene": 0.002302958804862575
+    },
+    {
+      "sigma": 0.66,
+      "mass": 0.5000244406113967,
+      "mean": 1.0000062210345129,
+      "gmp_cor_per_gene": 0.0029128337215656415
+    },
+    {
+      "sigma": 0.68,
+      "mass": 0.49990438023231704,
+      "mean": 0.9999826035757988,
+      "gmp_cor_per_gene": 0.0036366314349698487
+    },
+    {
+      "sigma": 0.7,
+      "mass": 0.5000292089444999,
+      "mean": 1.0000064622339284,
+      "gmp_cor_per_gene": 0.004488393677019669
+    },
+    {
+      "sigma": 0.72,
+      "mass": 0.49999552882684173,
+      "mean": 1.000002869837573,
+      "gmp_cor_per_gene": 0.005477913499936791
+    },
+    {
+      "sigma": 0.74,
+      "mass": 0.4999985302920753,
+      "mean": 1.0000027281372668,
+      "gmp_cor_per_gene": 0.006616691946447786
+    },
+    {
+      "sigma": 0.76,
+      "mass": 0.5000494549314157,
+      "mean": 1.0000078946771025,
+      "gmp_cor_per_gene": 0.007915885440566373
+    },
+    {
+      "sigma": 0.78,
+      "mass": 0.4999812549286835,
+      "mean": 0.9999964339608544,
+      "gmp_cor_per_gene": 0.009386233960028079
+    },
+    {
+      "sigma": 0.8,
+      "mass": 0.4999473882894597,
+      "mean": 0.9999907142949223,
+      "gmp_cor_per_gene": 0.011038009952106484
+    },
+    {
+      "sigma": 0.82,
+      "mass": 0.49999204997575036,
+      "mean": 0.9999960094620977,
+      "gmp_cor_per_gene": 0.012880911346763793
+    },
+    {
+      "sigma": 0.84,
+      "mass": 0.5000100712858875,
+      "mean": 0.9999978253773938,
+      "gmp_cor_per_gene": 0.014923869036335743
+    },
+    {
+      "sigma": 0.86,
+      "mass": 0.5000022558429618,
+      "mean": 0.9999939264458935,
+      "gmp_cor_per_gene": 0.017174702358974305
+    },
+    {
+      "sigma": 0.88,
+      "mass": 0.49995439838242317,
+      "mean": 0.9999895344733212,
+      "gmp_cor_per_gene": 0.01964292981284302
+    },
+    {
+      "sigma": 0.9,
+      "mass": 0.4999555025137111,
+      "mean": 0.9999912856991524,
+      "gmp_cor_per_gene": 0.02233515054503069
+    },
+    {
+      "sigma": 0.92,
+      "mass": 0.5000664885204229,
+      "mean": 1.0000047256496312,
+      "gmp_cor_per_gene": 0.025258196112555458
+    },
+    {
+      "sigma": 0.94,
+      "mass": 0.49989555134281166,
+      "mean": 0.9999910589678136,
+      "gmp_cor_per_gene": 0.028418276161636655
+    },
+    {
+      "sigma": 0.96,
+      "mass": 0.49989928556492197,
+      "mean": 0.9999943262656811,
+      "gmp_cor_per_gene": 0.0318208746145693
+    },
+    {
+      "sigma": 0.98,
+      "mass": 0.49975878991597034,
+      "mean": 0.9999827433061554,
+      "gmp_cor_per_gene": 0.03546995641319288
+    },
+    {
+      "sigma": 1.0,
+      "mass": 0.4999943899829074,
+      "mean": 0.999999822426344,
+      "gmp_cor_per_gene": 0.03937261403430795
+    }
+  ]
+}

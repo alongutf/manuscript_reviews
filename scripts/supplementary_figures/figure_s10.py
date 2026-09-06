@@ -25,6 +25,7 @@ from figure_functions import PanelFigure
 fsize = 10
 root_dir = _REPO
 RESULTS_DIR = os.path.join(root_dir, 'results', 'simulation_results')
+MODEL_DIR = os.path.join(root_dir,'model fit','gmp_sweep_alpha2')
 
 REG_COLOR = 'steelblue'
 DIS_COLOR = '#E07B54'
@@ -66,9 +67,10 @@ def panel_A(ax):
     rho_vals = summary.index.values
     medians  = summary['median'].values
     stds     = summary['std'].values
-
+    analytics = pd.read_csv(os.path.join(MODEL_DIR,'analytical_curve.csv'), index_col=0, header=0)
+    ax.plot(analytics['chi'],analytics['gmp_cor'],linestyle='--', linewidth=1.5, color='k', label='analytical')
     ax.errorbar(rho_vals, medians, yerr=stds, fmt='o-', color='steelblue',
-                capsize=4, linewidth=1.8, markersize=6)
+                capsize=2, linewidth=1.5, markersize=3, label='simulated')
     ax.fill_between(rho_vals, medians - stds, medians + stds, alpha=0.3, color='steelblue')
     ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
                label='Reg-Arrest median')

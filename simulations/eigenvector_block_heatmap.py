@@ -12,9 +12,16 @@ Parameters match simulations/eigenvector_block_recovery_run.py (alpha=0.75,
 inv_gamma_scale=0.03, the depth-matched condition), so the panels correspond to the
 numbers in that run's log.
 
+Two variants of the mode panel are written:
+  abs     |v_k| on a sequential scale -- shows only WHERE a mode puts its weight
+  signed  v_k on the same diverging blue-red scale as R -- also shows the sign
+          structure, i.e. genes that move together vs. in opposition within a mode.
+          Note the overall sign of an eigenvector is arbitrary (v and -v are the same
+          mode), so only sign differences WITHIN a panel column are meaningful.
+
 Outputs -> results/simulation_results/figures/
-  eigenvector_block_heatmap_<ts>.svg / .png        full 2000-gene range
-  eigenvector_block_heatmap_zoom_<ts>.svg / .png   one row per strongest block
+  eigenvector_block_heatmap_<abs|signed>_<ts>.svg / .png       full 2000-gene range
+  eigenvector_block_heatmap_zoom_<abs|signed>_<ts>.svg / .png  one row per strongest block
 """
 
 import sys
@@ -45,8 +52,6 @@ ZOOM_PAD = 1.0    # zoom window padding, as a multiple of the block's size
 _FIG_DIR = os.path.join(_REPO_ROOT, 'results', 'simulation_results', 'figures')
 os.makedirs(_FIG_DIR, exist_ok=True)
 _ts = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-FIG_MAIN = os.path.join(_FIG_DIR, f'eigenvector_block_heatmap_{_ts}')
-FIG_ZOOM = os.path.join(_FIG_DIR, f'eigenvector_block_heatmap_zoom_{_ts}')
 
 # ── Simulate ─────────────────────────────────────────────────────────────────
 
@@ -68,9 +73,8 @@ _, vecs_obs, threshold, kept = get_eig_vectors(observed, n_top=p['n_top'],
 # Re-index the modes onto the FULL gene axis: get_eig_vectors drops all-zero genes, so
 # without this the mode panel would be off by the dropped columns against R and the
 # alignment the figure is meant to show would be false.
-V_obs = np.zeros((p['n_top'], p['n_genes']))
-V_obs[:, np.asarray(kept, dtype=bool)] = vecs_obs
-V_obs = np.abs(V_obs)
+V_signed = np.zeros((p['n_top'], p['n_genes']))
+V_signed[:, np.asarray(kept, dtype=bool)] = vecs_obs
 print(f'{int(np.sum(kept))} of {p["n_genes"]} genes kept by the pipeline; '
       f'dropped genes are drawn as zero loading')
 
@@ -83,11 +87,17 @@ ends = {b: int(np.flatnonzero(labels == b)[-1]) + 1 for b in rank}
 
 off = R[~np.eye(p['n_genes'], dtype=bool)]
 r_vmax = float(np.percentile(np.abs(off), 99.9))
-v_vmax = float(np.percentile(V_obs, 99.9))
+v_vmax = float(np.percentile(np.abs(V_signed), 99.9))
 print(f'colour scales: |R| off-diagonal vmax={r_vmax:.3f}, |v| vmax={v_vmax:.4f}')
 
+# the two mode-panel variants: (name, matrix, cmap, vmin, panel title)
+VARIANTS = [
+    ('abs', np.abs(V_signed), 'magma', 0.0, 'leading modes, |v|'),
+    ('signed', V_signed, 'RdBu_r', -v_vmax, 'leading modes, v (signed)'),
+]
 
-def draw(ax_R, ax_b, lo, hi, title=None, annotate=True):
+
+def draw(ax_R, ax_b, lo, hi, V, cmap, vmin, panel_title, title=None, annotate=True):
     """Draw R and the mode panel over gene range [lo, hi) on a shared axis."""
     ax_R.imshow(R[lo:hi, lo:hi], cmap='RdBu_r', vmin=-r_vmax, vmax=r_vmax,
                 aspect='auto', interpolation='nearest',
@@ -95,12 +105,12 @@ def draw(ax_R, ax_b, lo, hi, title=None, annotate=True):
     ax_R.set_ylabel('gene index')
     if title:
         ax_R.set_title(title, loc='left', fontsize=9, fontweight='bold')
-    ax_b.imshow(V_obs[:, lo:hi].T, cmap='magma', vmin=0, vmax=v_vmax,
+    ax_b.imshow(V[:, lo:hi].T, cmap=cmap, vmin=vmin, vmax=v_vmax,
                 aspect='auto', interpolation='nearest',
                 extent=[0.5, p['n_top'] + 0.5, hi, lo])
     ax_b.set_xticks(np.arange(1, p['n_top'] + 1))
     ax_b.set_xlabel('mode')
-    ax_b.set_title('leading modes, |v|', fontsize=8)
+    ax_b.set_title(panel_title, fontsize=8)
     ax_b.set_yticklabels([])
     # block boundaries, drawn across both panels so the eye can carry them over
     if annotate:
@@ -116,47 +126,53 @@ def draw(ax_R, ax_b, lo, hi, title=None, annotate=True):
                           va='center', ha='left', annotation_clip=False)
 
 
-# ── Figure 1: full range ─────────────────────────────────────────────────────
+# ── Figures: one pair (full range + zoom) per mode-panel variant ─────────────
 
-fig = plt.figure(figsize=(11, 7.2))
-gs = fig.add_gridspec(1, 2, width_ratios=[5, 1.3], wspace=0.06)
-axes = [fig.add_subplot(gs[0, i]) for i in range(2)]
-draw(*axes, 0, p['n_genes'],
-     title=f'ground-truth correlation matrix R  (alpha = {p["alpha"]}, '
-           f'{len(sizes)} blocks)')
-axes[0].set_xlabel('gene index')
-fig.suptitle('Do the leading modes sit on the true correlation blocks?  '
-             'Shared gene axis, generator order (no reordering)',
-             fontsize=11, fontweight='bold')
-fig.text(0.5, 0.015,
-         f'R on a +/-{r_vmax:.2f} diverging scale (off-diagonal 99.9th pct); '
-         f'|v| on a shared 0-{v_vmax:.3f} scale. Dotted lines mark the '
-         f'{N_ZOOM} strongest blocks.',
-         ha='center', fontsize=7.5, color='0.3')
-fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-fig.savefig(FIG_MAIN + '.svg', format='svg', bbox_inches='tight')
-fig.savefig(FIG_MAIN + '.png', dpi=200, bbox_inches='tight')
-plt.close(fig)
+for vname, V, cmap, vmin, panel_title in VARIANTS:
+    fig_main = os.path.join(_FIG_DIR, f'eigenvector_block_heatmap_{vname}_{_ts}')
+    fig_zoom = os.path.join(_FIG_DIR, f'eigenvector_block_heatmap_zoom_{vname}_{_ts}')
 
-# ── Figure 2: one row per strongest block ────────────────────────────────────
+    # full range
+    fig = plt.figure(figsize=(11, 7.2))
+    gs = fig.add_gridspec(1, 2, width_ratios=[5, 1.3], wspace=0.06)
+    axes = [fig.add_subplot(gs[0, i]) for i in range(2)]
+    draw(axes[0], axes[1], 0, p['n_genes'], V, cmap, vmin, panel_title,
+         title=f'ground-truth correlation matrix R  (alpha = {p["alpha"]}, '
+               f'{len(sizes)} blocks)')
+    axes[0].set_xlabel('gene index')
+    fig.suptitle('Do the leading modes sit on the true correlation blocks?  '
+                 'Shared gene axis, generator order (no reordering)',
+                 fontsize=11, fontweight='bold')
+    note = (f'R on a +/-{r_vmax:.2f} diverging scale (off-diagonal 99.9th pct); '
+            f'modes on a {"+/-" if vmin < 0 else "0-"}{v_vmax:.3f} scale. '
+            f'Dotted lines mark the {N_ZOOM} strongest blocks.')
+    if vmin < 0:
+        note += ('  The overall sign of an eigenvector is arbitrary, so only sign '
+                 'differences within one mode are meaningful.')
+    fig.text(0.5, 0.015, note, ha='center', fontsize=7.5, color='0.3')
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.savefig(fig_main + '.svg', format='svg', bbox_inches='tight')
+    fig.savefig(fig_main + '.png', dpi=200, bbox_inches='tight')
+    plt.close(fig)
 
-fig, axarr = plt.subplots(N_ZOOM, 2, figsize=(8.0, 3.0 * N_ZOOM),
-                          gridspec_kw=dict(width_ratios=[5, 1.3], wspace=0.08,
-                                           hspace=0.35))
-for row, b in enumerate(rank):
-    s, e = starts[b], ends[b]
-    pad = int(max(10, ZOOM_PAD * (e - s)))
-    lo, hi = max(0, s - pad), min(p['n_genes'], e + pad)
-    draw(axarr[row, 0], axarr[row, 1], lo, hi,
-         title=f'block #{b}: {sizes[b]} genes, w = {strengths[b]:.2f}  '
-               f'(genes {s}-{e - 1})')
-    axarr[row, 0].set_xlabel('gene index')
-fig.suptitle('Zoom on the strongest blocks — each block and the modes over the same genes',
-             fontsize=11, fontweight='bold')
-fig.tight_layout(rect=[0, 0, 1, 0.97])
-fig.savefig(FIG_ZOOM + '.svg', format='svg', bbox_inches='tight')
-fig.savefig(FIG_ZOOM + '.png', dpi=200, bbox_inches='tight')
-plt.close(fig)
+    # zoom: one row per strongest block
+    fig, axarr = plt.subplots(N_ZOOM, 2, figsize=(8.0, 3.0 * N_ZOOM),
+                              gridspec_kw=dict(width_ratios=[5, 1.3], wspace=0.08,
+                                               hspace=0.35))
+    for row, b in enumerate(rank):
+        st, en = starts[b], ends[b]
+        pad = int(max(10, ZOOM_PAD * (en - st)))
+        lo, hi = max(0, st - pad), min(p['n_genes'], en + pad)
+        draw(axarr[row, 0], axarr[row, 1], lo, hi, V, cmap, vmin, panel_title,
+             title=f'block #{b}: {sizes[b]} genes, w = {strengths[b]:.2f}  '
+                   f'(genes {st}-{en - 1})')
+        axarr[row, 0].set_xlabel('gene index')
+    fig.suptitle('Zoom on the strongest blocks — each block and the modes '
+                 'over the same genes', fontsize=11, fontweight='bold')
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.savefig(fig_zoom + '.svg', format='svg', bbox_inches='tight')
+    fig.savefig(fig_zoom + '.png', dpi=200, bbox_inches='tight')
+    plt.close(fig)
 
-print(f'\nFull range : {FIG_MAIN}.svg / .png')
-print(f'Zoom       : {FIG_ZOOM}.svg / .png')
+    print(f'{vname:7s} full range : {fig_main}.svg / .png')
+    print(f'{vname:7s} zoom       : {fig_zoom}.svg / .png')

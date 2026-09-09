@@ -213,6 +213,32 @@ def coordination_score(eigvals, eigvecs, threshold):
     return score
 
 
+def weighted_loading_score(eigvals, eigvecs, n_modes=10, p=None):
+    # Per-gene score from the ABSOLUTE loadings, weighted by each mode's eigenvalue and
+    # normalized by the number of genes:
+    #   score_i = sum_{k=1..n_modes} |eigvecs[k, i]| * eigvals[k] / p .
+    # Unlike coordination_score this uses |v| rather than v**2 (so it decays linearly
+    # rather than quadratically in the loading, giving moderately loaded genes more
+    # weight), takes a fixed number of leading modes rather than only those above the
+    # scrambled threshold, and divides by p so samples with different gene-panel sizes
+    # are on a comparable scale. Note it is NOT rotation-invariant within a degenerate
+    # subspace -- |v| is not preserved under rotations of the eigenbasis -- so it should
+    # be read alongside the stability caveats that apply to individual eigenvectors.
+    #
+    # eigvals : (>=n_modes,) leading eigenvalues, descending
+    # eigvecs : (>=n_modes, p) corresponding gene loadings
+    # p       : gene count used as the normalizer; defaults to eigvecs.shape[1]
+    eigvals = np.asarray(eigvals, dtype=float)
+    eigvecs = np.atleast_2d(eigvecs)
+    n_modes = min(n_modes, eigvecs.shape[0])
+    if p is None:
+        p = eigvecs.shape[1]
+    score = np.zeros(eigvecs.shape[1])
+    for k in range(n_modes):
+        score += np.abs(eigvecs[k]) * eigvals[k] / p
+    return score
+
+
 def participation_ratio(v):
     # Participation ratio of a (unit-norm) eigenvector v: ranges from 1 (localized on a
     # single gene) to len(v) (fully delocalized). PR = (sum v^2)^2 / sum v^4.

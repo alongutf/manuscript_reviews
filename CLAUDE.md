@@ -26,7 +26,10 @@ All analyses run as Jupyter notebooks or Python scripts from the `scripts/` dire
 
 - **`tecan_func.py`**: `tecan` class for Tecan-format plate reader files. Supports multi-channel data, background subtraction, spike removal, fluorescence normalization, and derivative calculation.
 
-- **`simulations.py`**: functions for generating the synthetic scRNA-seq data. Additional functions for calculating metrics on the simulated data.
+- **`simulations.py`**: functions for generating the synthetic scRNA-seq data. Additional functions for calculating metrics on the simulated data. `generate_gram_hub_matrix(..., return_structure=True)` also returns the ground-truth block labels/sizes/strengths used to build the correlation matrix.
+
+- **`eigenvector_validation.py`**: scores the top-N eigenvector loadings against those ground-truth blocks (per-mode best-block mass, effective number of blocks, top-loading-gene purity, per-block subspace projection, replicate stability) and runs the noise ladder `R_oracle -> latent -> true_counts -> observed`. See `documents/eigenvector_block_recovery.md`.
+
 ### `scripts/` — Analysis Pipelines
 
 | Notebook                      | Purpose                                                                                           |
@@ -78,6 +81,7 @@ Python scripts (not notebooks) that run self-contained simulation experiments an
 | Script                             | Purpose                                                    |
 |------------------------------------|------------------------------------------------------------|
 | `subpopulation_mixing_run.py`      | 50/50 sub-population mixing scenario (Reviewer #1 response)|
+| `eigenvector_block_recovery_run.py`| Can top-5 eigenvector loadings reconstruct known correlation blocks (Reviewer #4)|
 
 ### `results/simulation_results/` — Simulation Outputs
 

@@ -41,7 +41,7 @@ from statsmodels.stats.multitest import multipletests
 
 # ── Covariance matrix generation ────────────────────────────────────────────
 
-def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
+def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42, return_structure=False):
     """
     Build an n×n correlation matrix with cluster + hub factor structure.
 
@@ -52,6 +52,21 @@ def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
     shape           : Pareto shape for cluster-size distribution (heavier tail = larger clusters)
     hub_probability : probability that a cluster hub connects to the global hub factor
     seed            : RNG seed for reproducibility
+    return_structure: if True, also return the ground-truth block structure that was
+                      used to build the matrix (see below). Default False keeps the
+                      historical single-value return, and the RNG stream is identical
+                      either way, so existing callers are unaffected.
+
+    Returns
+    -------
+    R          : (n, n) correlation matrix
+    structure  : only if return_structure -- dict with
+                 'labels'      (n,) int, cluster index of each gene (contiguous blocks)
+                 'sizes'       (K,) int, gene count of each cluster
+                 'strengths'   (K,) float, the shared loading weight w_k of each cluster
+                 'hubs'        (K,) int, the gene chosen as each cluster's hub
+                 'hub_weights' (K,) float, that hub's loading on the global hub factor
+                               (0.0 for hubs not connected to it)
     """
     np.random.seed(seed)
     # Loading matrix: identity part gives each gene unique (noise) variance
@@ -60,6 +75,9 @@ def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
     remaining_vars = n
     current_idx = 0
     hubs = []
+    labels = np.full(n, -1, dtype=int)
+    sizes = []
+    strengths = []
 
     # Cluster factors — sizes drawn from a Pareto distribution
     while remaining_vars > 0:
@@ -73,21 +91,33 @@ def generate_gram_hub_matrix(n, alpha, shape, hub_probability, seed=42):
 
         A = np.hstack([A, cluster_col])
         hubs.append(np.random.choice(idx_set))
+        labels[idx_set] = len(sizes)
+        sizes.append(size)
+        strengths.append(strength)
 
         current_idx += size
         remaining_vars -= size
 
     # Global hub factor connecting a random subset of cluster hubs
     global_hub_col = np.zeros((n, 1))
-    for h_idx in hubs:
+    hub_weights = np.zeros(len(hubs))
+    for j, h_idx in enumerate(hubs):
         if np.random.rand() < hub_probability:
             weight = np.random.uniform(-alpha, alpha)
             global_hub_col[h_idx] = weight
+            hub_weights[j] = weight
     A = np.hstack([A, global_hub_col])
 
     C = A @ A.T
     d = np.sqrt(np.diag(C))
     R = C / np.outer(d, d)
+    if return_structure:
+        structure = dict(labels=labels,
+                         sizes=np.asarray(sizes, dtype=int),
+                         strengths=np.asarray(strengths, dtype=float),
+                         hubs=np.asarray(hubs, dtype=int),
+                         hub_weights=hub_weights)
+        return R, structure
     return R
 
 

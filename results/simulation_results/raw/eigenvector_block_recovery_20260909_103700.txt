@@ -1,0 +1,126 @@
+==============================================================================
+EIGENVECTOR BLOCK RECOVERY — headline condition
+==============================================================================
+timestamp        : 20260909_103700
+coupling alpha   : 0.75
+matrix           : 1000 cells x 2000 genes, dropout rate 1.0
+modes inspected  : top 5 (raw loadings, no coordination score)
+
+GROUND TRUTH
+  blocks                 : 853 (554 singletons)
+  blocks >= 5 genes      : 83
+  largest block          : 77 genes (strength 0.58)
+  hubs on global factor  : 171
+
+------------------------------------------------------------------------------
+STAGE: R_oracle   (2000 genes kept, lambda_max^scr = n/a, modes above threshold = None)
+  per mode — is the mode a single block?
+    mode  eig     best block (size/strength)   mass   [null]   eff.blocks  top30 purity  p_hyper
+       1   54.20  #515   (  77g / 0.58)   1.000  [0.0385]        1.0       1.00     6.5e-46
+       2   34.42  #701   (   1g / 0.08)   0.018  [0.0005]      115.0       0.03     1.5e-02
+       3   33.70  #332   (  46g / 0.66)   1.000  [0.0230]        1.0       1.00     3.0e-55
+       4   20.16  #619   (  35g / 0.32)   1.000  [0.0175]        1.0       1.00     1.0e-61
+       5   19.27  #593   (  46g / 0.17)   0.999  [0.0230]        1.0       1.00     3.0e-55
+  per block — 83 blocks of >= 5 genes; projection onto the 5-mode subspace: median 0.000, max 1.000, 4 of 83 above 0.5
+    largest blocks:  size  strength  projection  mass/null  best mode
+                       77      0.58       1.000        5.2          1
+                       46      0.66       1.000        8.7          3
+                       46      0.17       0.999        8.8          5
+                       35      0.32       1.000       11.4          4
+                       28      0.23       0.001        0.1          2
+                       24      0.50       0.000        0.0          1
+                       18      0.22       0.000        0.0          3
+                       17      0.28       0.000        0.0          3
+    mass/null over all scorable blocks: median 0.0
+
+------------------------------------------------------------------------------
+STAGE: latent   (2000 genes kept, lambda_max^scr = 5.789, modes above threshold = 5)
+  per mode — is the mode a single block?
+    mode  eig     best block (size/strength)   mass   [null]   eff.blocks  top30 purity  p_hyper
+       1   55.93  #515   (  77g / 0.58)   0.961  [0.0385]        1.5       1.00     6.5e-46
+       2   37.68  #332   (  46g / 0.66)   0.164  [0.0230]      103.6       0.00     1.0e+00
+       3   35.03  #332   (  46g / 0.66)   0.763  [0.0230]        6.2       1.00     3.0e-55
+       4   22.67  #619   (  35g / 0.32)   0.795  [0.0175]        4.0       1.00     1.0e-61
+       5   21.23  #593   (  46g / 0.17)   0.815  [0.0230]        3.6       1.00     3.0e-55
+  per block — 83 blocks of >= 5 genes; projection onto the 5-mode subspace: median 0.001, max 0.967, 4 of 83 above 0.5
+    largest blocks:  size  strength  projection  mass/null  best mode
+                       77      0.58       0.967        5.0          1
+                       46      0.66       0.938        8.2          3
+                       46      0.17       0.884        7.8          5
+                       35      0.32       0.871       10.0          4
+                       28      0.23       0.004        0.2          2
+                       24      0.50       0.011        0.2          4
+                       18      0.22       0.003        0.1          5
+                       17      0.28       0.009        0.2          4
+    mass/null over all scorable blocks: median 0.1
+
+------------------------------------------------------------------------------
+STAGE: true_counts   (1998 genes kept, lambda_max^scr = 5.870, modes above threshold = 5)
+  per mode — is the mode a single block?
+    mode  eig     best block (size/strength)   mass   [null]   eff.blocks  top30 purity  p_hyper
+       1   18.93  #515   (  77g / 0.58)   0.923  [0.0385]        2.1       1.00     6.7e-46
+       2   12.74  #332   (  46g / 0.66)   0.808  [0.0230]        4.3       1.00     3.1e-55
+       3    9.89  #619   (  35g / 0.32)   0.722  [0.0175]        7.6       1.00     1.0e-61
+       4    8.63  #688   (  24g / 0.50)   0.255  [0.0120]       93.4       0.70     7.9e-40
+       5    8.17  #688   (  24g / 0.50)   0.191  [0.0120]      138.7       0.67     8.2e-37
+  per block — 83 blocks of >= 5 genes; projection onto the 5-mode subspace: median 0.003, max 0.902, 3 of 83 above 0.5
+    largest blocks:  size  strength  projection  mass/null  best mode
+                       77      0.58       0.902        5.0          1
+                       46      0.66       0.806        7.5          2
+                       46      0.17       0.055        0.7          5
+                       35      0.32       0.752        9.0          3
+                       28      0.23       0.024        0.5          4
+                       24      0.50       0.426        7.7          4
+                       18      0.22       0.002        0.3          4
+                       17      0.28       0.004        0.3          5
+    mass/null over all scorable blocks: median 0.3
+
+------------------------------------------------------------------------------
+STAGE: observed   (1998 genes kept, lambda_max^scr = 6.003, modes above threshold = 5)
+  per mode — is the mode a single block?
+    mode  eig     best block (size/strength)   mass   [null]   eff.blocks  top30 purity  p_hyper
+       1   15.97  #515   (  77g / 0.58)   0.905  [0.0385]        2.4       1.00     6.7e-46
+       2   10.92  #332   (  46g / 0.66)   0.761  [0.0230]        5.7       1.00     3.1e-55
+       3    9.02  #619   (  35g / 0.32)   0.671  [0.0175]        9.9       1.00     1.0e-61
+       4    7.94  #688   (  24g / 0.50)   0.463  [0.0120]       35.7       0.70     7.9e-40
+       5    7.55  #593   (  46g / 0.17)   0.281  [0.0230]       86.9       0.67     3.9e-28
+  per block — 83 blocks of >= 5 genes; projection onto the 5-mode subspace: median 0.002, max 0.872, 3 of 83 above 0.5
+    largest blocks:  size  strength  projection  mass/null  best mode
+                       77      0.58       0.872        4.8          1
+                       46      0.66       0.753        7.4          2
+                       46      0.17       0.254        2.6          5
+                       35      0.32       0.691        8.5          3
+                       28      0.23       0.015        0.4          4
+                       24      0.50       0.462        9.1          4
+                       18      0.22       0.002        0.3          4
+                       17      0.28       0.006        0.4          5
+    mass/null over all scorable blocks: median 0.3
+
+------------------------------------------------------------------------------
+GMP-Cor AND SPARSITY (same matrices as scored above)
+  true_counts
+    GMP-Cor            : 45.0  (per gene 0.0225, 25 modes above)
+    lambda_max / scr   : 18.93 / 5.89
+    zero fraction      : 0.9622 raw, 0.9621 after filtering
+    median per cell    : 176 counts, 82 genes
+  observed
+    GMP-Cor            : 32.6  (per gene 0.0163, 24 modes above)
+    lambda_max / scr   : 15.97 / 5.90
+    zero fraction      : 0.9685 raw, 0.9684 after filtering
+    median per cell    : 158 counts, 67 genes
+  true R lambda_max     : 54.20 (GMP-Cor undefined: no cells to scramble)
+
+------------------------------------------------------------------------------
+STABILITY (independent count replicate, same ground-truth R)
+  genes in common      : 1995
+  per-mode |r|         : [0.872, 0.776, 0.315, 0.093, 0.261]
+  5-mode subspace overlap: 0.381
+
+==============================================================================
+Reading the table: best_block_mass is the fraction of a mode's squared loading
+that falls in its best-matching true block; [null] is what a random gene set of
+that block's size would carry. eff.blocks is exp(entropy) over blocks — 1 means
+the mode IS one block, hundreds means it is smeared over the whole panel.
+projection is how much of a block's coherent direction lies inside the 5-mode
+subspace (1 = fully captured, 0 = invisible).
+==============================================================================

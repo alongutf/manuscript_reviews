@@ -1,0 +1,66 @@
+GO enrichment of the top 50 genes by eigenvalue-weighted loading score
+    score_i = sum_(k=1..10) |v_(k,i)| * lambda_k / P
+Background: that sample's own gene panel. FDR < 0.05 (fdr_bh), enrichment only.
+Scores from results/eigenvector_analysis/weighted_loading/scores/.
+
+=== Expira_biorep_t0A_filtered.csv  [Reg-Arrest]  GMP-Cor=32.72  top50 genes, 43 mapped to GO ids (background 1667) ===
+  no significant terms
+
+=== SHX_biorep2A.csv  [Dis-Arrest]  GMP-Cor=9.60  top50 genes, 48 mapped to GO ids (background 1676) ===
+  no significant terms
+
+=== SHX_biorep2B.csv  [Dis-Arrest]  GMP-Cor=1.37  top50 genes, 40 mapped to GO ids (background 1659) ===
+  no significant terms
+
+=== SHX_biorep4A.csv  [Dis-Arrest]  GMP-Cor=2.98  top50 genes, 46 mapped to GO ids (background 1673) ===
+  no significant terms
+
+=== SHX_biorep6A.csv  [Dis-Arrest]  GMP-Cor=7.03  top50 genes, 40 mapped to GO ids (background 1685) ===
+  no significant terms
+
+=== VapC_biorep_t2A_filtered.csv  [Reg-Arrest]  GMP-Cor=27.85  top50 genes, 43 mapped to GO ids (background 1471) ===
+  no significant terms
+
+=== VapC_biorep_t5A_filtered.csv  [Reg-Arrest]  GMP-Cor=13.13  top50 genes, 37 mapped to GO ids (background 1511) ===
+  cytoplasmic translation  (FDR=1.87e-05, (9, 37) of study, (31, 1511) of panel)
+  translation  (FDR=1.00e-03, (9, 37) of study, (51, 1511) of panel)
+
+=== VapC_biorep_t5B_filtered.csv  [Reg-Arrest]  GMP-Cor=29.99  top50 genes, 37 mapped to GO ids (background 1507) ===
+  cytoplasmic translation  (FDR=3.87e-30, (25, 37) of study, (45, 1507) of panel)
+  translation  (FDR=5.47e-28, (26, 37) of study, (61, 1507) of panel)
+  ribosomal large subunit assembly  (FDR=2.44e-09, (10, 37) of study, (21, 1507) of panel)
+  ribosomal small subunit assembly  (FDR=1.08e-04, (6, 37) of study, (14, 1507) of panel)
+  regulation of translation  (FDR=6.49e-04, (5, 37) of study, (11, 1507) of panel)
+  response to antibiotic  (FDR=3.16e-02, (6, 37) of study, (36, 1507) of panel)
+
+=== VapC_biorep_tONA_filtered.csv  [Dis-Arrest]  GMP-Cor=4.65  top50 genes, 33 mapped to GO ids (background 1516) ===
+  no significant terms
+
+=== adam_matrix_filtered.csv  [Reg-Arrest]  GMP-Cor=21.19  top50 genes, 42 mapped to GO ids (background 3339) ===
+  no significant terms
+
+=== adam_matrix_filtered2.csv  [Reg-Arrest]  GMP-Cor=13.85  top50 genes, 43 mapped to GO ids (background 1712) ===
+  cytoplasmic translation  (FDR=2.44e-05, (11, 43) of study, (52, 1712) of panel)
+  ribosomal large subunit assembly  (FDR=4.13e-05, (8, 43) of study, (25, 1712) of panel)
+  translation  (FDR=4.40e-03, (11, 43) of study, (94, 1712) of panel)
+
+=== deb_Ec_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=137.34  top50 genes, 0 mapped to GO ids (background 0) ===
+  SKIPPED: only 0 of 50 genes map to GO ids (gene names not in the GTF -- e.g. numeric locus ids)
+
+=== deb_KP_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=128.62  top50 genes, 0 mapped to GO ids (background 0) ===
+  SKIPPED: only 0 of 50 genes map to GO ids (gene names not in the GTF -- e.g. numeric locus ids)
+
+=== sample_13a_filtered.csv  [Dis-Arrest]  GMP-Cor=2.54  top50 genes, 41 mapped to GO ids (background 1687) ===
+  no significant terms
+
+=== sample_13b_filtered.csv  [Reg-Arrest]  GMP-Cor=21.95  top50 genes, 34 mapped to GO ids (background 1654) ===
+  no significant terms
+
+=== sample_15a_filtered.csv  [Dis-Arrest]  GMP-Cor=0.00  top50 genes, 40 mapped to GO ids (background 1665) ===
+  no significant terms
+
+=== sample_15b_filtered.csv  [Reg-Arrest]  GMP-Cor=31.64  top50 genes, 36 mapped to GO ids (background 1654) ===
+  no significant terms
+
+=== sample_2b_filtered.csv  [Reg-Arrest]  GMP-Cor=38.10  top50 genes, 44 mapped to GO ids (background 1703) ===
+  no significant terms

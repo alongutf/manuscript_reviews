@@ -1,0 +1,19 @@
+file_name,category,GMP_Cor,n_top_genes,n_study_mapped,n_background_mapped,n_significant_terms,top_terms
+Expira_biorep_t0A_filtered.csv,r,32.719418,50,43,1667,0,
+SHX_biorep2A.csv,d,9.602742,50,48,1676,0,
+SHX_biorep2B.csv,d,1.365394,50,40,1659,0,
+SHX_biorep4A.csv,d,2.976518,50,46,1673,0,
+SHX_biorep6A.csv,d,7.026156,50,40,1685,0,
+VapC_biorep_t2A_filtered.csv,r,27.848066,50,43,1471,0,
+VapC_biorep_t5A_filtered.csv,r,13.132393,50,37,1511,2,cytoplasmic translation; translation
+VapC_biorep_t5B_filtered.csv,r,29.985002,50,37,1507,6,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; regulation of translation
+VapC_biorep_tONA_filtered.csv,d,4.650962,50,33,1516,0,
+adam_matrix_filtered.csv,r,21.186037,50,42,3339,0,
+adam_matrix_filtered2.csv,r,13.845759,50,43,1712,3,cytoplasmic translation; ribosomal large subunit assembly; translation
+deb_Ec_CDS_untreated.csv,r,137.340599,50,0,0,0,
+deb_KP_CDS_untreated.csv,r,128.622796,50,0,0,0,
+sample_13a_filtered.csv,d,2.535518,50,41,1687,0,
+sample_13b_filtered.csv,r,21.947842,50,34,1654,0,
+sample_15a_filtered.csv,d,0.0,50,40,1665,0,
+sample_15b_filtered.csv,r,31.643176,50,36,1654,0,
+sample_2b_filtered.csv,r,38.101015,50,44,1703,0,

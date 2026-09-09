@@ -1,0 +1,79 @@
+Eigenvalue-weighted absolute-loading score per gene
+    score_i = sum_{k=1..10} |v_{k,i}| * lambda_k / P
+P = genes surviving the all-zero filter; lambda_k from get_eig_vectors (same
+preprocessing as the rest of the pipeline: drop all-zero genes/cells, row-normalize,
+z-score columns). Per-mode contributions are in scores/<file>.csv.
+NOTE: |v| is not rotation-invariant within a degenerate subspace, so this score
+inherits the stability caveats of individual eigenvectors.
+
+=== Expira_biorep_t0A_filtered.csv  [Reg-Arrest]  GMP-Cor=32.72  P=1997  lambda_1=17.16  lambda_max^scr=7.06 (9 of 10 modes above) ===
+  score: max=0.00251  mean=0.00025  median=0.00011  top-5% of genes carry 38.5% of the total
+  top 25: alla(0.0025), kdpb(0.0025), trph(0.0025), kdpd(0.0025), gnsa(0.0025), dcub(0.0025), atob(0.0025), tus(0.0025), ydiz(0.0025), evgs(0.0025), ilva(0.0025), glcg(0.0025), ugd(0.0025), sgrr(0.0022), pdxj(0.0022), tqsa(0.0022), prov(0.0022), ytfg(0.0022), acrf(0.0022), dinj(0.0021), yjep(0.0021), insd-2(0.0021), yoba(0.0021), glca(0.0021), kdpa(0.0021)
+
+=== SHX_biorep2A.csv  [Dis-Arrest]  GMP-Cor=9.60  P=1997  lambda_1=9.50  lambda_max^scr=6.42 (10 of 10 modes above) ===
+  score: max=0.00282  mean=0.00050  median=0.00033  top-5% of genes carry 18.7% of the total
+  top 25: nrfG(0.0028), dtd(0.0028), trpE(0.0026), mhpE(0.0026), srlE(0.0026), pspD(0.0026), phnJ(0.0025), ydaF(0.0024), aldB(0.0024), araB(0.0024), gltK(0.0024), cobC(0.0024), xylE(0.0023), yceF(0.0023), ykgH(0.0022), nfrB(0.0022), xylG(0.0022), recT(0.0021), ydcD(0.0021), lit(0.0021), nikA(0.0020), yccF(0.0020), thiM(0.0020), zitB(0.0020), mdlA(0.0020)
+
+=== SHX_biorep2B.csv  [Dis-Arrest]  GMP-Cor=1.37  P=1998  lambda_1=7.65  lambda_max^scr=6.20 (4 of 10 modes above) ===
+  score: max=0.00205  mean=0.00051  median=0.00044  top-5% of genes carry 12.6% of the total
+  top 25: intR(0.0020), yidA(0.0020), fimD(0.0018), yjiG(0.0018), cobS(0.0017), yaiL(0.0017), tbpA(0.0017), mdoH(0.0017), yjhW(0.0017), phoE(0.0016), hycB(0.0016), fpr(0.0016), hipB(0.0016), citC(0.0015), hokC(0.0015), yfcJ(0.0014), cls(0.0014), lipB(0.0014), fadJ(0.0014), yccS(0.0014), ybeQ(0.0014), puuC(0.0014), uspF(0.0014), ygcJ(0.0014), yjjV(0.0014)
+
+=== SHX_biorep4A.csv  [Dis-Arrest]  GMP-Cor=2.98  P=1997  lambda_1=8.33  lambda_max^scr=5.84 (3 of 10 modes above) ===
+  score: max=0.00148  mean=0.00051  median=0.00049  top-5% of genes carry 9.4% of the total
+  top 25: phnI(0.0015), ygfS(0.0015), yfeA(0.0012), ygbT(0.0012), mrdA(0.0012), holD(0.0012), yphG(0.0011), gcvA(0.0011), yceI(0.0011), iscU(0.0011), ygcW(0.0011), ygcJ(0.0011), ydhY(0.0011), pqqL(0.0011), ydfV(0.0011), rpmB(0.0011), malX(0.0011), yneE(0.0011), etk(0.0010), pgaC(0.0010), ptsP(0.0010), yfaT(0.0010), rspB(0.0010), ssuD(0.0010), yfeX(0.0010)
+
+=== SHX_biorep6A.csv  [Dis-Arrest]  GMP-Cor=7.03  P=1998  lambda_1=9.05  lambda_max^scr=5.92 (10 of 10 modes above) ===
+  score: max=0.00183  mean=0.00054  median=0.00049  top-5% of genes carry 11.1% of the total
+  top 25: yadS(0.0018), ldcC(0.0017), nrdA(0.0016), ybhT(0.0016), yjhE(0.0015), yiaT(0.0015), gcvP(0.0015), intE(0.0015), folX(0.0015), metI(0.0014), xerC(0.0014), eutB(0.0014), yebC(0.0014), ygiP(0.0014), appB(0.0014), elbA(0.0014), dsbC(0.0014), hisG(0.0014), ydcW(0.0013), hisQ(0.0013), ygaY(0.0013), yfaX(0.0013), ytfE(0.0013), yaeH(0.0013), tktB(0.0013)
+
+=== VapC_biorep_t2A_filtered.csv  [Reg-Arrest]  GMP-Cor=27.85  P=1797  lambda_1=14.63  lambda_max^scr=6.19 (10 of 10 modes above) ===
+  score: max=0.00375  mean=0.00071  median=0.00053  top-5% of genes carry 16.6% of the total
+  top 25: ybjH(0.0038), yhhY(0.0038), glxR(0.0036), php(0.0035), pcm(0.0035), rbn(0.0032), cbrA(0.0031), yphD(0.0030), flgG(0.0030), ygaU(0.0030), yceF(0.0029), envZ(0.0029), ftsI(0.0028), ykgO(0.0028), wcaL(0.0027), wbbH(0.0027), yraH(0.0027), fucI(0.0027), ybdM(0.0027), ydiR(0.0027), setA(0.0027), yfaT(0.0026), yegT(0.0026), malY(0.0026), yeeV(0.0026)
+
+=== VapC_biorep_t5A_filtered.csv  [Reg-Arrest]  GMP-Cor=13.13  P=1797  lambda_1=12.06  lambda_max^scr=5.84 (10 of 10 modes above) ===
+  score: max=0.00314  mean=0.00069  median=0.00063  top-5% of genes carry 11.5% of the total
+  top 25: fecC(0.0031), trpE(0.0030), usg(0.0025), yhjC(0.0024), ffs(0.0023), nadC(0.0023), tff(0.0022), tyrT(0.0022), yfdY(0.0021), dsbA(0.0020), cobB(0.0020), ybhN(0.0019), rpsD(0.0019), gcvP(0.0019), rpsK(0.0019), rrfB(0.0019), yggG(0.0018), rplO(0.0018), serV(0.0017), ibpA(0.0017), aspv(0.0017), rpmC(0.0017), yhhS(0.0017), rplC(0.0017), bioH(0.0017)
+
+=== VapC_biorep_t5B_filtered.csv  [Reg-Arrest]  GMP-Cor=29.99  P=1798  lambda_1=30.00  lambda_max^scr=5.82 (10 of 10 modes above) ===
+  score: max=0.00302  mean=0.00089  median=0.00086  top-5% of genes carry 10.1% of the total
+  top 25: tyrT(0.0030), rpsD(0.0030), rrfB(0.0029), rplO(0.0029), rpmC(0.0029), tff(0.0029), rpoA(0.0029), rpsK(0.0028), rplC(0.0028), aspv(0.0028), alaw(0.0027), rplD(0.0027), rplL(0.0026), thrU---thrToperon(0.0026), rplW(0.0025), serV(0.0025), csrb(0.0025), rpsN(0.0025), rplR(0.0023), rpsA(0.0023), rpsE(0.0022), rplE(0.0022), rplF(0.0022), tetR(0.0020), rplV(0.0020)
+
+=== VapC_biorep_tONA_filtered.csv  [Dis-Arrest]  GMP-Cor=4.65  P=1797  lambda_1=10.25  lambda_max^scr=5.80 (5 of 10 modes above) ===
+  score: max=0.00179  mean=0.00064  median=0.00063  top-5% of genes carry 8.1% of the total
+  top 25: tyrT(0.0018), aspv(0.0017), alaw(0.0017), serV(0.0017), tff(0.0017), rrfB(0.0013), ydjY(0.0012), rfaZ(0.0012), kanR(0.0012), csrb(0.0012), alaXW(0.0012), thrU---thrToperon(0.0012), truB(0.0011), ygfM(0.0011), mCherry(0.0011), lolE(0.0011), yhbU(0.0011), yfeW(0.0011), yegQ(0.0011), torI(0.0011), melA(0.0011), csgF(0.0011), cysN(0.0011), hscA(0.0010), yddM(0.0010)
+
+=== adam_matrix_filtered.csv  [Reg-Arrest]  GMP-Cor=21.19  P=3973  lambda_1=11.25  lambda_max^scr=5.91 (10 of 10 modes above) ===
+  score: max=0.00126  mean=0.00018  median=0.00014  top-5% of genes carry 17.4% of the total
+  top 25: frc(0.0013), ydfR(0.0012), yffQ(0.0012), yccZ(0.0011), treC(0.0011), yihF(0.0011), pyrI(0.0010), phnB(0.0010), yicJ(0.0010), glpC(0.0010), csgA(0.0010), ycaM(0.0010), yrfD(0.0010), tehA(0.0010), yadN(0.0009), ybfC(0.0009), xdhB(0.0009), gabD(0.0009), yfeX(0.0009), yfaL(0.0009), yjjZ(0.0009), pyrB(0.0009), paaA(0.0009), emrD(0.0009), yqeJ(0.0009)
+
+=== adam_matrix_filtered2.csv  [Reg-Arrest]  GMP-Cor=13.85  P=2007  lambda_1=12.95  lambda_max^scr=5.83 (10 of 10 modes above) ===
+  score: max=0.00206  mean=0.00057  median=0.00052  top-5% of genes carry 10.7% of the total
+  top 25: hdeA(0.0021), pyrI(0.0019), hdeB(0.0019), fliC(0.0017), gadA(0.0017), pyrB(0.0016), rplC(0.0015), carA(0.0015), yjgF(0.0015), insO-2(0.0015), yigZ(0.0015), dps(0.0014), raiA(0.0014), argG(0.0014), elaB(0.0014), cheA(0.0013), yedN(0.0013), gadC(0.0013), flgL(0.0013), rpsD(0.0013), osmY(0.0013), gmr(0.0013), rpsB(0.0013), hha(0.0013), rplA(0.0013)
+
+=== deb_Ec_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=137.34  P=2273  lambda_1=19.18  lambda_max^scr=7.05 (10 of 10 modes above) ===
+  score: max=0.00347  mean=0.00024  median=0.00007  top-5% of genes carry 55.1% of the total
+  top 25: 308234.1(0.0035), 310571.2(0.0035), 311333.1(0.0032), 311354.1(0.0032), 308873.1(0.0032), 310036.2(0.0032), 309609.2(0.0032), 309133.2(0.0032), 309036.1(0.0032), 309781.1(0.0032), 310174.1(0.0032), 310868.2(0.0032), 308809.1(0.0032), 312250.1(0.0032), 311330.1(0.0030), 310407.1(0.0030), 309707.1(0.0030), 309758.1(0.0030), 308613.1(0.0030), 312783.1(0.0030), 308530.1(0.0030), 308191.1(0.0030), 309985.1(0.0030), 311929.1(0.0030), 308618.1(0.0030)
+
+=== deb_KP_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=128.62  P=2725  lambda_1=63.71  lambda_max^scr=6.82 (10 of 10 modes above) ===
+  score: max=0.00285  mean=0.00043  median=0.00020  top-5% of genes carry 27.3% of the total
+  top 25: RS21745(0.0028), 050484282.1(0.0026), 013815099.1-14(0.0025), 013815099.1-73(0.0025), 013815099.1-7(0.0025), 013815099.1-4(0.0025), 013815099.1-81(0.0025), 013815099.1-77(0.0025), 013815099.1-12(0.0025), 187079192.1(0.0025), 032430073.1(0.0024), 013815099.1-26(0.0024), 013815099.1-36(0.0024), 013815099.1-46(0.0024), 013815099.1-42(0.0024), 013815099.1-6(0.0024), 013815099.1-72(0.0024), 013815099.1-18(0.0024), 013815099.1-31(0.0024), 013815099.1-40(0.0024), 013815099.1-56(0.0024), 013815099.1-53(0.0024), 013815099.1-80(0.0024), 013815099.1-38(0.0024), 032430142.1(0.0024)
+
+=== sample_13a_filtered.csv  [Dis-Arrest]  GMP-Cor=2.54  P=2037  lambda_1=8.24  lambda_max^scr=6.68 (4 of 10 modes above) ===
+  score: max=0.00251  mean=0.00044  median=0.00031  top-5% of genes carry 18.6% of the total
+  top 25: phnJ(0.0025), ybjI(0.0024), truC(0.0023), gcvT(0.0023), ygjK(0.0022), cysG(0.0022), ilvI(0.0022), yagX(0.0022), ybgO(0.0022), ydhY(0.0021), ygeX(0.0021), lpxB(0.0020), rluF(0.0020), yafM(0.0020), maa(0.0020), yajR(0.0020), racC(0.0019), yaaI(0.0019), cpdB(0.0019), spy(0.0019), ygfQ(0.0019), eutA(0.0019), yjcS(0.0019), tmRNA(0.0019), sgrR(0.0019)
+
+=== sample_13b_filtered.csv  [Reg-Arrest]  GMP-Cor=21.95  P=2023  lambda_1=14.26  lambda_max^scr=6.38 (10 of 10 modes above) ===
+  score: max=0.00256  mean=0.00063  median=0.00056  top-5% of genes carry 14.1% of the total
+  top 25: hha(0.0026), yagY(0.0026), hcaT(0.0025), yadD(0.0025), ycaJ(0.0025), yfjI(0.0025), yjcH(0.0024), yagR(0.0024), treB(0.0024), yfcY(0.0023), yiaD(0.0023), lysS(0.0023), yjjM(0.0022), yfgL(0.0022), ygbK(0.0021), queF(0.0021), yidP(0.0021), tmRNA(0.0021), ydfI(0.0021), menA(0.0021), ppdB(0.0021), hsdM(0.0020), ycfQ(0.0020), insK(0.0020), yjeS(0.0020)
+
+=== sample_15a_filtered.csv  [Dis-Arrest]  GMP-Cor=0.00  P=2004  lambda_1=6.09  lambda_max^scr=6.63 (0 of 10 modes above) ===
+  score: max=0.00217  mean=0.00037  median=0.00030  top-5% of genes carry 18.6% of the total
+  top 25: ilvC(0.0022), ybaQ(0.0021), xylE(0.0021), pta(0.0020), ybfP(0.0020), yedV(0.0019), metC(0.0019), rffM(0.0019), maeB(0.0018), ygcP(0.0018), yjeP(0.0018), sufD(0.0018), rhsC(0.0018), yqhA(0.0017), ydaQ(0.0017), ubiF(0.0017), yneJ(0.0017), frlB(0.0017), ygeQ(0.0017), bssS(0.0017), yafC(0.0017), cof(0.0016), thiL(0.0016), seqA(0.0016), proX(0.0016)
+
+=== sample_15b_filtered.csv  [Reg-Arrest]  GMP-Cor=31.64  P=2023  lambda_1=17.28  lambda_max^scr=6.29 (10 of 10 modes above) ===
+  score: max=0.00291  mean=0.00062  median=0.00053  top-5% of genes carry 14.8% of the total
+  top 25: yzgL(0.0029), rplM(0.0028), yagQ(0.0028), caiA(0.0027), tmRNA(0.0025), ybeQ(0.0024), ydaG(0.0024), alsB(0.0023), ybbC(0.0023), ydaT(0.0022), stfR(0.0022), yihT(0.0022), ygeK(0.0022), pyrC(0.0022), yjcP(0.0022), yfaZ(0.0022), ygbT(0.0021), recE(0.0021), ompL(0.0021), ftsX(0.0021), yccT(0.0021), rsd(0.0020), pyrD(0.0020), tap(0.0020), mrdB(0.0020)
+
+=== sample_2b_filtered.csv  [Reg-Arrest]  GMP-Cor=38.10  P=2071  lambda_1=19.41  lambda_max^scr=6.04 (10 of 10 modes above) ===
+  score: max=0.00252  mean=0.00061  median=0.00053  top-5% of genes carry 13.6% of the total
+  top 25: tmRNA(0.0025), rpsR(0.0025), betA(0.0024), yjhI(0.0023), yahC(0.0023), yhgF(0.0023), yhfY(0.0022), hemB(0.0021), yjhU(0.0021), aslB(0.0021), nadD(0.0021), ykgK(0.0020), mdoC(0.0020), yafT(0.0020), yahE(0.0020), murB(0.0020), ybhC(0.0019), ytfL(0.0019), yjiZ(0.0019), yjfI(0.0019), nudC(0.0019), fabZ(0.0019), pphA(0.0019), copA(0.0019), insF-4(0.0018)

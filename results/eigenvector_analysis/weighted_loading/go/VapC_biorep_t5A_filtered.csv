@@ -1,0 +1,3 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,1.5619847812795976e-08,1.8681337984103988e-05,"(9, 37)","(31, 1511)"
+GO:0006412,translation,BP,1.6727458236291038e-06,0.0010003020025302041,"(9, 37)","(51, 1511)"

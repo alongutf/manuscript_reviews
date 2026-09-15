@@ -1,0 +1,4 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0006417,regulation of translation,BP,1.7142870926052375e-06,0.0010563132989070555,"(7, 93)","(13, 1673)"
+GO:0006412,translation,BP,1.7175825998488705e-06,0.0010563132989070555,"(14, 93)","(59, 1673)"
+GO:0002181,cytoplasmic translation,BP,5.265969396160351e-06,0.002159047452425744,"(11, 93)","(40, 1673)"

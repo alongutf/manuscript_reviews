@@ -1,0 +1,6 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0006221,pyrimidine nucleotide biosynthetic process,BP,6.323896270025602e-10,8.202093462223207e-07,"(8, 96)","(9, 1712)"
+GO:0006526,L-arginine biosynthetic process,BP,3.020871378743604e-08,1.9590350891152272e-05,"(8, 96)","(12, 1712)"
+GO:0006207,'de novo' pyrimidine nucleobase biosynthetic process,BP,2.8762704910940813e-06,0.0009326307067372559,"(5, 96)","(6, 1712)"
+GO:0044205,'de novo' UMP biosynthetic process,BP,2.8762704910940813e-06,0.0009326307067372559,"(5, 96)","(6, 1712)"
+GO:0019856,pyrimidine nucleobase biosynthetic process,BP,9.313516696874176e-06,0.002415926231169161,"(4, 96)","(4, 1712)"

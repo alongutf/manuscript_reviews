@@ -1,0 +1,8 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0071973,bacterial-type flagellum-dependent cell motility,BP,6.561141490707773e-14,6.693637307988933e-11,"(17, 92)","(34, 1712)"
+GO:0006935,chemotaxis,BP,1.0321722911316782e-13,6.693637307988933e-11,"(16, 92)","(30, 1712)"
+GO:0097588,archaeal or bacterial-type flagellum-dependent cell motility,BP,6.57182035646869e-07,0.00028412170007799636,"(7, 92)","(12, 1712)"
+GO:0071978,bacterial-type flagellum-dependent swarming motility,BP,1.4586667258014107e-05,0.004729726858411074,"(6, 92)","(12, 1712)"
+GO:0008652,amino acid biosynthetic process,BP,1.9143289100596116e-05,0.004965769192694632,"(9, 92)","(31, 1712)"
+GO:0044781,bacterial-type flagellum organization,BP,0.00010601089258088913,0.022916021279568866,"(6, 92)","(16, 1712)"
+GO:0009098,L-leucine biosynthetic process,BP,0.00024169706803650652,0.044783013891906996,"(4, 92)","(7, 1712)"

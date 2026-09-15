@@ -23,11 +23,25 @@ statistic. Results are in `results/eigenvector_analysis/` (`top_genes/` for the
 ranked gene lists, `go/` for the enrichment, `summary.csv` for the per-mode
 values).
 
+An eigenvector is a *contrast*: genes at its two ends vary in opposite directions
+across cells. Ranking by the size of the loading alone pools those two ends into a
+single gene list, which can hide a program that occupies only one of them. We
+therefore repeated the analysis **separately for each pole** of every mode — the
+100 genes with the most positive loading and the 100 with the most negative
+loading, enriched independently against the same background
+(`scripts/eigenvector_go_signed.py`, results in `go_signed_pos/`, `go_signed_neg/`,
+`go_signed_contrast_table.txt`). All numbers quoted below are from this
+sign-resolved analysis; the pooled results are retained as a control.
+
 ## The eigenvectors do carry real biological signal
 
-**1. The leading mode recovers the translation machinery.** In 8 of the tested
-modes the top-loading genes are significantly enriched for cytoplasmic
-translation, translation, and ribosomal subunit assembly. The genes involved are
+**1. The leading mode recovers the translation machinery.** Resolving each mode by
+sign, **23 of the 90 leading modes (5 modes × 18 samples) are significantly
+enriched, in 13 of the 18 samples** — against 14 modes and 9 samples when genes are
+pooled by loading magnitude, so separating the poles roughly doubles what is
+recovered. The dominant program is translation: cytoplasmic translation and
+translation appear in 19 modes each, ribosomal large- and small-subunit assembly in
+16 and 12, and regulation of translation in 12. The genes involved are
 ribosomal proteins, elongation factor `fusA`, RNA polymerase subunit `rpoA`, and
 tRNA and other stable-RNA probes. This is a coherent, well-defined cellular
 program, and it shows that the leading eigenvector is not noise.
@@ -42,6 +56,25 @@ eigenvector are anti-correlated across cells. The mode therefore describes a
 single axis running from high ribosome content to high stress-response content —
 the expected trade-off between growth and stress in a growing population. This is
 a real, interpretable biological result obtained directly from an eigenvector.
+
+**2b. The sign structure is meaningful, and in one sample it resolves two
+opposing programs.** The sign-resolved analysis above makes this observation
+systematic. In 20 of the 23 enriched modes the annotated program occupies a single
+pole, the opposite pole carrying no coherent function — a program set against an
+unstructured background, which is why pooling the two ends dilutes it. Three modes
+carry a distinct program at each end, and are genuine two-programme contrasts:
+
+| sample | mode | one pole | opposite pole |
+|---|---|---|---|
+| untreated control, dimension-matched subset | 4 | flagellar motility, chemotaxis, flagellum organization | cytoplasmic translation, large-subunit assembly |
+| untreated control, dimension-matched subset | 3 | pyrimidine and L-arginine biosynthesis (de novo UMP) | flagellar motility, chemotaxis, swarming |
+| Dis-Arrest (SHX biorep 2B) | 1 | lipopolysaccharide biosynthesis | cytoplasmic translation, subunit assembly, regulation of translation |
+
+The motility-versus-translation and motility-versus-nucleotide-biosynthesis axes
+are invisible at every cutoff of the pooled analysis and appear only once the poles
+are separated. They are consistent with the known trade-off between flagellar
+synthesis and biosynthetic/ribosomal investment, and they show that where the data
+do contain two anti-correlated programmes, the eigenvector represents both.
 
 **3. Genes transcribed from the same promoter appear together in the same mode,
 with the same sign.** Our VapC strains carry a chromosomally integrated cassette
@@ -62,13 +95,22 @@ recover a program in the real data is not a failure of sensitivity.
 ## What the eigenvectors do not do
 
 **They do not distinguish Reg-Arrest from Dis-Arrest.** This is the central
-negative result. The translation program appears in the leading mode of
-Dis-Arrest samples (Dis-Arrest 1B, 2 and 3) just as it does in Reg-Arrest samples
-and in exponentially growing cells. No other program appears consistently in one
-condition and not the other. Ranking genes by their loadings therefore does not
-tell us which genes remain regulated and which have lost regulation.
+negative result, and the sign-resolved analysis — which recovers roughly twice as
+much as the pooled one — does not change it. The translation program appears in
+the leading mode of Dis-Arrest samples (Dis-Arrest 1B, 2 and 3) just as it does in
+Reg-Arrest samples and in exponentially growing cells: **5 of our 7 Dis-Arrest
+samples have at least one enriched leading mode, and in every one the recovered
+program is the same translation/ribosome axis** seen in Reg-Arrest (8 of 11
+samples). Outside
+that axis and the three contrast modes above, only three modes in the entire
+dataset return any other program on a pole of their own — glycolysis, pyrimidine
+nucleotide biosynthesis and lipopolysaccharide biosynthesis, one term each — and
+none of them recurs across replicates of a condition. No program
+appears consistently in one arrest state and not the other. Ranking genes by their
+loadings, with or without sign resolution, therefore does not tell us which genes
+remain regulated and which have lost regulation.
 
-Three further limitations apply:
+Four further limitations apply:
 
 1. **Only a few programs can be seen at all.** Five modes cannot represent the
    many correlated gene groups present in a cell. In our simulations, where the
@@ -89,6 +131,16 @@ Three further limitations apply:
    annotation, so any enrichment test is blind to them. Bacterial single-cell data
    are also sparse and shallow, which limits per-gene resolution.
 
+4. **Sign is informative within a mode, but not across modes.** The two poles of
+   one eigenvector are genuinely anti-correlated, which is what the analysis above
+   uses. Which pole is called "positive" is arbitrary, however, so signed
+   quantities cannot be summed across modes: we verified that a signed
+   gene-level score aggregated over the ten leading modes changes the sign of
+   about half its genes (median 53% agreement) under an equally valid sign
+   convention, and yields no additional enrichment. Gene-level scores that
+   aggregate over modes must therefore be built from sign-invariant quantities, as
+   ours are.
+
 ## Why we keep GMP-Cor as the main measure
 
 The comparison the reviewer suggests — a gene-level read-out compared against a
@@ -108,3 +160,34 @@ observation that the leading eigenvector does recover the growth-versus-stress
 axis and the translation program, and that a larger and technically matched
 reference set would be needed to pursue the compendium comparison the reviewer
 describes.
+
+---
+
+## Internal notes (not for the reviewer)
+
+- Source of the numbers in this response: `documents/eigenvector_go_signed.md` and
+  `results/eigenvector_analysis/go_signed_comparison.csv` /
+  `go_signed_contrast_table.txt` (per-mode sign split, 100 genes per pole, 18
+  samples × 5 modes). Category counts use `results/data_metrics/data_metrics.csv`,
+  not the stale `test8.csv` the analysis scripts read for their display headers.
+- **Dataset naming to confirm before submission.** The two contrast modes in the
+  table are from `adam_matrix_filtered2.csv`, which is a strict subset of
+  `adam_matrix_filtered.csv` — 998 of 1994 cells and 2007 of 3973 genes, i.e. the
+  dimension-matched version. It is called "untreated control, dimension-matched
+  subset" above; replace with the label used in the manuscript, and decide whether
+  to present a result that appears in the subset but not in the full matrix (modes
+  3 and 4 of the full `adam_matrix_filtered` return nothing).
+- Limitation 4 summarises `documents/eigenvector_weighted_loading_signed.md`: the
+  weighted-loading score without the absolute value (`signed_i = Σ v_{k,i} λ_k / P`)
+  gives 4 of 18 samples with terms versus 3 for the published `|v|` score, and its
+  gene ranking is not reproducible across sign conventions (median 53% sign
+  agreement, Spearman correlation negative in 7 of 18 samples). We do not propose
+  using it; it is cited only to justify keeping the score sign-invariant.
+- Sample-label check: the SHX -> "Dis-Arrest 1B / 2 / 3" mapping in the body text
+  predates this revision and is not recorded anywhere in the repo, so the contrast
+  row is labelled "Dis-Arrest (SHX biorep 2B)"; substitute the manuscript's own
+  label for that sample.
+- `results/eigenvector_analysis/top_genes/` was regenerated for
+  `adam_matrix_filtered2.csv`; `deb_Ec_CDS_untreated.csv` and
+  `deb_KP_CDS_untreated.csv` are still missing from that folder, and `summary.csv`
+  there still covers only the original 15 datasets.

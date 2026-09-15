@@ -1,0 +1,432 @@
+Sign-resolved GO enrichment of leading eigenvectors (Reviewer #4, comment 1)
+N_TOP=5  N_SIDE=100 genes per pole
+Each mode's top-100 POSITIVE and top-100 NEGATIVE loading genes are enriched
+separately vs the gene-panel background. The pooled |loading| top-100 / top-200 runs
+in go_top100/ and go_top200/ are the controls (top-200 = the same 200 genes, pooled).
+Mode sign is oriented so the heavier squared-mass pole is the 'positive' one.
+
+modes tested: 90
+  with >=1 term on the positive pole  : 8
+  with >=1 term on the negative pole  : 18
+  with >=1 term on either pole        : 23
+  |loading| top-100 control           : 11
+  |loading| top-200 control           : 14
+  modes gaining a term not in top-200 : 22
+
+=== Expira_biorep_t0A_filtered.csv  [regulated]  GMP-Cor=31.85  lambda_max^scr=6.800  (n_genes=1997) ===
+  mode 1: eig=17.159 (ABOVE thr)  n_pos=395 n_neg=1602  mass_pos=1.00
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 2: eig=15.484 (ABOVE thr)  n_pos=448 n_neg=1549  mass_pos=0.99
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 5 terms -> cytoplasmic translation; translation; galactitol metabolic process; ribosomal small subunit assembly
+      |loading| control: top100=2 terms, top200=3 terms
+      NEW vs |loading| top200: ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 3: eig=11.740 (ABOVE thr)  n_pos=619 n_neg=1378  mass_pos=0.99
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 2 terms -> cytoplasmic translation; translation
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: cytoplasmic translation; translation
+  mode 4: eig=11.130 (ABOVE thr)  n_pos=456 n_neg=1541  mass_pos=1.00
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.986 (ABOVE thr)  n_pos=596 n_neg=1401  mass_pos=0.98
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== SHX_biorep2A.csv  [dis-arrest]  GMP-Cor=11.36  lambda_max^scr=6.337  (n_genes=1997) ===
+  mode 1: eig=9.503 (ABOVE thr)  n_pos=1113 n_neg=884  mass_pos=0.80
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 9 terms -> cytoplasmic translation; translation; regulation of translation; ribosomal large subunit assembly
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: DNA-templated transcription initiation; DNA-templated transcription termination; cytoplasmic translation; negative regulation of DNA-templated transcription; regulation of translation; ribosomal large subunit assembly
+  mode 2: eig=7.944 (ABOVE thr)  n_pos=857 n_neg=1140  mass_pos=0.79
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=7.776 (ABOVE thr)  n_pos=906 n_neg=1091  mass_pos=0.61
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=7.535 (ABOVE thr)  n_pos=838 n_neg=1159  mass_pos=0.78
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.112 (ABOVE thr)  n_pos=903 n_neg=1094  mass_pos=0.55
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== SHX_biorep2B.csv  [dis-arrest]  GMP-Cor=1.31  lambda_max^scr=6.337  (n_genes=1998) ===
+  mode 1: eig=7.651 (ABOVE thr)  n_pos=1155 n_neg=843  mass_pos=0.65
+      pos100 (n=100): 1 terms -> lipopolysaccharide biosynthetic process
+      neg100 (n=100): 5 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation
+      |loading| control: top100=2 terms, top200=2 terms
+      NEW vs |loading| top200: lipopolysaccharide biosynthetic process; regulation of translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+  mode 2: eig=6.564 (ABOVE thr)  n_pos=840 n_neg=1158  mass_pos=0.71
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=6.387 (ABOVE thr)  n_pos=963 n_neg=1035  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=6.231 (below thr)  n_pos=945 n_neg=1053  mass_pos=0.57
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=6.196 (below thr)  n_pos=925 n_neg=1073  mass_pos=0.59
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== SHX_biorep4A.csv  [dis-arrest]  GMP-Cor=3.00  lambda_max^scr=5.881  (n_genes=1997) ===
+  mode 1: eig=8.332 (ABOVE thr)  n_pos=691 n_neg=1306  mass_pos=0.60
+      pos100 (n=100): 7 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=7 terms, top200=5 terms
+      NEW vs |loading| top200: DNA-templated transcription termination; maintenance of translational fidelity
+  mode 2: eig=6.654 (ABOVE thr)  n_pos=812 n_neg=1185  mass_pos=0.69
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=5.954 (ABOVE thr)  n_pos=929 n_neg=1068  mass_pos=0.63
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=5.835 (below thr)  n_pos=951 n_neg=1046  mass_pos=0.63
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=5.806 (below thr)  n_pos=983 n_neg=1014  mass_pos=0.51
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== SHX_biorep6A.csv  [dis-arrest]  GMP-Cor=7.09  lambda_max^scr=5.879  (n_genes=1998) ===
+  mode 1: eig=9.055 (ABOVE thr)  n_pos=708 n_neg=1290  mass_pos=0.56
+      pos100 (n=100): 12 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=10 terms, top200=9 terms
+      NEW vs |loading| top200: DNA-templated transcription termination; maintenance of translational fidelity; regulation of cellular response to stress; response to antibiotic
+  mode 2: eig=6.499 (ABOVE thr)  n_pos=990 n_neg=1008  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=6.460 (ABOVE thr)  n_pos=934 n_neg=1064  mass_pos=0.68
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=6.276 (ABOVE thr)  n_pos=968 n_neg=1030  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=6.250 (ABOVE thr)  n_pos=996 n_neg=1002  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== VapC_biorep_t2A_filtered.csv  [regulated]  GMP-Cor=27.52  lambda_max^scr=6.035  (n_genes=1797) ===
+  mode 1: eig=14.628 (ABOVE thr)  n_pos=1286 n_neg=511  mass_pos=0.89
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 15 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      |loading| control: top100=2 terms, top200=2 terms
+      NEW vs |loading| top200: DNA-templated transcription initiation; bacterial-type flagellum assembly; cell motility; fatty acid biosynthetic process; negative regulation of translation; regulation of DNA-templated transcription elongation
+  mode 2: eig=9.949 (ABOVE thr)  n_pos=1043 n_neg=754  mass_pos=0.57
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=9.552 (ABOVE thr)  n_pos=635 n_neg=1162  mass_pos=0.59
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=8.243 (ABOVE thr)  n_pos=1199 n_neg=598  mass_pos=0.71
+      pos100 (n=100): 5 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=5 terms, top200=4 terms
+      NEW vs |loading| top200: regulation of DNA-templated transcription elongation
+  mode 5: eig=8.147 (ABOVE thr)  n_pos=727 n_neg=1070  mass_pos=0.65
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== VapC_biorep_t5A_filtered.csv  [regulated]  GMP-Cor=13.16  lambda_max^scr=5.848  (n_genes=1797) ===
+  mode 1: eig=12.060 (ABOVE thr)  n_pos=1480 n_neg=317  mass_pos=0.76
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 6 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      |loading| control: top100=4 terms, top200=3 terms
+      NEW vs |loading| top200: DNA-templated transcription termination; regulation of translation; ribosomal large subunit assembly
+  mode 2: eig=7.586 (ABOVE thr)  n_pos=814 n_neg=983  mass_pos=0.55
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=6.822 (ABOVE thr)  n_pos=842 n_neg=955  mass_pos=0.62
+      pos100 (n=100): 2 terms -> cytoplasmic translation; translation
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=2 terms, top200=2 terms
+  mode 4: eig=6.629 (ABOVE thr)  n_pos=800 n_neg=997  mass_pos=0.63
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=6.562 (ABOVE thr)  n_pos=905 n_neg=892  mass_pos=0.59
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== VapC_biorep_t5B_filtered.csv  [regulated]  GMP-Cor=29.70  lambda_max^scr=5.811  (n_genes=1798) ===
+  mode 1: eig=30.002 (ABOVE thr)  n_pos=1623 n_neg=175  mass_pos=0.66
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 11 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      |loading| control: top100=10 terms, top200=5 terms
+      NEW vs |loading| top200: DNA-templated transcription termination; fatty acid biosynthetic process; regulation of DNA-templated transcription elongation; regulation of translation; ribosome biogenesis; transcription antitermination
+  mode 2: eig=7.706 (ABOVE thr)  n_pos=1232 n_neg=566  mass_pos=0.81
+      pos100 (n=100): 11 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=10 terms, top200=4 terms
+      NEW vs |loading| top200: DNA-templated transcription termination; intracellular protein transmembrane transport; intracellular protein transport; regulation of DNA-templated transcription elongation; regulation of translation; ribosome biogenesis
+  mode 3: eig=6.425 (ABOVE thr)  n_pos=966 n_neg=832  mass_pos=0.53
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=6.338 (ABOVE thr)  n_pos=907 n_neg=891  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=6.242 (ABOVE thr)  n_pos=939 n_neg=859  mass_pos=0.55
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== VapC_biorep_tONA_filtered.csv  [dis-arrest]  GMP-Cor=4.89  lambda_max^scr=5.808  (n_genes=1797) ===
+  mode 1: eig=10.246 (ABOVE thr)  n_pos=1637 n_neg=160  mass_pos=0.67
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 2: eig=5.976 (ABOVE thr)  n_pos=898 n_neg=899  mass_pos=0.53
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=5.925 (ABOVE thr)  n_pos=893 n_neg=904  mass_pos=0.51
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=5.857 (ABOVE thr)  n_pos=921 n_neg=876  mass_pos=0.51
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=5.815 (ABOVE thr)  n_pos=909 n_neg=888  mass_pos=0.50
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== adam_matrix_filtered.csv  [regulated]  GMP-Cor=21.03  lambda_max^scr=6.007  (n_genes=3973) ===
+  mode 1: eig=11.250 (ABOVE thr)  n_pos=2534 n_neg=1439  mass_pos=0.60
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 18 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly
+      |loading| control: top100=7 terms, top200=10 terms
+      NEW vs |loading| top200: ATP biosynthetic process; arginine biosynthetic process via ornithine; proton motive force-driven ATP synthesis; proton motive force-driven plasma membrane ATP synthesis; regulation of DNA-templated transcription elongation; response to antibiotic
+  mode 2: eig=9.825 (ABOVE thr)  n_pos=1515 n_neg=2458  mass_pos=0.88
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 1 terms -> glycolytic process
+      |loading| control: top100=0 terms, top200=3 terms
+      NEW vs |loading| top200: glycolytic process
+  mode 3: eig=7.645 (ABOVE thr)  n_pos=1575 n_neg=2398  mass_pos=0.78
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=3 terms
+  mode 4: eig=7.390 (ABOVE thr)  n_pos=1896 n_neg=2077  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.217 (ABOVE thr)  n_pos=1693 n_neg=2280  mass_pos=0.79
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== adam_matrix_filtered2.csv  [?]  GMP-Cor=nan  lambda_max^scr=5.828  (n_genes=2007) ===
+  mode 1: eig=12.946 (ABOVE thr)  n_pos=1364 n_neg=643  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 16 terms -> cytoplasmic translation; translation; ribosomal large subunit assembly; L-arginine biosynthetic process
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: ATP biosynthetic process; L-arginine biosynthetic process; arginine biosynthetic process via ornithine; cytoplasmic translation; negative regulation of translation; proton motive force-driven ATP synthesis
+  mode 2: eig=8.816 (ABOVE thr)  n_pos=709 n_neg=1298  mass_pos=0.92
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 1 terms -> pyrimidine nucleotide biosynthetic process
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: pyrimidine nucleotide biosynthetic process
+  mode 3: eig=7.212 (ABOVE thr)  n_pos=953 n_neg=1054  mass_pos=0.50
+      pos100 (n=100): 5 terms -> pyrimidine nucleotide biosynthetic process; L-arginine biosynthetic process; 'de novo' pyrimidine nucleobase biosynthetic process; 'de novo' UMP biosynthetic process
+      neg100 (n=100): 7 terms -> bacterial-type flagellum-dependent cell motility; chemotaxis; archaeal or bacterial-type flagellum-dependent cell motility; bacterial-type flagellum-dependent swarming motility
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: 'de novo' UMP biosynthetic process; 'de novo' pyrimidine nucleobase biosynthetic process; L-arginine biosynthetic process; L-leucine biosynthetic process; amino acid biosynthetic process; archaeal or bacterial-type flagellum-dependent cell motility
+  mode 4: eig=7.079 (ABOVE thr)  n_pos=944 n_neg=1063  mass_pos=0.57
+      pos100 (n=100): 15 terms -> bacterial-type flagellum-dependent cell motility; chemotaxis; bacterial-type flagellum organization; archaeal or bacterial-type flagellum-dependent cell motility
+      neg100 (n=100): 3 terms -> cytoplasmic translation; ribosomal large subunit assembly; translation
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: 'de novo' UMP biosynthetic process; 'de novo' pyrimidine nucleobase biosynthetic process; archaeal or bacterial-type flagellum-dependent cell motility; bacterial-type flagellum assembly; bacterial-type flagellum organization; bacterial-type flagellum-dependent cell motility
+  mode 5: eig=6.241 (ABOVE thr)  n_pos=1026 n_neg=981  mass_pos=0.52
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== deb_Ec_CDS_untreated.csv  [?]  GMP-Cor=nan  lambda_max^scr=7.150  (n_genes=2273) ===
+  mode 1: eig=19.185 (ABOVE thr)  n_pos=554 n_neg=1719  mass_pos=1.00
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 2: eig=15.088 (ABOVE thr)  n_pos=471 n_neg=1802  mass_pos=0.99
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=14.832 (ABOVE thr)  n_pos=551 n_neg=1722  mass_pos=0.99
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=14.810 (ABOVE thr)  n_pos=1019 n_neg=1254  mass_pos=0.57
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=14.696 (ABOVE thr)  n_pos=708 n_neg=1565  mass_pos=0.92
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== deb_KP_CDS_untreated.csv  [?]  GMP-Cor=nan  lambda_max^scr=6.905  (n_genes=2725) ===
+  mode 1: eig=63.707 (ABOVE thr)  n_pos=362 n_neg=2363  mass_pos=0.88
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 2: eig=23.186 (ABOVE thr)  n_pos=349 n_neg=2376  mass_pos=1.00
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=16.996 (ABOVE thr)  n_pos=1240 n_neg=1485  mass_pos=0.56
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=12.523 (ABOVE thr)  n_pos=836 n_neg=1889  mass_pos=0.90
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=12.017 (ABOVE thr)  n_pos=897 n_neg=1828  mass_pos=0.81
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== sample_13a_filtered.csv  [dis-arrest]  GMP-Cor=3.08  lambda_max^scr=6.765  (n_genes=2037) ===
+  mode 1: eig=8.242 (ABOVE thr)  n_pos=1203 n_neg=834  mass_pos=0.93
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 3 terms -> translation; cytoplasmic translation; ribosomal large subunit assembly
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: cytoplasmic translation; ribosomal large subunit assembly; translation
+  mode 2: eig=7.092 (ABOVE thr)  n_pos=726 n_neg=1311  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=6.923 (ABOVE thr)  n_pos=1170 n_neg=867  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=6.682 (below thr)  n_pos=840 n_neg=1197  mass_pos=0.56
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=6.567 (below thr)  n_pos=991 n_neg=1046  mass_pos=0.68
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== sample_13b_filtered.csv  [regulated]  GMP-Cor=24.28  lambda_max^scr=6.606  (n_genes=2023) ===
+  mode 1: eig=14.259 (ABOVE thr)  n_pos=1352 n_neg=671  mass_pos=0.82
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 7 terms -> cytoplasmic translation; translation; response to heat; ribosomal large subunit assembly
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: DNA-templated transcription initiation; cytoplasmic translation; regulation of DNA-templated transcription initiation; regulation of translation; response to heat; ribosomal large subunit assembly
+  mode 2: eig=12.093 (ABOVE thr)  n_pos=1091 n_neg=932  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 1 terms -> lipopolysaccharide biosynthetic process
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: lipopolysaccharide biosynthetic process
+  mode 3: eig=8.859 (ABOVE thr)  n_pos=984 n_neg=1039  mass_pos=0.96
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 2 terms -> translation; cytoplasmic translation
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: cytoplasmic translation; translation
+  mode 4: eig=8.260 (ABOVE thr)  n_pos=993 n_neg=1030  mass_pos=0.69
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.889 (ABOVE thr)  n_pos=872 n_neg=1151  mass_pos=0.55
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== sample_15a_filtered.csv  [dis-arrest]  GMP-Cor=0.00  lambda_max^scr=6.623  (n_genes=2004) ===
+  mode 1: eig=6.095 (below thr)  n_pos=823 n_neg=1181  mass_pos=0.87
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 2: eig=5.957 (below thr)  n_pos=809 n_neg=1195  mass_pos=0.69
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=5.842 (below thr)  n_pos=819 n_neg=1185  mass_pos=0.87
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=5.681 (below thr)  n_pos=1174 n_neg=830  mass_pos=0.68
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=5.645 (below thr)  n_pos=919 n_neg=1085  mass_pos=0.50
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== sample_15b_filtered.csv  [regulated]  GMP-Cor=34.37  lambda_max^scr=6.418  (n_genes=2023) ===
+  mode 1: eig=17.282 (ABOVE thr)  n_pos=1462 n_neg=561  mass_pos=0.89
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): 7 terms -> cytoplasmic translation; translation; regulation of gene expression; ribosomal large subunit assembly
+      |loading| control: top100=0 terms, top200=0 terms
+      NEW vs |loading| top200: cytoplasmic translation; regulation of gene expression; regulation of translation; response to cold; response to heat; ribosomal large subunit assembly
+  mode 2: eig=11.146 (ABOVE thr)  n_pos=1247 n_neg=776  mass_pos=0.70
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=8.880 (ABOVE thr)  n_pos=1018 n_neg=1005  mass_pos=0.80
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=8.211 (ABOVE thr)  n_pos=936 n_neg=1087  mass_pos=0.96
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.937 (ABOVE thr)  n_pos=1055 n_neg=968  mass_pos=0.54
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+
+=== sample_2b_filtered.csv  [regulated]  GMP-Cor=34.00  lambda_max^scr=6.075  (n_genes=2071) ===
+  mode 1: eig=19.409 (ABOVE thr)  n_pos=1308 n_neg=763  mass_pos=0.81
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=3 terms
+  mode 2: eig=9.524 (ABOVE thr)  n_pos=961 n_neg=1110  mass_pos=0.81
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 3: eig=8.417 (ABOVE thr)  n_pos=909 n_neg=1162  mass_pos=0.94
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 4: eig=8.285 (ABOVE thr)  n_pos=946 n_neg=1125  mass_pos=0.55
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms
+  mode 5: eig=7.624 (ABOVE thr)  n_pos=1006 n_neg=1065  mass_pos=0.69
+      pos100 (n=100): (no significant terms)
+      neg100 (n=100): (no significant terms)
+      |loading| control: top100=0 terms, top200=0 terms

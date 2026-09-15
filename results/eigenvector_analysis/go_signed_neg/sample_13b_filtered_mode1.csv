@@ -1,0 +1,8 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,1.1654742220822645e-13,1.413720231385787e-10,"(15, 84)","(27, 1654)"
+GO:0006412,translation,BP,7.278792857743229e-11,4.414587868221268e-08,"(17, 84)","(51, 1654)"
+GO:0009408,response to heat,BP,2.1073569030513893e-09,8.520746411337785e-07,"(12, 84)","(28, 1654)"
+GO:0000027,ribosomal large subunit assembly,BP,4.9759947097757576e-05,0.015019025308986893,"(6, 84)","(15, 1654)"
+GO:0006352,DNA-templated transcription initiation,BP,6.190859566771184e-05,0.015019025308986893,"(5, 84)","(10, 1654)"
+GO:2000142,regulation of DNA-templated transcription initiation,BP,0.00017940181448770578,0.03626906682893118,"(5, 84)","(12, 1654)"
+GO:0006417,regulation of translation,BP,0.00027994711321635985,0.048510835475920645,"(5, 84)","(13, 1654)"

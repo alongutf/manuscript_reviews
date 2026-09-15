@@ -1,0 +1,2 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0006096,glycolytic process,BP,9.67261096897858e-08,0.00015805046323311,"(7, 93)","(16, 3339)"

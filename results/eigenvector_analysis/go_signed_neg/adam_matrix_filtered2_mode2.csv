@@ -1,0 +1,2 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0006221,pyrimidine nucleotide biosynthetic process,BP,3.8369316480802575e-05,0.04976500347560094,"(5, 90)","(9, 1712)"

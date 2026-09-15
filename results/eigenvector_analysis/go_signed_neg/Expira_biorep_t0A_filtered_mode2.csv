@@ -1,0 +1,6 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0002181,cytoplasmic translation,BP,2.0283095382792657e-14,2.588122970844343e-11,"(20, 91)","(47, 1667)"
+GO:0006412,translation,BP,1.32607954288268e-12,8.460387483591499e-10,"(23, 91)","(77, 1667)"
+GO:0019402,galactitol metabolic process,BP,8.336397676176778e-06,0.003545747811600523,"(4, 91)","(4, 1667)"
+GO:0000028,ribosomal small subunit assembly,BP,7.548906969769317e-05,0.02408101323356412,"(6, 91)","(15, 1667)"
+GO:0000027,ribosomal large subunit assembly,BP,0.00018536758181548948,0.04730580687931292,"(7, 91)","(24, 1667)"

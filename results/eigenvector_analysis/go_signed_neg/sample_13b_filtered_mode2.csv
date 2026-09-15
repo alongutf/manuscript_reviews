@@ -1,0 +1,2 @@
+GO_ID,Term,Category,p_value,FDR,Ratio_in_study,Ratio_in_pop
+GO:0009103,lipopolysaccharide biosynthetic process,BP,1.3714189692181057e-06,0.0016635312096615622,"(10, 82)","(32, 1654)"

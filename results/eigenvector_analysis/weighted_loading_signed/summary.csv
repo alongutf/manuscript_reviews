@@ -1,0 +1,37 @@
+file_name,category,GMP_Cor,cutoff,n_genes_kept,n_pos_scores,n_neg_scores,n_per_pole,modes_flipped,sign_agreement_vs_raw,spearman_vs_raw,n_terms_pos,n_terms_neg,n_terms_abs50,terms_pos,terms_neg,terms_abs50,new_vs_abs50
+Expira_biorep_t0A_filtered.csv,r,32.719418,50,1997,786,1211,50,3,0.6204306459689535,0.27862979211074546,0,0,0,,,,
+Expira_biorep_t0A_filtered.csv,r,32.719418,100,1997,786,1211,100,3,0.6204306459689535,0.27862979211074546,0,0,0,,,,
+SHX_biorep2A.csv,d,9.602742,50,1997,861,1136,50,5,0.45768652979469204,-0.07024579804922641,0,0,0,,,,
+SHX_biorep2A.csv,d,9.602742,100,1997,861,1136,100,5,0.45768652979469204,-0.07024579804922641,0,0,0,,,,
+SHX_biorep2B.csv,d,1.365394,50,1998,904,1094,50,6,0.4934934934934935,-0.06340177476697163,0,0,0,,,,
+SHX_biorep2B.csv,d,1.365394,100,1998,904,1094,100,6,0.4934934934934935,-0.06340177476697163,0,0,0,,,,
+SHX_biorep4A.csv,d,2.976518,50,1997,930,1067,50,3,0.6664997496244367,0.45377263034367454,0,0,0,,,,
+SHX_biorep4A.csv,d,2.976518,100,1997,930,1067,100,3,0.6664997496244367,0.45377263034367454,3,0,0,regulation of translation; translation; cytoplasmic translation,,,cytoplasmic translation; regulation of translation; translation
+SHX_biorep6A.csv,d,7.026156,50,1998,982,1016,50,5,0.5505505505505506,0.10699496749657533,0,0,0,,,,
+SHX_biorep6A.csv,d,7.026156,100,1998,982,1016,100,5,0.5505505505505506,0.10699496749657533,0,0,0,,,,
+VapC_biorep_t2A_filtered.csv,r,27.848066,50,1797,1144,653,50,5,0.48580968280467446,0.0025982771357073477,0,0,0,,,,
+VapC_biorep_t2A_filtered.csv,r,27.848066,100,1797,1144,653,100,5,0.48580968280467446,0.0025982771357073477,0,0,0,,,,
+VapC_biorep_t5A_filtered.csv,r,13.132393,50,1797,1134,663,50,4,0.5982192543127435,0.23643500915345098,0,0,2,,,cytoplasmic translation; translation,
+VapC_biorep_t5A_filtered.csv,r,13.132393,100,1797,1134,663,100,4,0.5982192543127435,0.23643500915345098,0,0,2,,,cytoplasmic translation; translation,
+VapC_biorep_t5B_filtered.csv,r,29.985002,50,1798,1487,311,50,4,0.7903225806451613,0.5095196788622356,0,6,6,,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; response to antibiotic; regulation of translation,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; regulation of translation; response to antibiotic,
+VapC_biorep_t5B_filtered.csv,r,29.985002,100,1798,1487,311,100,4,0.7903225806451613,0.5095196788622356,0,8,6,,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; DNA-templated transcription termination; transcription antitermination; ribosome biogenesis; regulation of DNA-templated transcription elongation,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; regulation of translation; response to antibiotic,DNA-templated transcription termination; regulation of DNA-templated transcription elongation; ribosome biogenesis; transcription antitermination
+VapC_biorep_tONA_filtered.csv,d,4.650962,50,1797,1134,663,50,8,0.2849193099610462,-0.5863055288397719,0,0,0,,,,
+VapC_biorep_tONA_filtered.csv,d,4.650962,100,1797,1134,663,100,8,0.2849193099610462,-0.5863055288397719,0,0,0,,,,
+adam_matrix_filtered.csv,r,21.186037,50,3973,1828,2145,50,5,0.4812484268814498,-0.004146721143440172,0,7,0,,cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation; ribosome biogenesis; NADPH regeneration; proton export across plasma membrane,,NADPH regeneration; cytoplasmic translation; proton export across plasma membrane; regulation of translation; ribosomal large subunit assembly; ribosome biogenesis; translation
+adam_matrix_filtered.csv,r,21.186037,100,3973,1828,2145,100,5,0.4812484268814498,-0.004146721143440172,0,4,0,,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly,,cytoplasmic translation; ribosomal large subunit assembly; ribosomal small subunit assembly; translation
+adam_matrix_filtered2.csv,r,13.845759,50,2007,1106,901,50,7,0.3482810164424514,-0.4659244801461123,0,9,3,,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; ribosome biogenesis; transcription antitermination; negative regulation of translation; regulation of translation; ribosome assembly,cytoplasmic translation; ribosomal large subunit assembly; translation,negative regulation of translation; regulation of translation; ribosomal small subunit assembly; ribosome assembly; ribosome biogenesis; transcription antitermination
+adam_matrix_filtered2.csv,r,13.845759,100,2007,1106,901,100,7,0.3482810164424514,-0.4659244801461123,0,5,3,,cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly; negative regulation of translation,cytoplasmic translation; ribosomal large subunit assembly; translation,negative regulation of translation; ribosomal small subunit assembly
+deb_Ec_CDS_untreated.csv,r,137.340599,50,2273,944,1329,50,4,0.6647602287725473,0.28097239824552445,0,0,0,,,,
+deb_Ec_CDS_untreated.csv,r,137.340599,100,2273,944,1329,100,4,0.6647602287725473,0.28097239824552445,0,0,0,,,,
+deb_KP_CDS_untreated.csv,r,128.622796,50,2725,503,2222,50,5,0.12770642201834861,-0.6440110067838891,0,0,0,,,,
+deb_KP_CDS_untreated.csv,r,128.622796,100,2725,503,2222,100,5,0.12770642201834861,-0.6440110067838891,0,0,0,,,,
+sample_13a_filtered.csv,d,2.535518,50,2037,976,1061,50,5,0.5066273932253313,0.051056986174896866,0,0,0,,,,
+sample_13a_filtered.csv,d,2.535518,100,2037,976,1061,100,5,0.5066273932253313,0.051056986174896866,0,0,0,,,,
+sample_13b_filtered.csv,r,21.947842,50,2023,1288,735,50,1,0.833415719228868,0.8432539219531099,0,0,0,,,,
+sample_13b_filtered.csv,r,21.947842,100,2023,1288,735,100,1,0.833415719228868,0.8432539219531099,0,0,0,,,,
+sample_15a_filtered.csv,d,0.0,50,2004,986,1018,50,6,0.36926147704590817,-0.34495781604121817,0,0,0,,,,
+sample_15a_filtered.csv,d,0.0,100,2004,986,1018,100,6,0.36926147704590817,-0.34495781604121817,0,0,0,,,,
+sample_15b_filtered.csv,r,31.643176,50,2023,1470,553,50,6,0.5506673257538309,0.007928855169572854,0,1,0,,regulation of cellular response to stress,,regulation of cellular response to stress
+sample_15b_filtered.csv,r,31.643176,100,2023,1470,553,100,6,0.5506673257538309,0.007928855169572854,0,0,0,,,,
+sample_2b_filtered.csv,r,38.101015,50,2071,1327,744,50,5,0.6784162240463544,0.43212225709758934,0,0,0,,,,
+sample_2b_filtered.csv,r,38.101015,100,2071,1327,744,100,5,0.6784162240463544,0.43212225709758934,0,0,0,,,,

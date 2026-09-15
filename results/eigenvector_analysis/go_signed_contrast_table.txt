@@ -1,0 +1,310 @@
+Per-sample / per-mode pole contrasts (see documents/eigenvector_go_signed.md)
+POS = dominant (heavier squared-mass) pole, NEG = opposing pole; the labels are
+an orientation convention, not a direction of expression change.
+CONTRAST = both poles significantly enriched.
+
+=== Expira_biorep_t0A_filtered  [regulated] ===
+  mode 1  eig=17.16 (ABOVE thr)  mass_pos=1.00
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=15.48 (ABOVE thr)  mass_pos=0.99
+     POS(0): (none)
+     NEG(5): cytoplasmic translation; translation; galactitol metabolic process; ribosomal small subunit assembly  (+1 more)
+  mode 3  eig=11.74 (ABOVE thr)  mass_pos=0.99
+     POS(0): (none)
+     NEG(2): cytoplasmic translation; translation
+  mode 4  eig=11.13 (ABOVE thr)  mass_pos=1.00
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.99 (ABOVE thr)  mass_pos=0.98
+     POS(0): (none)
+     NEG(0): (none)
+
+=== SHX_biorep2A  [dis-arrest] ===
+  mode 1  eig=9.50 (ABOVE thr)  mass_pos=0.80
+     POS(0): (none)
+     NEG(9): cytoplasmic translation; translation; regulation of translation; ribosomal large subunit assembly  (+5 more)
+  mode 2  eig=7.94 (ABOVE thr)  mass_pos=0.79
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=7.78 (ABOVE thr)  mass_pos=0.61
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=7.53 (ABOVE thr)  mass_pos=0.78
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.11 (ABOVE thr)  mass_pos=0.55
+     POS(0): (none)
+     NEG(0): (none)
+
+=== SHX_biorep2B  [dis-arrest] ===
+  mode 1  eig=7.65 (ABOVE thr)  mass_pos=0.65   ** CONTRAST **
+     POS(1): lipopolysaccharide biosynthetic process
+     NEG(5): cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation  (+1 more)
+  mode 2  eig=6.56 (ABOVE thr)  mass_pos=0.71
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=6.39 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=6.23 (below thr)  mass_pos=0.57
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=6.20 (below thr)  mass_pos=0.59
+     POS(0): (none)
+     NEG(0): (none)
+
+=== SHX_biorep4A  [dis-arrest] ===
+  mode 1  eig=8.33 (ABOVE thr)  mass_pos=0.60
+     POS(7): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+3 more)
+     NEG(0): (none)
+  mode 2  eig=6.65 (ABOVE thr)  mass_pos=0.69
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=5.95 (ABOVE thr)  mass_pos=0.63
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=5.84 (below thr)  mass_pos=0.63
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=5.81 (below thr)  mass_pos=0.51
+     POS(0): (none)
+     NEG(0): (none)
+
+=== SHX_biorep6A  [dis-arrest] ===
+  mode 1  eig=9.05 (ABOVE thr)  mass_pos=0.56
+     POS(12): cytoplasmic translation; translation; ribosomal large subunit assembly; regulation of translation  (+8 more)
+     NEG(0): (none)
+  mode 2  eig=6.50 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=6.46 (ABOVE thr)  mass_pos=0.68
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=6.28 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=6.25 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+
+=== VapC_biorep_t2A_filtered  [regulated] ===
+  mode 1  eig=14.63 (ABOVE thr)  mass_pos=0.89
+     POS(0): (none)
+     NEG(15): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+11 more)
+  mode 2  eig=9.95 (ABOVE thr)  mass_pos=0.57
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=9.55 (ABOVE thr)  mass_pos=0.59
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=8.24 (ABOVE thr)  mass_pos=0.71
+     POS(5): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+1 more)
+     NEG(0): (none)
+  mode 5  eig=8.15 (ABOVE thr)  mass_pos=0.65
+     POS(0): (none)
+     NEG(0): (none)
+
+=== VapC_biorep_t5A_filtered  [regulated] ===
+  mode 1  eig=12.06 (ABOVE thr)  mass_pos=0.76
+     POS(0): (none)
+     NEG(6): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+2 more)
+  mode 2  eig=7.59 (ABOVE thr)  mass_pos=0.55
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=6.82 (ABOVE thr)  mass_pos=0.62
+     POS(2): cytoplasmic translation; translation
+     NEG(0): (none)
+  mode 4  eig=6.63 (ABOVE thr)  mass_pos=0.63
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=6.56 (ABOVE thr)  mass_pos=0.59
+     POS(0): (none)
+     NEG(0): (none)
+
+=== VapC_biorep_t5B_filtered  [regulated] ===
+  mode 1  eig=30.00 (ABOVE thr)  mass_pos=0.66
+     POS(0): (none)
+     NEG(11): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+7 more)
+  mode 2  eig=7.71 (ABOVE thr)  mass_pos=0.81
+     POS(11): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+7 more)
+     NEG(0): (none)
+  mode 3  eig=6.43 (ABOVE thr)  mass_pos=0.53
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=6.34 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=6.24 (ABOVE thr)  mass_pos=0.55
+     POS(0): (none)
+     NEG(0): (none)
+
+=== VapC_biorep_tONA_filtered  [dis-arrest] ===
+  mode 1  eig=10.25 (ABOVE thr)  mass_pos=0.67
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=5.98 (ABOVE thr)  mass_pos=0.53
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=5.93 (ABOVE thr)  mass_pos=0.51
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=5.86 (ABOVE thr)  mass_pos=0.51
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=5.82 (ABOVE thr)  mass_pos=0.50
+     POS(0): (none)
+     NEG(0): (none)
+
+=== adam_matrix_filtered  [regulated] ===
+  mode 1  eig=11.25 (ABOVE thr)  mass_pos=0.60
+     POS(0): (none)
+     NEG(18): cytoplasmic translation; translation; ribosomal large subunit assembly; ribosomal small subunit assembly  (+14 more)
+  mode 2  eig=9.83 (ABOVE thr)  mass_pos=0.88
+     POS(0): (none)
+     NEG(1): glycolytic process
+  mode 3  eig=7.65 (ABOVE thr)  mass_pos=0.78
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=7.39 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.22 (ABOVE thr)  mass_pos=0.79
+     POS(0): (none)
+     NEG(0): (none)
+
+=== adam_matrix_filtered2  [?] ===
+  mode 1  eig=12.95 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(16): cytoplasmic translation; translation; ribosomal large subunit assembly; L-arginine biosynthetic process  (+12 more)
+  mode 2  eig=8.82 (ABOVE thr)  mass_pos=0.92
+     POS(0): (none)
+     NEG(1): pyrimidine nucleotide biosynthetic process
+  mode 3  eig=7.21 (ABOVE thr)  mass_pos=0.50   ** CONTRAST **
+     POS(5): pyrimidine nucleotide biosynthetic process; L-arginine biosynthetic process; 'de novo' pyrimidine nucleobase biosynthetic process; 'de novo' UMP biosynthetic process  (+1 more)
+     NEG(7): bacterial-type flagellum-dependent cell motility; chemotaxis; archaeal or bacterial-type flagellum-dependent cell motility; bacterial-type flagellum-dependent swarming motility  (+3 more)
+  mode 4  eig=7.08 (ABOVE thr)  mass_pos=0.57   ** CONTRAST **
+     POS(15): bacterial-type flagellum-dependent cell motility; chemotaxis; bacterial-type flagellum organization; archaeal or bacterial-type flagellum-dependent cell motility  (+11 more)
+     NEG(3): cytoplasmic translation; ribosomal large subunit assembly; translation
+  mode 5  eig=6.24 (ABOVE thr)  mass_pos=0.52
+     POS(0): (none)
+     NEG(0): (none)
+
+=== deb_Ec_CDS_untreated  [?] ===
+  mode 1  eig=19.18 (ABOVE thr)  mass_pos=1.00
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=15.09 (ABOVE thr)  mass_pos=0.99
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=14.83 (ABOVE thr)  mass_pos=0.99
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=14.81 (ABOVE thr)  mass_pos=0.57
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=14.70 (ABOVE thr)  mass_pos=0.92
+     POS(0): (none)
+     NEG(0): (none)
+
+=== deb_KP_CDS_untreated  [?] ===
+  mode 1  eig=63.71 (ABOVE thr)  mass_pos=0.88
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=23.19 (ABOVE thr)  mass_pos=1.00
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=17.00 (ABOVE thr)  mass_pos=0.56
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=12.52 (ABOVE thr)  mass_pos=0.90
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=12.02 (ABOVE thr)  mass_pos=0.81
+     POS(0): (none)
+     NEG(0): (none)
+
+=== sample_13a_filtered  [dis-arrest] ===
+  mode 1  eig=8.24 (ABOVE thr)  mass_pos=0.93
+     POS(0): (none)
+     NEG(3): translation; cytoplasmic translation; ribosomal large subunit assembly
+  mode 2  eig=7.09 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=6.92 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=6.68 (below thr)  mass_pos=0.56
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=6.57 (below thr)  mass_pos=0.68
+     POS(0): (none)
+     NEG(0): (none)
+
+=== sample_13b_filtered  [regulated] ===
+  mode 1  eig=14.26 (ABOVE thr)  mass_pos=0.82
+     POS(0): (none)
+     NEG(7): cytoplasmic translation; translation; response to heat; ribosomal large subunit assembly  (+3 more)
+  mode 2  eig=12.09 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(1): lipopolysaccharide biosynthetic process
+  mode 3  eig=8.86 (ABOVE thr)  mass_pos=0.96
+     POS(0): (none)
+     NEG(2): translation; cytoplasmic translation
+  mode 4  eig=8.26 (ABOVE thr)  mass_pos=0.69
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.89 (ABOVE thr)  mass_pos=0.55
+     POS(0): (none)
+     NEG(0): (none)
+
+=== sample_15a_filtered  [dis-arrest] ===
+  mode 1  eig=6.09 (below thr)  mass_pos=0.87
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=5.96 (below thr)  mass_pos=0.69
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=5.84 (below thr)  mass_pos=0.87
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=5.68 (below thr)  mass_pos=0.68
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=5.64 (below thr)  mass_pos=0.50
+     POS(0): (none)
+     NEG(0): (none)
+
+=== sample_15b_filtered  [regulated] ===
+  mode 1  eig=17.28 (ABOVE thr)  mass_pos=0.89
+     POS(0): (none)
+     NEG(7): cytoplasmic translation; translation; regulation of gene expression; ribosomal large subunit assembly  (+3 more)
+  mode 2  eig=11.15 (ABOVE thr)  mass_pos=0.70
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=8.88 (ABOVE thr)  mass_pos=0.80
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=8.21 (ABOVE thr)  mass_pos=0.96
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.94 (ABOVE thr)  mass_pos=0.54
+     POS(0): (none)
+     NEG(0): (none)
+
+=== sample_2b_filtered  [regulated] ===
+  mode 1  eig=19.41 (ABOVE thr)  mass_pos=0.81
+     POS(0): (none)
+     NEG(0): (none)
+  mode 2  eig=9.52 (ABOVE thr)  mass_pos=0.81
+     POS(0): (none)
+     NEG(0): (none)
+  mode 3  eig=8.42 (ABOVE thr)  mass_pos=0.94
+     POS(0): (none)
+     NEG(0): (none)
+  mode 4  eig=8.28 (ABOVE thr)  mass_pos=0.55
+     POS(0): (none)
+     NEG(0): (none)
+  mode 5  eig=7.62 (ABOVE thr)  mass_pos=0.69
+     POS(0): (none)
+     NEG(0): (none)

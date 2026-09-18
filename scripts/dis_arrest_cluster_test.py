@@ -211,6 +211,17 @@ def build_embedding(counts, batch, args):
     sc.pp.neighbors(adata, n_neighbors=args.n_neighbors, n_pcs=args.n_pcs)
     sc.tl.umap(adata, min_dist=args.min_dist, random_state=args.umap_seed)
 
+    # an explicit --resolution pins the clustering; otherwise bisect for k = 2
+    if args.resolution is not None:
+        sc.tl.leiden(adata, resolution=args.resolution, key_added='leiden',
+                     random_state=args.leiden_seed)
+        k = int(adata.obs['leiden'].nunique())
+        trace = [{'resolution': float(args.resolution), 'n_clusters': k}]
+        if k != 2:
+            raise RuntimeError('--resolution %g gave %d clusters, not 2'
+                               % (args.resolution, k))
+        return adata, float(args.resolution), trace, n_hvg
+
     # bisect the leiden resolution until exactly two clusters come back
     trace, res_used, lo, hi = [], None, args.res_lo, args.res_hi
     for _ in range(args.max_res_steps):
@@ -256,6 +267,11 @@ def main():
     ap.add_argument('--min-dist', type=float, default=0.3)
     ap.add_argument('--umap-seed', type=int, default=0)
     ap.add_argument('--leiden-seed', type=int, default=0)
+    ap.add_argument('--resolution', type=float, default=None,
+                    help='fixed leiden resolution; skips the bisection (must give 2 clusters). '
+                         'The bisection stops at the FIRST resolution returning k=2, which is '
+                         'the least balanced end of the 2-cluster window -- pin it here to pick '
+                         'a more even split.')
     ap.add_argument('--res-lo', type=float, default=0.01)
     ap.add_argument('--res-hi', type=float, default=2.0)
     ap.add_argument('--max-res-steps', type=int, default=30)
@@ -364,6 +380,7 @@ def main():
             'leading_mode': leading_mode_concentration(X[take0], norm_sum=args.norm_sum),
             'gmp_cor_draws': [float(v) for v in vals],
             'gmp_cor_mean': float(np.mean(vals)),
+            'gmp_cor_median': float(np.median(vals)),
             'gmp_cor_std': float(np.std(vals, ddof=1)) if len(vals) > 1 else 0.0,
             'gmp_cor_min': float(vals.min()), 'gmp_cor_max': float(vals.max()),
             'gmp_cor_fold_range': (float(vals.max() / vals.min()) if vals.min() > 0
@@ -481,28 +498,29 @@ def main():
     L.append('Q2 -- GMP-Cor per group, all at n = %d cells, p = %d' % (n_match, X.shape[1]))
     L.append('  Significance: the paper\'s permutation test on lambda_1 (B = %d column scrambles), '
              'run on one fixed cell set per group.' % args.permutations)
-    L.append('  Sampling spread: mean +/- SD of GMP-Cor over %d independent cell draws.'
-             % args.repeats)
+    L.append('  Sampling spread: mean +/- SD and median of GMP-Cor over %d independent cell '
+             'draws.' % args.repeats)
     L.append('')
-    L.append('  %-26s %5s %8s %8s %7s %7s %7s %17s %17s %14s %5s'
+    L.append('  %-26s %5s %8s %8s %7s %7s %7s %17s %17s %7s %14s %5s'
              % ('group', 'pool', 'det/cell', 'cnt/cell', 'lam_1', 'null_mu', 'perm_p',
-                'GMP-Cor fixed set', 'over cell draws', 'draw range', 'PR'))
+                'GMP-Cor fixed set', 'over cell draws', 'median', 'draw range', 'PR'))
     for k, d in per_group.items():
         p = d['permutation_test']
         lm = d['leading_mode']
         pr = ('%5.1f' % lm['participation_ratio']) if lm else '    -'
         rng_s = '%5.2f - %-6.2f' % (d['gmp_cor_min'], d['gmp_cor_max'])
         if p is None:
-            L.append('  %-26s %5d %8.1f %8.1f %7s %7s %7s %17s %8.2f +/- %-6.2f %14s %s'
+            L.append('  %-26s %5d %8.1f %8.1f %7s %7s %7s %17s %8.2f +/- %-6.2f %7.2f %14s %s'
                      % (k, d['n_pool'], d['detected_per_cell'], d['total_counts_per_cell'],
-                        '-', '-', '-', '-', d['gmp_cor_mean'], d['gmp_cor_std'], rng_s, pr))
+                        '-', '-', '-', '-', d['gmp_cor_mean'], d['gmp_cor_std'],
+                        d['gmp_cor_median'], rng_s, pr))
             continue
         L.append('  %-26s %5d %8.1f %8.1f %7.3f %7.3f %7.4f %8.2f +/- %-6.2f %8.2f +/- %-6.2f '
-                 '%14s %s'
+                 '%7.2f %14s %s'
                  % (k, d['n_pool'], d['detected_per_cell'], d['total_counts_per_cell'],
                     p['lambda_max'], p['null_mean'], p['p_empirical'],
                     p['gmp_cor'], p['gmp_cor_ci'], d['gmp_cor_mean'], d['gmp_cor_std'],
-                    rng_s, pr))
+                    d['gmp_cor_median'], rng_s, pr))
     L.append('  PR = participation ratio of the leading mode in cell space: the effective number '
              'of cells carrying it, out of n = %d.' % n_match)
     L.append('  perm_p is censored at 1/(B+1) = %.4f.' % (1.0 / (args.permutations + 1))
@@ -571,11 +589,17 @@ def main():
                      'draw happens to include sets the value.'
                      % (lm['participation_ratio'], lm['n_cells'],
                         100 * lm['top_1pct_cells_weight_share']))
-    L.append('  Within-cluster GMP-Cor at matched n, averaged over %d cell draws: %.2f +/- %.2f '
-             '(high-depth) vs %.2f +/- %.2f (low-depth); all cells %.2f +/- %.2f.'
-             % (args.repeats, hi, per_group['high-depth cluster']['gmp_cor_std'],
+    L.append('  Within-cluster GMP-Cor at matched n over %d cell draws (mean +/- SD [median]): '
+             '%.2f +/- %.2f [%.2f] (high-depth) vs %.2f +/- %.2f [%.2f] (low-depth); '
+             'all cells %.2f +/- %.2f [%.2f].'
+             % (args.repeats,
+                hi, per_group['high-depth cluster']['gmp_cor_std'],
+                per_group['high-depth cluster']['gmp_cor_median'],
                 lo, per_group['low-depth cluster']['gmp_cor_std'],
-                per_group['all cells']['gmp_cor_mean'], per_group['all cells']['gmp_cor_std']))
+                per_group['low-depth cluster']['gmp_cor_median'],
+                per_group['all cells']['gmp_cor_mean'],
+                per_group['all cells']['gmp_cor_std'],
+                per_group['all cells']['gmp_cor_median']))
     if raw_all < 1.0:
         L.append('  dGMP (leiden %.3f, depth split %.3f, random split %.3f) is NOT interpretable '
                  'here: its denominator is the pooled GMP-Cor, %.3f, which is at the noise floor, '

@@ -1,0 +1,1220 @@
+{
+  "generated": "20260916_112903",
+  "script": "dis_arrest_cluster_test.py",
+  "parameters": {
+    "stem": "dis_arrest_cluster_test",
+    "target_sum": 3507,
+    "min_cells": 3,
+    "n_hvg": 2000,
+    "n_comps": 50,
+    "n_neighbors": 40,
+    "n_pcs": 40,
+    "min_dist": 0.3,
+    "umap_seed": 0,
+    "leiden_seed": 0,
+    "resolution": 0.7,
+    "res_lo": 0.01,
+    "res_hi": 2.0,
+    "max_res_steps": 30,
+    "permutations": 300,
+    "repeats": 10,
+    "seed": 0,
+    "norm_sum": 1.0
+  },
+  "inputs": {
+    "dis1": "data_for_paper\\sample_13a_filtered.csv",
+    "dis2": "data_for_paper\\sample_15a_filtered.csv"
+  },
+  "matrix": {
+    "n_cells": 2000,
+    "n_genes_panel": 2042,
+    "n_genes_hvg_embedding": 2000
+  },
+  "leiden": {
+    "resolution": 0.7,
+    "trace": [
+      {
+        "resolution": 0.7,
+        "n_clusters": 2
+      }
+    ],
+    "cluster_sizes": {
+      "low-depth": 1148,
+      "high-depth": 852
+    }
+  },
+  "q1_depth": {
+    "tests": {
+      "total_counts": {
+        "median_high_depth_cluster": 73.0,
+        "median_low_depth_cluster": 26.0,
+        "fold_change": 2.8076923076923075,
+        "auc": 0.9415292568418642,
+        "cohens_d": 0.7885443053524563,
+        "mannwhitney_p": 9.798455650246405e-251
+      },
+      "n_detected": {
+        "median_high_depth_cluster": 58.0,
+        "median_low_depth_cluster": 21.0,
+        "fold_change": 2.761904761904762,
+        "auc": 0.9509838502560076,
+        "cohens_d": 1.0031744434365577,
+        "mannwhitney_p": 1.5881523814939262e-261
+      }
+    },
+    "depth_only_classifier": {
+      "cv_auc_logdepth_predicts_cluster": 0.940725143544192,
+      "cv_accuracy": 0.871
+    },
+    "embedding_vs_depth": {
+      "spearman_UMAP_1_vs_log_total_counts": -0.8317840619871092,
+      "spearman_UMAP_2_vs_log_total_counts": 0.6780352231353403,
+      "spearman_PC_1_vs_log_total_counts": 0.9655632988056134,
+      "spearman_PC_2_vs_log_total_counts": -0.4509320584288111
+    },
+    "batch_by_cluster": {
+      "high-depth": {
+        "dis1": 540,
+        "dis2": 312
+      },
+      "low-depth": {
+        "dis1": 460,
+        "dis2": 688
+      }
+    },
+    "auc_cluster_predicts_batch": 0.386
+  },
+  "q2_gmp_cor": {
+    "matched_n": 852,
+    "per_group": {
+      "all cells": {
+        "label": "all cells",
+        "n_cells": 852,
+        "n_pool": 2000,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 11.463460267596297,
+          "null_mean": 7.256482290846895,
+          "null_sd": 0.4229946891626156,
+          "p_empirical": 0.0033222591362126247,
+          "n_above_threshold": 2,
+          "gmp_cor": 4.473248721345984,
+          "gmp_cor_ci": 0.5982048262255627
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 1.2550946785355326,
+          "participation_fraction": 0.0014731158198773857,
+          "top_1pct_cells_weight_share": 0.960601254276912
+        },
+        "gmp_cor_draws": [
+          4.550444757308961,
+          6.476312624450967,
+          0.3280366833652426,
+          0.2687757265932609,
+          0.9229959445387204,
+          0.03127163174688086,
+          0.10336234622612306,
+          12.626302959401919,
+          2.46739979872019,
+          6.577071545390857
+        ],
+        "gmp_cor_mean": 3.4351974017743125,
+        "gmp_cor_median": 1.6951978716294551,
+        "gmp_cor_std": 4.142680972643645,
+        "gmp_cor_min": 0.03127163174688086,
+        "gmp_cor_max": 12.626302959401919,
+        "gmp_cor_fold_range": 403.7622040833002,
+        "lambda_max_mean": 10.040633000416241,
+        "lambda_max_scrambled_mean": 7.2730204907443605,
+        "detected_per_cell": 51.1795,
+        "total_counts_per_cell": 70.274,
+        "reps": [
+          {
+            "gmp_cor": 4.550444757308961,
+            "lambda_max": 11.463460267596297,
+            "lambda_max_scrambled": 7.218006446660432,
+            "n_modes_above_threshold": 3,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 6.476312624450967,
+            "lambda_max": 10.979699150041618,
+            "lambda_max_scrambled": 7.3270293245523535,
+            "n_modes_above_threshold": 4,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.3280366833652426,
+            "lambda_max": 7.5919295162733285,
+            "lambda_max_scrambled": 7.263892832908086,
+            "n_modes_above_threshold": 1,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.2687757265932609,
+            "lambda_max": 7.627293098214074,
+            "lambda_max_scrambled": 7.358517371620813,
+            "n_modes_above_threshold": 1,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.9229959445387204,
+            "lambda_max": 7.9679102935949455,
+            "lambda_max_scrambled": 7.194493851876359,
+            "n_modes_above_threshold": 2,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 0.03127163174688086,
+            "lambda_max": 7.288445138928299,
+            "lambda_max_scrambled": 7.2571735071814185,
+            "n_modes_above_threshold": 1,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 0.10336234622612306,
+            "lambda_max": 7.569016912257703,
+            "lambda_max_scrambled": 7.46565456603158,
+            "n_modes_above_threshold": 1,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 12.626302959401919,
+            "lambda_max": 19.862756058088596,
+            "lambda_max_scrambled": 7.3438443161709,
+            "n_modes_above_threshold": 2,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 2.46739979872019,
+            "lambda_max": 8.10354743742149,
+            "lambda_max_scrambled": 7.019376747802541,
+            "n_modes_above_threshold": 4,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 6.577071545390857,
+            "lambda_max": 11.952272131746042,
+            "lambda_max_scrambled": 7.282215942639125,
+            "n_modes_above_threshold": 3,
+            "rep": 9
+          }
+        ]
+      },
+      "high-depth cluster": {
+        "label": "high-depth cluster",
+        "n_cells": 852,
+        "n_pool": 852,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 10.493078380644281,
+          "null_mean": 6.891007459718485,
+          "null_sd": 0.3329805846067463,
+          "p_empirical": 0.0033222591362126247,
+          "n_above_threshold": 4,
+          "gmp_cor": 7.411689756731583,
+          "gmp_cor_ci": 0.6659611692134926
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 3.2200512215797774,
+          "participation_fraction": 0.0037794028422297858,
+          "top_1pct_cells_weight_share": 0.8565628298362932
+        },
+        "gmp_cor_draws": [
+          7.2332250373028835,
+          7.342958668611715,
+          6.956922162801481,
+          7.079075828763218,
+          7.132890848969422,
+          7.626083728616255,
+          7.1183888413587235,
+          7.261355029245105,
+          7.321773887693316,
+          8.014855036364054
+        ],
+        "gmp_cor_mean": 7.308752906972617,
+        "gmp_cor_median": 7.247290033273995,
+        "gmp_cor_std": 0.3077286032268079,
+        "gmp_cor_min": 6.956922162801481,
+        "gmp_cor_max": 8.014855036364054,
+        "gmp_cor_fold_range": 1.1520690973401022,
+        "lambda_max_mean": 10.49307838064437,
+        "lambda_max_scrambled_mean": 6.916741672158257,
+        "detected_per_cell": 88.21361502347418,
+        "total_counts_per_cell": 122.45070422535211,
+        "reps": [
+          {
+            "gmp_cor": 7.2332250373028835,
+            "lambda_max": 10.493078380644281,
+            "lambda_max_scrambled": 6.93562363957566,
+            "n_modes_above_threshold": 4,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 7.342958668611715,
+            "lambda_max": 10.493078380644391,
+            "lambda_max_scrambled": 6.908190231748494,
+            "n_modes_above_threshold": 4,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 6.956922162801481,
+            "lambda_max": 10.493078380644418,
+            "lambda_max_scrambled": 7.00469935820106,
+            "n_modes_above_threshold": 4,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 7.079075828763218,
+            "lambda_max": 10.493078380644397,
+            "lambda_max_scrambled": 6.9741609417106245,
+            "n_modes_above_threshold": 4,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 7.132890848969422,
+            "lambda_max": 10.493078380644324,
+            "lambda_max_scrambled": 6.960707186659034,
+            "n_modes_above_threshold": 4,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 7.626083728616255,
+            "lambda_max": 10.493078380644302,
+            "lambda_max_scrambled": 6.837408966747313,
+            "n_modes_above_threshold": 4,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 7.1183888413587235,
+            "lambda_max": 10.493078380644349,
+            "lambda_max_scrambled": 6.964332688561724,
+            "n_modes_above_threshold": 4,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 7.261355029245105,
+            "lambda_max": 10.493078380644421,
+            "lambda_max_scrambled": 6.928591141590152,
+            "n_modes_above_threshold": 4,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 7.321773887693316,
+            "lambda_max": 10.493078380644405,
+            "lambda_max_scrambled": 6.913486426978099,
+            "n_modes_above_threshold": 4,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 8.014855036364054,
+            "lambda_max": 10.493078380644421,
+            "lambda_max_scrambled": 6.740216139810414,
+            "n_modes_above_threshold": 4,
+            "rep": 9
+          }
+        ]
+      },
+      "low-depth cluster": {
+        "label": "low-depth cluster",
+        "n_cells": 852,
+        "n_pool": 1148,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 8.783682533155668,
+          "null_mean": 7.136484453594394,
+          "null_sd": 0.5355680301691012,
+          "p_empirical": 0.019933554817275746,
+          "n_above_threshold": 2,
+          "gmp_cor": 1.807075651222906,
+          "gmp_cor_ci": 0.7574075718385859
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 2.0702660696260007,
+          "participation_fraction": 0.0024298897530821606,
+          "top_1pct_cells_weight_share": 0.9533395284563028
+        },
+        "gmp_cor_draws": [
+          1.8627366516307156,
+          1.5114070361075624,
+          0.7834594362097826,
+          0.838328894847101,
+          2.7440012536407306,
+          2.7972184785212884,
+          6.161701635087477,
+          4.086361938869823,
+          4.540764610196938,
+          7.74630653155122
+        ],
+        "gmp_cor_mean": 3.307228646666264,
+        "gmp_cor_median": 2.7706098660810095,
+        "gmp_cor_std": 2.3174658820636727,
+        "gmp_cor_min": 0.7834594362097826,
+        "gmp_cor_max": 7.74630653155122,
+        "gmp_cor_fold_range": 9.88731027227941,
+        "lambda_max_mean": 9.868391173527971,
+        "lambda_max_scrambled_mean": 7.141593332401752,
+        "detected_per_cell": 23.69425087108014,
+        "total_counts_per_cell": 31.550522648083625,
+        "reps": [
+          {
+            "gmp_cor": 1.8627366516307156,
+            "lambda_max": 8.783682533155668,
+            "lambda_max_scrambled": 7.1086539533904896,
+            "n_modes_above_threshold": 2,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 1.5114070361075624,
+            "lambda_max": 8.496593914156616,
+            "lambda_max_scrambled": 7.304565045650352,
+            "n_modes_above_threshold": 2,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.7834594362097826,
+            "lambda_max": 7.830278575726463,
+            "lambda_max_scrambled": 7.130317136517003,
+            "n_modes_above_threshold": 2,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.838328894847101,
+            "lambda_max": 7.838739018166058,
+            "lambda_max_scrambled": 7.000410123318957,
+            "n_modes_above_threshold": 1,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 2.7440012536407306,
+            "lambda_max": 9.98322787118873,
+            "lambda_max_scrambled": 7.239226617547999,
+            "n_modes_above_threshold": 1,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 2.7972184785212884,
+            "lambda_max": 9.062800162777286,
+            "lambda_max_scrambled": 7.025310934722775,
+            "n_modes_above_threshold": 2,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 6.161701635087477,
+            "lambda_max": 11.312825019183986,
+            "lambda_max_scrambled": 6.936680656200809,
+            "n_modes_above_threshold": 2,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 4.086361938869823,
+            "lambda_max": 9.952538618459128,
+            "lambda_max_scrambled": 7.265852503831925,
+            "n_modes_above_threshold": 2,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 4.540764610196938,
+            "lambda_max": 11.815912179676507,
+            "lambda_max_scrambled": 7.27514756947957,
+            "n_modes_above_threshold": 1,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 7.74630653155122,
+            "lambda_max": 13.607313842789269,
+            "lambda_max_scrambled": 7.129768783357631,
+            "n_modes_above_threshold": 2,
+            "rep": 9
+          }
+        ]
+      },
+      "depth split: upper half": {
+        "label": "depth split: upper half",
+        "n_cells": 852,
+        "n_pool": 996,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 9.262138802100687,
+          "null_mean": 6.888247218206477,
+          "null_sd": 0.3180020476850203,
+          "p_empirical": 0.0033222591362126247,
+          "n_above_threshold": 9,
+          "gmp_cor": 6.2421612592749245,
+          "gmp_cor_ci": 0.9540061430550608
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 6.515696393003699,
+          "participation_fraction": 0.007647530977703872,
+          "top_1pct_cells_weight_share": 0.6387279948770352
+        },
+        "gmp_cor_draws": [
+          6.199670847318037,
+          12.322103998386769,
+          8.693378549332166,
+          9.601465309412005,
+          10.193608949253566,
+          10.74175989013223,
+          11.785745538625514,
+          11.528962371073185,
+          7.625417174930342,
+          9.748541247467017
+        ],
+        "gmp_cor_mean": 9.844065387593083,
+        "gmp_cor_median": 9.971075098360291,
+        "gmp_cor_std": 1.922781042818235,
+        "gmp_cor_min": 6.199670847318037,
+        "gmp_cor_max": 12.322103998386769,
+        "gmp_cor_fold_range": 1.9875416456532176,
+        "lambda_max_mean": 10.091684457030691,
+        "lambda_max_scrambled_mean": 6.799632052475988,
+        "detected_per_cell": 82.91265060240964,
+        "total_counts_per_cell": 116.36244979919678,
+        "reps": [
+          {
+            "gmp_cor": 6.199670847318037,
+            "lambda_max": 9.262138802100687,
+            "lambda_max_scrambled": 6.892968375090575,
+            "n_modes_above_threshold": 9,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 12.322103998386769,
+            "lambda_max": 10.396987340268266,
+            "lambda_max_scrambled": 6.692686914293614,
+            "n_modes_above_threshold": 13,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 8.693378549332166,
+            "lambda_max": 10.190446254005213,
+            "lambda_max_scrambled": 6.900905580536865,
+            "n_modes_above_threshold": 9,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 9.601465309412005,
+            "lambda_max": 10.264791470944061,
+            "lambda_max_scrambled": 6.98137054840723,
+            "n_modes_above_threshold": 10,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 10.193608949253566,
+            "lambda_max": 10.321253441400987,
+            "lambda_max_scrambled": 6.850684442042942,
+            "n_modes_above_threshold": 10,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 10.74175989013223,
+            "lambda_max": 10.493095999550672,
+            "lambda_max_scrambled": 6.812435044586738,
+            "n_modes_above_threshold": 12,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 11.785745538625514,
+            "lambda_max": 10.175163512121312,
+            "lambda_max_scrambled": 6.685813039159524,
+            "n_modes_above_threshold": 13,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 11.528962371073185,
+            "lambda_max": 10.387370546003913,
+            "lambda_max_scrambled": 6.727624048565123,
+            "n_modes_above_threshold": 13,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 7.625417174930342,
+            "lambda_max": 9.449343070786703,
+            "lambda_max_scrambled": 6.6768043029920605,
+            "n_modes_above_threshold": 10,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 9.748541247467017,
+            "lambda_max": 9.97625413312511,
+            "lambda_max_scrambled": 6.77502822908521,
+            "n_modes_above_threshold": 12,
+            "rep": 9
+          }
+        ]
+      },
+      "depth split: lower half": {
+        "label": "depth split: lower half",
+        "n_cells": 852,
+        "n_pool": 1004,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 6.33196728403708,
+          "null_mean": 6.88753219466852,
+          "null_sd": 0.47360308941726226,
+          "p_empirical": 0.9501661129568106,
+          "n_above_threshold": 0,
+          "gmp_cor": 0.0,
+          "gmp_cor_ci": 0.0
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 1.527218849847543,
+          "participation_fraction": 0.0017925103871450035,
+          "top_1pct_cells_weight_share": 0.8833431474286726
+        },
+        "gmp_cor_draws": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "gmp_cor_mean": 0.0,
+        "gmp_cor_median": 0.0,
+        "gmp_cor_std": 0.0,
+        "gmp_cor_min": 0.0,
+        "gmp_cor_max": 0.0,
+        "gmp_cor_fold_range": Infinity,
+        "lambda_max_mean": 6.156691467300197,
+        "lambda_max_scrambled_mean": 6.970519898263217,
+        "detected_per_cell": 19.699203187250998,
+        "total_counts_per_cell": 24.552788844621514,
+        "reps": [
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.33196728403708,
+            "lambda_max_scrambled": 6.793957409304959,
+            "n_modes_above_threshold": 0,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 5.998201868837982,
+            "lambda_max_scrambled": 7.147091281609295,
+            "n_modes_above_threshold": 0,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.426885347370455,
+            "lambda_max_scrambled": 6.838423184322041,
+            "n_modes_above_threshold": 0,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.002987475332401,
+            "lambda_max_scrambled": 7.369976574579825,
+            "n_modes_above_threshold": 0,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.134636614385911,
+            "lambda_max_scrambled": 7.013761772092957,
+            "n_modes_above_threshold": 0,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.172550750569416,
+            "lambda_max_scrambled": 6.908050638932712,
+            "n_modes_above_threshold": 0,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.270420962161024,
+            "lambda_max_scrambled": 7.007153830530474,
+            "n_modes_above_threshold": 0,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.306176972780628,
+            "lambda_max_scrambled": 6.738576194805697,
+            "n_modes_above_threshold": 0,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 5.985126769892885,
+            "lambda_max_scrambled": 7.007573162810078,
+            "n_modes_above_threshold": 0,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 5.937960627634194,
+            "lambda_max_scrambled": 6.880634933644136,
+            "n_modes_above_threshold": 0,
+            "rep": 9
+          }
+        ]
+      },
+      "random half A": {
+        "label": "random half A",
+        "n_cells": 852,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 8.073432857448774,
+          "null_mean": 7.211716450180682,
+          "null_sd": 0.4414150422828753,
+          "p_empirical": 0.06312292358803986,
+          "n_above_threshold": 2,
+          "gmp_cor": 1.1886588317358306,
+          "gmp_cor_ci": 0.6242551394319356
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 6.191633889774906,
+          "participation_fraction": 0.007267175926965852,
+          "top_1pct_cells_weight_share": 0.7525190826690751
+        },
+        "gmp_cor_draws": [
+          1.597866164335855,
+          0.8736258087717168,
+          2.273150260912069,
+          1.3663953466746257,
+          0.9694709644299184,
+          1.9835389424121708,
+          1.5167788154992854,
+          2.143118339383811,
+          2.09328890739223,
+          1.1592949651846896
+        ],
+        "gmp_cor_mean": 1.597652851499637,
+        "gmp_cor_median": 1.5573224899175702,
+        "gmp_cor_std": 0.5076523844274314,
+        "gmp_cor_min": 0.8736258087717168,
+        "gmp_cor_max": 2.273150260912069,
+        "gmp_cor_fold_range": 2.6019724212452333,
+        "lambda_max_mean": 8.278940469827294,
+        "lambda_max_scrambled_mean": 7.229761714794317,
+        "detected_per_cell": 50.12,
+        "total_counts_per_cell": 68.745,
+        "reps": [
+          {
+            "gmp_cor": 1.597866164335855,
+            "lambda_max": 8.073432857448774,
+            "lambda_max_scrambled": 7.063487558529188,
+            "n_modes_above_threshold": 3,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 0.8736258087717168,
+            "lambda_max": 8.148014227050165,
+            "lambda_max_scrambled": 7.306823394707988,
+            "n_modes_above_threshold": 2,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 2.273150260912069,
+            "lambda_max": 8.42395895082269,
+            "lambda_max_scrambled": 7.273754848165096,
+            "n_modes_above_threshold": 3,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 1.3663953466746257,
+            "lambda_max": 7.942362621806977,
+            "lambda_max_scrambled": 7.218752623953965,
+            "n_modes_above_threshold": 3,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.9694709644299184,
+            "lambda_max": 8.350979255802132,
+            "lambda_max_scrambled": 7.381508291372214,
+            "n_modes_above_threshold": 1,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 1.9835389424121708,
+            "lambda_max": 8.34282163886636,
+            "lambda_max_scrambled": 7.067206491654282,
+            "n_modes_above_threshold": 3,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 1.5167788154992854,
+            "lambda_max": 8.437760116973017,
+            "lambda_max_scrambled": 7.388594601107778,
+            "n_modes_above_threshold": 2,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 2.143118339383811,
+            "lambda_max": 8.389100032928557,
+            "lambda_max_scrambled": 7.242465501471405,
+            "n_modes_above_threshold": 3,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 2.09328890739223,
+            "lambda_max": 8.589866848153218,
+            "lambda_max_scrambled": 7.098487983811568,
+            "n_modes_above_threshold": 3,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 1.1592949651846896,
+            "lambda_max": 8.091108148421046,
+            "lambda_max_scrambled": 7.25653585316968,
+            "n_modes_above_threshold": 3,
+            "rep": 9
+          }
+        ]
+      },
+      "random half B": {
+        "label": "random half B",
+        "n_cells": 852,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 7.2574839342229405,
+          "null_mean": 7.188694380023662,
+          "null_sd": 0.4782042441100272,
+          "p_empirical": 0.3687707641196013,
+          "n_above_threshold": 1,
+          "gmp_cor": 0.06878955419927824,
+          "gmp_cor_ci": 0.4782042441100272
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 1.74300081361286,
+          "participation_fraction": 0.0020457756028319954,
+          "top_1pct_cells_weight_share": 0.8340895828583497
+        },
+        "gmp_cor_draws": [
+          0.0880997346815926,
+          5.611140426491375,
+          3.9595323289214583,
+          0.0,
+          8.519577480977286,
+          3.954232243072158,
+          6.479621249033832,
+          4.473486725181774,
+          4.390657533122109,
+          7.058065582244172
+        ],
+        "gmp_cor_mean": 4.453441330372575,
+        "gmp_cor_median": 4.432072129151941,
+        "gmp_cor_std": 2.75176810465928,
+        "gmp_cor_min": 0.0,
+        "gmp_cor_max": 8.519577480977286,
+        "gmp_cor_fold_range": Infinity,
+        "lambda_max_mean": 11.324088091666036,
+        "lambda_max_scrambled_mean": 7.233235701246751,
+        "detected_per_cell": 52.239,
+        "total_counts_per_cell": 71.803,
+        "reps": [
+          {
+            "gmp_cor": 0.0880997346815926,
+            "lambda_max": 7.2574839342229405,
+            "lambda_max_scrambled": 7.169384199541348,
+            "n_modes_above_threshold": 1,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 5.611140426491375,
+            "lambda_max": 12.564369076526136,
+            "lambda_max_scrambled": 7.204235073977301,
+            "n_modes_above_threshold": 2,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 3.9595323289214583,
+            "lambda_max": 10.445682982049147,
+            "lambda_max_scrambled": 7.289124953478063,
+            "n_modes_above_threshold": 2,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 7.0941931895062975,
+            "lambda_max_scrambled": 7.275327928763827,
+            "n_modes_above_threshold": 0,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 8.519577480977286,
+            "lambda_max": 15.837392623574987,
+            "lambda_max_scrambled": 7.317815142597699,
+            "n_modes_above_threshold": 1,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 3.954232243072158,
+            "lambda_max": 11.054251731459374,
+            "lambda_max_scrambled": 7.3827818600445525,
+            "n_modes_above_threshold": 2,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 6.479621249033832,
+            "lambda_max": 13.58124001340687,
+            "lambda_max_scrambled": 7.114958465960004,
+            "n_modes_above_threshold": 2,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 4.473486725181774,
+            "lambda_max": 11.6412996899174,
+            "lambda_max_scrambled": 7.240166891976003,
+            "n_modes_above_threshold": 2,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 4.390657533122109,
+            "lambda_max": 11.29701620452529,
+            "lambda_max_scrambled": 7.289339201875474,
+            "n_modes_above_threshold": 2,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 7.058065582244172,
+            "lambda_max": 12.467951471471919,
+            "lambda_max_scrambled": 7.049223294253244,
+            "n_modes_above_threshold": 3,
+            "rep": 9
+          }
+        ]
+      },
+      "dis1": {
+        "label": "dis1",
+        "n_cells": 852,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 13.694023574716422,
+          "null_mean": 7.254270224825119,
+          "null_sd": 0.4516719592268263,
+          "p_empirical": 0.0033222591362126247,
+          "n_above_threshold": 5,
+          "gmp_cor": 8.83920748477168,
+          "gmp_cor_ci": 1.009969204361697
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 1.247571050915034,
+          "participation_fraction": 0.001464285271027035,
+          "top_1pct_cells_weight_share": 0.9594783408690511
+        },
+        "gmp_cor_draws": [
+          7.980129495072896,
+          5.386039251926309,
+          6.779082967907921,
+          8.367898003323365,
+          9.118159359951804,
+          6.0597326882132485,
+          1.9801256587525327,
+          5.435331702983951,
+          6.026759526593841,
+          7.15561799534218
+        ],
+        "gmp_cor_mean": 6.428887665006805,
+        "gmp_cor_median": 6.419407828060585,
+        "gmp_cor_std": 2.0059140439959906,
+        "gmp_cor_min": 1.9801256587525327,
+        "gmp_cor_max": 9.118159359951804,
+        "gmp_cor_fold_range": 4.604838748312665,
+        "lambda_max_mean": 10.974683518461754,
+        "lambda_max_scrambled_mean": 7.318930796289282,
+        "detected_per_cell": 63.164,
+        "total_counts_per_cell": 90.139,
+        "reps": [
+          {
+            "gmp_cor": 7.980129495072896,
+            "lambda_max": 13.694023574716422,
+            "lambda_max_scrambled": 7.459820883890176,
+            "n_modes_above_threshold": 4,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 5.386039251926309,
+            "lambda_max": 9.656633848396789,
+            "lambda_max_scrambled": 7.221957993447349,
+            "n_modes_above_threshold": 6,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 6.779082967907921,
+            "lambda_max": 11.710821348918392,
+            "lambda_max_scrambled": 7.452305763992918,
+            "n_modes_above_threshold": 4,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 8.367898003323365,
+            "lambda_max": 11.383751493659338,
+            "lambda_max_scrambled": 7.263208859389193,
+            "n_modes_above_threshold": 6,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 9.118159359951804,
+            "lambda_max": 11.252035715007516,
+            "lambda_max_scrambled": 7.251493371742008,
+            "n_modes_above_threshold": 7,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 6.0597326882132485,
+            "lambda_max": 11.637229522363254,
+            "lambda_max_scrambled": 7.3043425138209646,
+            "n_modes_above_threshold": 5,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 1.9801256587525327,
+            "lambda_max": 9.068533474757384,
+            "lambda_max_scrambled": 7.6172785962975045,
+            "n_modes_above_threshold": 2,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 5.435331702983951,
+            "lambda_max": 9.541958083187287,
+            "lambda_max_scrambled": 7.148155841903704,
+            "n_modes_above_threshold": 6,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 6.026759526593841,
+            "lambda_max": 10.341597862167058,
+            "lambda_max_scrambled": 7.217403239791471,
+            "n_modes_above_threshold": 6,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 7.15561799534218,
+            "lambda_max": 11.460250261444104,
+            "lambda_max_scrambled": 7.253340898617518,
+            "n_modes_above_threshold": 6,
+            "rep": 9
+          }
+        ]
+      },
+      "dis2": {
+        "label": "dis2",
+        "n_cells": 852,
+        "n_pool": 1000,
+        "permutation_test": {
+          "n_perm": 300,
+          "lambda_max": 7.113376079455286,
+          "null_mean": 7.116269061305446,
+          "null_sd": 0.4407765831996818,
+          "p_empirical": 0.4152823920265781,
+          "n_above_threshold": 0,
+          "gmp_cor": 0.0,
+          "gmp_cor_ci": 0.0
+        },
+        "leading_mode": {
+          "n_cells": 852,
+          "participation_ratio": 1.9735746270196108,
+          "participation_fraction": 0.0023164021443892145,
+          "top_1pct_cells_weight_share": 0.9098570372804451
+        },
+        "gmp_cor_draws": [
+          0.0,
+          0.0,
+          0.0,
+          2.3474605618090196,
+          0.0,
+          0.2763375481352144,
+          0.0,
+          0.0,
+          0.21090436869324858,
+          1.5046209709748455
+        ],
+        "gmp_cor_mean": 0.4339323449612328,
+        "gmp_cor_median": 0.0,
+        "gmp_cor_std": 0.8173348048351177,
+        "gmp_cor_min": 0.0,
+        "gmp_cor_max": 2.3474605618090196,
+        "gmp_cor_fold_range": Infinity,
+        "lambda_max_mean": 7.299992839642559,
+        "lambda_max_scrambled_mean": 7.064543304558862,
+        "detected_per_cell": 39.195,
+        "total_counts_per_cell": 50.409,
+        "reps": [
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 7.113376079455286,
+            "lambda_max_scrambled": 7.19461170379992,
+            "n_modes_above_threshold": 0,
+            "rep": 0
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.572931292582753,
+            "lambda_max_scrambled": 7.039936891217401,
+            "n_modes_above_threshold": 0,
+            "rep": 1
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.875011610299274,
+            "lambda_max_scrambled": 7.135893446091279,
+            "n_modes_above_threshold": 0,
+            "rep": 2
+          },
+          {
+            "gmp_cor": 2.3474605618090196,
+            "lambda_max": 8.852286881627636,
+            "lambda_max_scrambled": 6.831139292606617,
+            "n_modes_above_threshold": 2,
+            "rep": 3
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.6603054824985195,
+            "lambda_max_scrambled": 6.937818284476061,
+            "n_modes_above_threshold": 0,
+            "rep": 4
+          },
+          {
+            "gmp_cor": 0.2763375481352144,
+            "lambda_max": 7.501856488644218,
+            "lambda_max_scrambled": 7.225518940509003,
+            "n_modes_above_threshold": 1,
+            "rep": 5
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.709827649377597,
+            "lambda_max_scrambled": 7.012989292228262,
+            "n_modes_above_threshold": 0,
+            "rep": 6
+          },
+          {
+            "gmp_cor": 0.0,
+            "lambda_max": 6.767150389020592,
+            "lambda_max_scrambled": 7.035868011408445,
+            "n_modes_above_threshold": 0,
+            "rep": 7
+          },
+          {
+            "gmp_cor": 0.21090436869324858,
+            "lambda_max": 7.33407749105318,
+            "lambda_max_scrambled": 7.1231731223599315,
+            "n_modes_above_threshold": 1,
+            "rep": 8
+          },
+          {
+            "gmp_cor": 1.5046209709748455,
+            "lambda_max": 8.613105031866539,
+            "lambda_max_scrambled": 7.108484060891693,
+            "n_modes_above_threshold": 1,
+            "rep": 9
+          }
+        ]
+      }
+    },
+    "dGMP": {
+      "leiden (2 clusters)": {
+        "gmp_cor_raw": 0.8910500879697976,
+        "gmp_cor_group_centered": 0.8380320359550417,
+        "dGMP": 0.05950064169294256,
+        "group_axis_auc": 0.8665918273870867
+      },
+      "depth median split": {
+        "gmp_cor_raw": 0.8910500879697976,
+        "gmp_cor_group_centered": 0.729980218550347,
+        "dGMP": 0.1807641024832154,
+        "group_axis_auc": 0.8137310196963151
+      },
+      "batch (dis1 vs dis2)": {
+        "gmp_cor_raw": 0.8910500879697976,
+        "gmp_cor_group_centered": 0.35790463787191307,
+        "dGMP": 0.5983338729168675,
+        "group_axis_auc": 0.69313
+      },
+      "random split": {
+        "gmp_cor_raw": 0.8910500879697976,
+        "gmp_cor_group_centered": 0.9424177201853352,
+        "dGMP": -0.05764842280928972,
+        "group_axis_auc": 0.5648
+      }
+    }
+  },
+  "markers": {
+    "n_top": 50,
+    "n_up_in_high_depth": 48,
+    "n_up_in_low_depth": 2,
+    "top_genes": [
+      {
+        "gene": "tmRNA",
+        "z": -26.701235247515683
+      },
+      {
+        "gene": "fusA",
+        "z": 14.246810775136296
+      },
+      {
+        "gene": "gapA",
+        "z": 12.487977148412297
+      },
+      {
+        "gene": "clpX",
+        "z": 12.23267143031357
+      },
+      {
+        "gene": "rpsA",
+        "z": 11.595013980432576
+      },
+      {
+        "gene": "crr",
+        "z": 11.193713012711068
+      },
+      {
+        "gene": "rplO",
+        "z": 11.13185393671107
+      },
+      {
+        "gene": "zipA",
+        "z": 10.81926984634146
+      },
+      {
+        "gene": "osmY",
+        "z": 10.655773959394628
+      },
+      {
+        "gene": "dnaK",
+        "z": 10.379248229149066
+      },
+      {
+        "gene": "ihfA",
+        "z": 10.130363326533883
+      },
+      {
+        "gene": "ompA",
+        "z": 9.99854085255161
+      },
+      {
+        "gene": "yqjC",
+        "z": 9.947879052333889
+      },
+      {
+        "gene": "ynhG",
+        "z": 9.815038644189588
+      },
+      {
+        "gene": "rpoA",
+        "z": 9.78140766552883
+      }
+    ]
+  }
+}

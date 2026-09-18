@@ -1,0 +1,196 @@
+Spectral (eigenvalue-weighted) effective gene number
+    P_i = sum_k lambda_k * v_(i,k)^2 / P ,  H = -sum_i P_i ln P_i ,  eff = exp(H)
+
+VALIDATION over all modes: sum(P_i) = 1 exactly, but P_i = 1/P uniformly, because
+sum_k lambda_k v_(i,k)^2 is the unit diagonal of the correlation matrix. So the
+untruncated entropy is ln(P) and the effective gene number is P for every sample --
+no information. Figures below are therefore from truncated sums (signal modes only),
+where the numerator is the de-noised diagonal (= af.coordination_score).
+
+  samples: 18
+  sum(P_i) over all modes: min 1.000000000000, max 1.000000000000
+  max relative deviation from uniform: 1.29e-13
+  exp(H) over all modes equals P in 18 of 18 samples
+  above: eff_genes median 977 (50.2% of P), range 51-2588
+   top5: eff_genes median 870 (40.0% of P), range 96-1341
+  top10: eff_genes median 981 (44.3% of P), range 167-1565
+
+=== Expira_biorep_t0A_filtered.csv  [Reg-Arrest]  GMP-Cor=32.72  P=1997 ===
+  check (all 994 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.55e-14  H=7.5994  ln(P)=7.5994  exp(H)=1997.0  -> uniform by construction
+  lambda_max^scr=6.823, 9 modes above
+  above (K= 9): H=5.072  norm=0.667  eff_genes=159.5 (8.0% of P)
+           top: insd-2(21.2x), dinj(21.2x), ybij(21.2x), yjep(21.2x), kdpa(21.2x), ydcp(21.2x), yadi(21.2x), ydin(21.2x), mdtc(21.2x), yoba(21.2x), ssuc(21.2x), mutm(21.2x), alsk(21.2x), nird(21.2x), yfci(21.2x)
+   top5 (K= 5): H=4.667  norm=0.614  eff_genes=106.3 (5.3% of P)
+           top: yoba(31.4x), ybij(31.4x), insd-2(31.4x), yjep(31.4x), yadi(31.4x), ydin(31.4x), alsk(31.4x), glca(31.4x), yfci(31.4x), nird(31.4x), ydcp(31.4x), kdpa(31.4x), ssuc(31.4x), dinj(31.4x), mutm(31.4x)
+  top10 (K=10): H=5.167  norm=0.680  eff_genes=175.4 (8.8% of P)
+           top: mdtc(19.8x), nird(19.8x), alsk(19.8x), yjep(19.8x), ssuc(19.8x), yfci(19.8x), mutm(19.8x), ybij(19.8x), kdpa(19.8x), yadi(19.8x), insd-2(19.8x), glca(19.8x), dinj(19.8x), ydin(19.8x), ydcp(19.8x)
+
+=== SHX_biorep2A.csv  [Dis-Arrest]  GMP-Cor=9.60  P=1997 ===
+  check (all 967 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.23e-14  H=7.5994  ln(P)=7.5994  exp(H)=1997.0  -> uniform by construction
+  lambda_max^scr=6.374, 16 modes above
+  above (K=16): H=6.732  norm=0.886  eff_genes=838.7 (42.0% of P)
+           top: pspD(14.6x), trpE(14.6x), srlE(14.6x), mhpE(14.6x), dtd(12.1x), nrfG(12.1x), ydaF(12.1x), aldB(12.1x), phnJ(10.3x), zitB(10.0x), araB(9.5x), gltK(9.4x), yijD(9.3x), fecB(9.2x), rhtA(9.1x)
+   top5 (K= 5): H=6.271  norm=0.825  eff_genes=529.1 (26.5% of P)
+           top: trpE(37.3x), mhpE(37.3x), srlE(37.3x), pspD(37.3x), ydaF(25.5x), aldB(25.5x), dtd(24.9x), nrfG(24.9x), ydcD(22.8x), xylG(20.1x), melA(18.6x), ygfK(17.5x), melB(17.2x), hokC(16.8x), yffL(16.6x)
+  top10 (K=10): H=6.524  norm=0.858  eff_genes=681.0 (34.1% of P)
+           top: mhpE(21.3x), trpE(21.3x), pspD(21.3x), srlE(21.3x), dtd(16.8x), nrfG(16.8x), aldB(16.4x), ydaF(16.4x), phnJ(15.1x), ydcD(13.0x), gltK(12.9x), araB(12.9x), xylG(11.8x), yffL(11.6x), cobC(11.3x)
+
+=== SHX_biorep2B.csv  [Dis-Arrest]  GMP-Cor=1.37  P=1998 ===
+  check (all 948 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.06e-14  H=7.5999  ln(P)=7.5999  exp(H)=1998.0  -> uniform by construction
+  lambda_max^scr=6.518, 2 modes above
+  above (K= 2): H=6.427  norm=0.846  eff_genes=618.1 (30.9% of P)
+           top: fimD(58.8x), yaiL(53.1x), tbpA(43.4x), yidA(36.5x), citC(33.2x), hipB(32.3x), ycgN(30.8x), yjeF(22.5x), ompG(19.5x), fpr(18.2x), yagL(17.1x), dgoD(15.3x), yfjJ(12.8x), fepB(12.8x), yehU(12.2x)
+   top5 (K= 5): H=6.899  norm=0.908  eff_genes=990.8 (49.6% of P)
+           top: fimD(26.1x), yidA(25.2x), yaiL(23.7x), tbpA(20.3x), intR(16.8x), citC(16.5x), hipB(15.7x), ycgN(13.8x), mdoH(12.7x), yjhW(12.3x), yjeF(10.1x), cobS(10.1x), hycB(9.5x), hokC(9.4x), fpr(9.3x)
+  top10 (K=10): H=7.098  norm=0.934  eff_genes=1210.1 (60.6% of P)
+           top: fimD(15.1x), yidA(15.0x), yaiL(13.3x), tbpA(11.5x), intR(11.0x), mdoH(10.2x), yjhW(9.8x), yjiG(9.5x), citC(9.1x), hipB(9.0x), ycgN(8.1x), cobS(7.9x), fpr(7.3x), fadJ(7.3x), yjeF(7.1x)
+
+=== SHX_biorep4A.csv  [Dis-Arrest]  GMP-Cor=2.98  P=1997 ===
+  check (all 1000 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.38e-14  H=7.5994  ln(P)=7.5994  exp(H)=1997.0  -> uniform by construction
+  lambda_max^scr=5.989, 2 modes above
+  above (K= 2): H=6.761  norm=0.890  eff_genes=863.7 (43.2% of P)
+           top: ygcJ(20.4x), yphG(18.0x), maeB(14.7x), rpoA(14.4x), ycgZ(14.1x), rpsA(13.8x), rplL(13.8x), ygbT(12.8x), rplO(12.4x), ygcW(12.1x), gapA(12.1x), ppdB(12.0x), fusA(11.8x), clpX(10.7x), yfcO(10.7x)
+   top5 (K= 5): H=7.201  norm=0.948  eff_genes=1340.5 (67.1% of P)
+           top: ygcJ(10.6x), yphG(8.6x), rpsA(7.4x), pqqL(7.3x), rspB(7.1x), maeB(7.0x), rpoA(6.9x), ycgZ(6.8x), mrdA(6.7x), ygcW(6.5x), rplL(6.4x), ygbT(6.3x), yceI(6.3x), rplO(6.2x), pgaC(6.1x)
+  top10 (K=10): H=7.356  norm=0.968  eff_genes=1564.8 (78.4% of P)
+           top: ygfS(6.6x), phnI(6.6x), ygcJ(6.1x), holD(5.9x), yphG(5.3x), mrdA(5.2x), pqqL(5.2x), ydfV(5.2x), ygbT(4.7x), rpmB(4.7x), yfeX(4.6x), ssuD(4.6x), rspB(4.5x), yceI(4.4x), pgaC(4.4x)
+
+=== SHX_biorep6A.csv  [Dis-Arrest]  GMP-Cor=7.03  P=1998 ===
+  check (all 1001 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=7.71e-14  H=7.5999  ln(P)=7.5999  exp(H)=1998.0  -> uniform by construction
+  lambda_max^scr=5.901, 14 modes above
+  above (K=14): H=7.312  norm=0.962  eff_genes=1498.1 (75.0% of P)
+           top: yjhE(9.0x), intE(8.4x), yadS(8.3x), appB(7.4x), gcvP(7.3x), eutB(7.2x), nrdA(7.0x), ybhT(6.8x), ygaY(6.2x), ldcC(6.0x), xerC(5.5x), yebC(5.5x), hisQ(5.4x), folX(5.2x), elbA(5.0x)
+   top5 (K= 5): H=7.067  norm=0.930  eff_genes=1173.2 (58.7% of P)
+           top: yjhE(19.9x), intE(19.0x), appB(16.1x), gcvP(15.5x), eutB(14.9x), ygaY(14.7x), yadS(10.4x), hyaF(10.1x), nrdA(9.9x), xerC(9.2x), ybhT(8.9x), rplQ(8.1x), ldcC(8.1x), tap(7.6x), yegZ(7.4x)
+  top10 (K=10): H=7.231  norm=0.951  eff_genes=1382.0 (69.2% of P)
+           top: yjhE(11.6x), intE(11.2x), yadS(10.4x), appB(9.6x), gcvP(9.3x), nrdA(8.8x), eutB(8.8x), ygaY(8.4x), ybhT(8.4x), ldcC(7.6x), xerC(7.0x), hisQ(6.2x), yebC(6.2x), hyaF(6.1x), hisG(6.0x)
+
+=== VapC_biorep_t2A_filtered.csv  [Reg-Arrest]  GMP-Cor=27.85  P=1797 ===
+  check (all 900 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=5.42e-14  H=7.4939  ln(P)=7.4939  exp(H)=1797.0  -> uniform by construction
+  lambda_max^scr=6.007, 16 modes above
+  above (K=16): H=6.884  norm=0.919  eff_genes=976.5 (54.3% of P)
+           top: pcm(12.8x), rbn(11.9x), glxR(11.2x), yhhY(10.9x), ybjH(10.9x), php(10.7x), flgG(10.4x), cbrA(10.3x), wcaL(9.3x), fucI(9.2x), setA(9.1x), wbbH(9.0x), yfaT(8.6x), yeeV(8.4x), yphD(8.0x)
+   top5 (K= 5): H=6.358  norm=0.848  eff_genes=577.2 (32.1% of P)
+           top: pcm(30.4x), rbn(27.1x), flgG(24.6x), cbrA(24.3x), wcaL(22.4x), fucI(22.3x), wbbH(21.4x), yfaT(20.7x), yeeV(20.3x), yraH(18.3x), tyrT(13.9x), rhaS(13.7x), thrU---thrToperon(13.6x), ycfK(12.8x), yehE(12.7x)
+  top10 (K=10): H=6.601  norm=0.881  eff_genes=735.8 (40.9% of P)
+           top: pcm(18.2x), rbn(17.0x), glxR(15.6x), php(14.8x), flgG(14.6x), cbrA(14.6x), ybjH(14.0x), yhhY(14.0x), wcaL(13.2x), fucI(13.2x), wbbH(12.5x), setA(12.3x), yfaT(12.1x), yeeV(12.0x), yphD(11.2x)
+
+=== VapC_biorep_t5A_filtered.csv  [Reg-Arrest]  GMP-Cor=13.13  P=1797 ===
+  check (all 898 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=6.27e-14  H=7.4939  ln(P)=7.4939  exp(H)=1797.0  -> uniform by construction
+  lambda_max^scr=5.831, 17 modes above
+  above (K=17): H=7.244  norm=0.967  eff_genes=1399.3 (77.9% of P)
+           top: fecC(9.9x), trpE(9.3x), tff(7.7x), ffs(7.5x), tyrT(7.4x), usg(7.1x), ymdB(6.2x), yhjC(6.0x), ybhN(5.8x), aspv(5.7x), nadC(5.6x), rrfB(5.6x), yggG(5.1x), yciG(5.0x), csrb(4.9x)
+   top5 (K= 5): H=6.838  norm=0.912  eff_genes=932.3 (51.9% of P)
+           top: trpE(20.4x), tff(20.2x), ffs(19.8x), fecC(17.5x), tyrT(16.6x), usg(15.6x), ybhN(14.6x), aspv(14.5x), yhjC(13.8x), rrfB(12.9x), csrb(11.7x), kanR(10.6x), acrE(9.9x), nrdF(9.8x), mCherry(9.3x)
+  top10 (K=10): H=7.098  norm=0.947  eff_genes=1209.0 (67.3% of P)
+           top: fecC(14.9x), trpE(13.3x), tff(11.9x), tyrT(11.4x), ffs(11.3x), usg(9.9x), ybhN(9.1x), yhjC(8.7x), aspv(8.7x), rrfB(8.6x), nadC(7.9x), rpsK(7.0x), rpsD(6.8x), csrb(6.8x), yfdY(6.6x)
+
+=== VapC_biorep_t5B_filtered.csv  [Reg-Arrest]  GMP-Cor=29.99  P=1798 ===
+  check (all 895 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=5.34e-14  H=7.4944  ln(P)=7.4944  exp(H)=1798.0  -> uniform by construction
+  lambda_max^scr=5.825, 16 modes above
+  above (K=16): H=7.312  norm=0.976  eff_genes=1497.5 (83.3% of P)
+           top: tyrT(10.3x), rrfB(10.1x), rpsD(8.4x), rpsK(8.1x), rplO(8.0x), alaw(8.0x), rpmC(7.8x), aspv(7.6x), rpoA(7.5x), rplC(7.4x), tff(7.0x), rplL(6.6x), rplD(6.2x), rplW(6.0x), thrU---thrToperon(5.8x)
+   top5 (K= 5): H=6.952  norm=0.928  eff_genes=1045.2 (58.1% of P)
+           top: tyrT(21.9x), rrfB(21.3x), rpsD(17.8x), rpsK(17.3x), rplO(17.0x), alaw(17.0x), rpmC(16.6x), aspv(16.0x), rpoA(15.9x), rplC(15.4x), rplL(14.1x), tff(13.8x), rplD(12.9x), rplW(12.4x), rpsN(11.6x)
+  top10 (K=10): H=7.199  norm=0.961  eff_genes=1337.5 (74.4% of P)
+           top: tyrT(14.3x), rrfB(14.0x), rpsD(11.7x), rpsK(11.3x), alaw(11.2x), rplO(11.2x), rpmC(10.9x), rpoA(10.5x), aspv(10.5x), rplC(10.2x), tff(9.5x), rplL(9.3x), rplD(8.6x), rplW(8.3x), thrU---thrToperon(7.9x)
+
+=== VapC_biorep_tONA_filtered.csv  [Dis-Arrest]  GMP-Cor=4.65  P=1797 ===
+  check (all 898 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=5.47e-14  H=7.4939  ln(P)=7.4939  exp(H)=1797.0  -> uniform by construction
+  lambda_max^scr=5.795, 5 modes above
+  above (K= 5): H=6.993  norm=0.933  eff_genes=1088.5 (60.6% of P)
+           top: tyrT(45.9x), aspv(40.9x), alaw(37.1x), serV(33.0x), tff(29.2x), csrb(16.3x), rrfB(15.4x), kanR(13.0x), thrU---thrToperon(8.1x), mCherry(7.8x), tetR(5.9x), alaXW(4.8x), truB(3.9x), ulaE(3.5x), ygfM(3.4x)
+   top5 (K= 5): H=6.993  norm=0.933  eff_genes=1088.5 (60.6% of P)
+           top: tyrT(45.9x), aspv(40.9x), alaw(37.1x), serV(33.0x), tff(29.2x), csrb(16.3x), rrfB(15.4x), kanR(13.0x), thrU---thrToperon(8.1x), mCherry(7.8x), tetR(5.9x), alaXW(4.8x), truB(3.9x), ulaE(3.5x), ygfM(3.4x)
+  top10 (K=10): H=7.258  norm=0.969  eff_genes=1419.2 (79.0% of P)
+           top: tyrT(24.9x), aspv(22.2x), alaw(20.1x), serV(17.9x), tff(16.0x), csrb(8.9x), rrfB(8.6x), kanR(7.4x), thrU---thrToperon(4.8x), mCherry(4.5x), tetR(3.4x), alaXW(3.1x), truB(2.9x), ygfM(2.7x), leuO(2.7x)
+
+=== adam_matrix_filtered.csv  [Reg-Arrest]  GMP-Cor=21.19  P=3973 ===
+  check (all 1994 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=1.29e-13  H=8.2873  ln(P)=8.2873  exp(H)=3973.0  -> uniform by construction
+  lambda_max^scr=5.951, 29 modes above
+  above (K=29): H=7.859  norm=0.948  eff_genes=2587.9 (65.1% of P)
+           top: treC(12.8x), ybfC(12.6x), ydfR(12.3x), ycaM(11.5x), frc(11.2x), yccZ(10.9x), phnB(10.6x), glpC(10.3x), yihF(9.8x), yicJ(9.7x), ade(9.5x), csgA(9.5x), tehA(9.2x), gabD(8.8x), xdhB(8.5x)
+   top5 (K= 5): H=6.784  norm=0.819  eff_genes=883.4 (22.2% of P)
+           top: ybfC(55.9x), ydfR(46.5x), phnB(45.6x), ade(41.1x), yccZ(39.9x), yicJ(37.4x), ycaM(37.3x), glpC(37.2x), yihF(35.2x), csgA(35.1x), xdhB(32.8x), yeiJ(32.5x), yjgI(31.7x), yjjZ(30.2x), yffQ(27.7x)
+  top10 (K=10): H=7.189  norm=0.867  eff_genes=1324.6 (33.3% of P)
+           top: ybfC(31.3x), ydfR(29.5x), treC(28.5x), ycaM(27.2x), yccZ(25.8x), phnB(25.7x), frc(24.6x), glpC(23.6x), ade(23.2x), yicJ(22.8x), yihF(22.8x), tehA(21.6x), csgA(21.5x), yfaL(20.0x), xdhB(19.8x)
+
+=== adam_matrix_filtered2.csv  [Reg-Arrest]  GMP-Cor=13.85  P=2007 ===
+  check (all 998 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=4.37e-14  H=7.6044  ln(P)=7.6044  exp(H)=2007.0  -> uniform by construction
+  lambda_max^scr=5.806, 12 modes above
+  above (K=12): H=7.294  norm=0.959  eff_genes=1471.4 (73.3% of P)
+           top: yedN(12.8x), pyrI(11.5x), ppiC(9.0x), fliC(8.9x), hdeA(8.8x), pyrB(8.4x), amtB(7.8x), ybhK(7.2x), hdeB(7.0x), insO-2(6.8x), yjgF(6.8x), ygcF(6.4x), rplC(6.1x), carA(6.0x), gadA(5.7x)
+   top5 (K= 5): H=6.872  norm=0.904  eff_genes=964.7 (48.1% of P)
+           top: yedN(25.0x), pyrI(21.8x), ppiC(17.4x), pyrB(15.9x), fliC(15.5x), amtB(15.2x), ybhK(13.4x), hdeA(12.6x), ygcF(12.5x), yjgF(11.7x), insO-2(11.6x), rplC(11.4x), carA(10.8x), fes(10.5x), rplD(10.1x)
+  top10 (K=10): H=7.226  norm=0.950  eff_genes=1374.5 (68.5% of P)
+           top: yedN(14.9x), pyrI(13.2x), ppiC(10.3x), fliC(10.1x), pyrB(9.8x), hdeA(9.2x), amtB(9.0x), ybhK(8.1x), hdeB(7.7x), insO-2(7.6x), yjgF(7.4x), ygcF(7.4x), rplC(7.0x), carA(7.0x), fes(6.5x)
+
+=== deb_Ec_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=137.34  P=2273 ===
+  check (all 1181 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=1.18e-13  H=7.7289  ln(P)=7.7289  exp(H)=2273.0  -> uniform by construction
+  lambda_max^scr=6.773, 59 modes above
+  above (K=59): H=6.751  norm=0.873  eff_genes=854.5 (37.6% of P)
+           top: 312107.1(4.2x), 308845.1(4.2x), 308465.1(4.2x), 310220.1(4.2x), 309186.1(4.2x), 312465.2(4.2x), 310131.1(4.2x), 312370.1(4.2x), 310679.1(4.2x), 308996.1(4.2x), 313362.1(4.2x), 311733.2(4.2x), 310899.1(4.2x), 313171.1(4.2x), 312059.1(4.2x)
+   top5 (K= 5): H=4.561  norm=0.590  eff_genes=95.7 (4.2% of P)
+           top: 313223.1(28.9x), 312338.1(28.9x), 310597.1(28.9x), 311842.2(28.9x), 310922.1(28.9x), 308036.1(28.9x), 308701.1(28.9x), 312385.2(28.9x), 310082.1(28.9x), 311834.1(28.9x), 312864.1(28.9x), 311386.1(28.9x), 309317.2(28.9x), 312504.1(28.9x), 4023(28.9x)
+  top10 (K=10): H=5.120  norm=0.662  eff_genes=167.4 (7.4% of P)
+           top: 313223.1(15.9x), 312864.1(15.9x), 312385.2(15.9x), 310922.1(15.9x), 312338.1(15.9x), 310597.1(15.9x), 311386.1(15.9x), 308036.1(15.9x), 311834.1(15.9x), 311842.2(15.9x), 310082.1(15.9x), 308701.1(15.9x), 309317.2(15.9x), 312504.1(15.9x), 4023(15.9x)
+
+=== deb_KP_CDS_untreated.csv  [Reg-Arrest]  GMP-Cor=128.62  P=2725 ===
+  check (all 1352 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=1.23e-13  H=7.9102  ln(P)=7.9102  exp(H)=2725.0  -> uniform by construction
+  lambda_max^scr=6.919, 28 modes above
+  above (K=28): H=6.885  norm=0.870  eff_genes=977.3 (35.9% of P)
+           top: RS09860(8.6x), RS22895(8.6x), RS25155(8.6x), 072001575.1(8.6x), 032429538.1(8.6x), 050484274.1(8.6x), 050484272.1(8.6x), 004147046.1(8.6x), 032430322.1(8.6x), 032429512.1(8.6x), RS26965(8.6x), 032429971.1(8.6x), RS17780(8.6x), RS08010(8.6x), RS11815(8.6x)
+   top5 (K= 5): H=5.740  norm=0.726  eff_genes=311.1 (11.4% of P)
+           top: 050484272.1(21.1x), 032430322.1(21.1x), 032429971.1(21.1x), RS08010(21.1x), RS09835(21.1x), 004147046.1(21.1x), RS09860(21.1x), 072001575.1(21.1x), RS11815(21.1x), RS26965(21.1x), 032429538.1(21.1x), 032429512.1(21.1x), RS22895(21.1x), RS17780(21.1x), RS25155(21.1x)
+  top10 (K=10): H=6.070  norm=0.767  eff_genes=432.6 (15.9% of P)
+           top: 050484274.1(15.1x), 032430322.1(15.1x), 050484272.1(15.1x), RS22895(15.1x), RS17780(15.1x), RS08010(15.1x), 072001575.1(15.1x), 032429538.1(15.1x), RS09835(15.1x), RS09860(15.1x), 004147046.1(15.1x), 032429512.1(15.1x), 032429971.1(15.1x), RS26965(15.1x), RS11815(15.1x)
+
+=== sample_13a_filtered.csv  [Dis-Arrest]  GMP-Cor=2.54  P=2037 ===
+  check (all 1000 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.15e-14  H=7.6192  ln(P)=7.6192  exp(H)=2037.0  -> uniform by construction
+  lambda_max^scr=6.503, 5 modes above
+  above (K= 5): H=6.360  norm=0.835  eff_genes=578.5 (28.4% of P)
+           top: ybgO(34.2x), phnJ(31.8x), ilvI(30.3x), truC(27.8x), yagX(25.8x), ybjI(24.1x), racC(23.6x), ydhY(22.9x), maa(22.4x), eutA(22.0x), tmRNA(20.6x), glnP(19.9x), insF-4(19.1x), ycjW(16.3x), cysG(16.2x)
+   top5 (K= 5): H=6.360  norm=0.835  eff_genes=578.5 (28.4% of P)
+           top: ybgO(34.2x), phnJ(31.8x), ilvI(30.3x), truC(27.8x), yagX(25.8x), ybjI(24.1x), racC(23.6x), ydhY(22.9x), maa(22.4x), eutA(22.0x), tmRNA(20.6x), glnP(19.9x), insF-4(19.1x), ycjW(16.3x), cysG(16.2x)
+  top10 (K=10): H=6.554  norm=0.860  eff_genes=702.1 (34.5% of P)
+           top: phnJ(19.4x), ybgO(18.6x), ilvI(16.9x), truC(16.8x), ygjK(15.3x), yagX(15.2x), ybjI(14.9x), cysG(14.7x), gcvT(14.2x), maa(13.7x), yjfO(13.4x), ydhY(13.3x), racC(13.3x), ansP(13.0x), ygeX(12.5x)
+
+=== sample_13b_filtered.csv  [Reg-Arrest]  GMP-Cor=21.95  P=2023 ===
+  check (all 1000 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=8.49e-14  H=7.6123  ln(P)=7.6123  exp(H)=2023.0  -> uniform by construction
+  lambda_max^scr=6.203, 20 modes above
+  above (K=20): H=6.973  norm=0.916  eff_genes=1067.2 (52.8% of P)
+           top: yidP(10.9x), hha(10.2x), yadD(10.2x), ygbK(10.1x), queF(10.0x), hcaT(9.8x), ycaJ(9.7x), yiaD(9.7x), ppx(9.6x), phr(9.3x), kdsA(9.2x), ycbF(9.2x), menA(9.0x), ytfG(8.9x), yfjI(8.8x)
+   top5 (K= 5): H=6.833  norm=0.898  eff_genes=928.1 (45.9% of P)
+           top: yidP(29.8x), queF(26.9x), ygbK(26.8x), ppx(25.8x), ycbW(23.6x), yfdR(22.1x), insK(16.4x), treB(13.2x), yjcH(12.6x), gspO(12.4x), yagY(12.1x), hha(11.7x), yjjM(11.4x), yadD(11.2x), yagR(11.1x)
+  top10 (K=10): H=6.906  norm=0.907  eff_genes=998.5 (49.4% of P)
+           top: yidP(18.1x), ygbK(16.7x), queF(16.6x), ppx(16.1x), hha(15.8x), yadD(15.7x), hcaT(15.5x), ycaJ(15.1x), ycbW(14.5x), yfdR(14.0x), yjcH(11.6x), insK(11.4x), yfjI(11.4x), yagY(11.2x), yiaD(11.1x)
+
+=== sample_15a_filtered.csv  [Dis-Arrest]  GMP-Cor=0.00  P=2004 ===
+  check (all 1000 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=9.60e-14  H=7.6029  ln(P)=7.6029  exp(H)=2004.0  -> uniform by construction
+  lambda_max^scr=6.312, 0 modes above  (none above -- 'above' falls back to K=1)
+  above (K= 1): H=3.923  norm=0.516  eff_genes=50.6 (2.5% of P)
+           top: ydaQ(217.2x), yneJ(208.1x), yjhI(181.2x), idi(135.2x), yfgD(129.9x), eamA(108.3x), diaA(106.3x), mutS(100.3x), cpxP(83.4x), rfaE(70.6x), yojI(70.4x), suhB(37.2x), pnuC(25.2x), slyB(19.6x), ybfP(14.8x)
+   top5 (K= 5): H=5.853  norm=0.770  eff_genes=348.2 (17.4% of P)
+           top: ydaQ(49.3x), ybaQ(47.4x), yneJ(47.3x), ybfP(46.1x), xylE(45.6x), pta(45.2x), yedV(41.5x), yjhI(40.9x), rffM(40.1x), rhsC(37.4x), ygcP(31.3x), bssS(31.2x), idi(30.1x), yfgD(29.8x), yeeA(25.3x)
+  top10 (K=10): H=6.431  norm=0.846  eff_genes=621.0 (31.0% of P)
+           top: ydaQ(25.8x), ybaQ(24.8x), yneJ(24.8x), ybfP(24.1x), xylE(24.0x), pta(23.7x), yedV(21.7x), yjhI(21.5x), rffM(21.0x), rhsC(20.3x), ilvC(18.1x), ygcP(17.6x), bssS(16.4x), proX(16.0x), seqA(16.0x)
+
+=== sample_15b_filtered.csv  [Reg-Arrest]  GMP-Cor=31.64  P=2023 ===
+  check (all 1000 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=7.04e-14  H=7.6123  ln(P)=7.6123  exp(H)=2023.0  -> uniform by construction
+  lambda_max^scr=6.498, 16 modes above
+  above (K=16): H=6.871  norm=0.903  eff_genes=963.5 (47.6% of P)
+           top: yagU(13.4x), yncA(13.0x), dhaR(12.6x), ftsX(12.1x), hspQ(11.9x), mrdB(10.8x), ygeK(10.6x), yfaZ(10.5x), fumB(10.0x), rplM(9.9x), yagQ(9.9x), yzgL(9.8x), yccT(9.8x), uvrC(9.6x), pyrC(9.5x)
+   top5 (K= 5): H=6.753  norm=0.887  eff_genes=856.5 (42.3% of P)
+           top: yagU(31.6x), yncA(30.7x), dhaR(29.9x), ftsX(28.2x), hspQ(28.1x), mrdB(25.2x), uvrC(22.6x), ydaG(20.2x), yiaT(20.1x), stfR(17.8x), ydaT(17.7x), galT(15.2x), recE(14.8x), pinR(14.4x), hslV(14.2x)
+  top10 (K=10): H=6.745  norm=0.886  eff_genes=850.0 (42.0% of P)
+           top: yagU(19.2x), yncA(18.6x), dhaR(18.0x), ftsX(17.3x), hspQ(17.1x), mrdB(15.5x), ygeK(14.4x), yfaZ(14.3x), yccT(14.0x), rplM(14.0x), yagQ(13.9x), yzgL(13.7x), uvrC(13.7x), ydaG(13.1x), yphB(13.0x)
+
+=== sample_2b_filtered.csv  [Reg-Arrest]  GMP-Cor=38.10  P=2071 ===
+  check (all 1041 modes): sum(P_i)=1.000000000000  max|P_i - 1/P|*P=9.19e-14  H=7.6358  ln(P)=7.6358  exp(H)=2071.0  -> uniform by construction
+  lambda_max^scr=6.078, 24 modes above
+  above (K=24): H=7.146  norm=0.936  eff_genes=1268.9 (61.3% of P)
+           top: rpsR(8.9x), hcaE(8.4x), yhgF(8.4x), ynbB(8.2x), tmRNA(7.9x), yhfY(7.4x), mokC(7.3x), srmB(7.3x), mutT(7.3x), caiF(7.1x), aslB(6.7x), ykgD(6.6x), yjfI(6.5x), hemB(6.5x), yahC(6.5x)
+   top5 (K= 5): H=6.660  norm=0.872  eff_genes=780.6 (37.7% of P)
+           top: rpsR(27.6x), hcaE(27.3x), ynbB(26.8x), mokC(24.0x), srmB(23.8x), mutT(23.4x), caiF(22.7x), yhfY(22.3x), hemB(21.0x), pgm(20.3x), tmRNA(19.7x), yahC(19.0x), yjhU(18.5x), yfjS(18.0x), nadD(17.7x)
+  top10 (K=10): H=6.871  norm=0.900  eff_genes=963.7 (46.5% of P)
+           top: rpsR(17.5x), hcaE(16.4x), ynbB(16.2x), mokC(14.5x), srmB(14.4x), mutT(14.3x), yhfY(14.0x), tmRNA(13.7x), caiF(13.6x), hemB(13.0x), yhgF(12.9x), yahC(12.6x), pgm(12.2x), yjhU(12.0x), betA(11.8x)

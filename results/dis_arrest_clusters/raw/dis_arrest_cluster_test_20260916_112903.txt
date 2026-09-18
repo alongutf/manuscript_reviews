@@ -1,0 +1,56 @@
+Dis-arrest two-cluster test
+generated 20260916_112903
+
+Input : data_for_paper sample_13a + sample_15a, 2000 cells x 2042 genes (shared panel)
+Leiden: resolution 0.7000 gives exactly 2 clusters ({'low-depth': 1148, 'high-depth': 852})
+
+Q1 -- do the clusters track expression level?
+  total_counts   median     26.0 (low) vs     73.0 (high)  fold  2.81  AUC 0.942  d  0.79  p 9.80e-251
+  n_detected     median     21.0 (low) vs     58.0 (high)  fold  2.76  AUC 0.951  d  1.00  p 1.59e-261
+  log10(total counts) alone predicts the cluster label: CV AUC 0.941, accuracy 0.871
+  spearman_UMAP_1_vs_log_total_counts    -0.832
+  spearman_UMAP_2_vs_log_total_counts    +0.678
+  spearman_PC_1_vs_log_total_counts      +0.966
+  spearman_PC_2_vs_log_total_counts      -0.451
+  cluster vs batch:
+    cluster  high-depth  low-depth
+    batch                         
+    dis1            540        460
+    dis2            312        688
+  AUC(cluster separates dis1 from dis2) = 0.386
+  top-50 markers: 48 up in the high-depth cluster, 2 up in the low-depth cluster
+
+Q2 -- GMP-Cor per group, all at n = 852 cells, p = 2042
+  Significance: the paper's permutation test on lambda_1 (B = 300 column scrambles), run on one fixed cell set per group.
+  Sampling spread: mean +/- SD and median of GMP-Cor over 10 independent cell draws.
+
+  group                       pool det/cell cnt/cell   lam_1 null_mu  perm_p GMP-Cor fixed set   over cell draws  median     draw range    PR
+  all cells                   2000     51.2     70.3  11.463   7.256  0.0033     4.47 +/- 0.60       3.44 +/- 4.14      1.70  0.03 - 12.63    1.3
+  high-depth cluster           852     88.2    122.5  10.493   6.891  0.0033     7.41 +/- 0.67       7.31 +/- 0.31      7.25  6.96 - 8.01     3.2
+  low-depth cluster           1148     23.7     31.6   8.784   7.136  0.0199     1.81 +/- 0.76       3.31 +/- 2.32      2.77  0.78 - 7.75     2.1
+  depth split: upper half      996     82.9    116.4   9.262   6.888  0.0033     6.24 +/- 0.95       9.84 +/- 1.92      9.97  6.20 - 12.32    6.5
+  depth split: lower half     1004     19.7     24.6   6.332   6.888  0.9502     0.00 +/- 0.00       0.00 +/- 0.00      0.00  0.00 - 0.00     1.5
+  random half A               1000     50.1     68.7   8.073   7.212  0.0631     1.19 +/- 0.62       1.60 +/- 0.51      1.56  0.87 - 2.27     6.2
+  random half B               1000     52.2     71.8   7.257   7.189  0.3688     0.07 +/- 0.48       4.45 +/- 2.75      4.43  0.00 - 8.52     1.7
+  dis1                        1000     63.2     90.1  13.694   7.254  0.0033     8.84 +/- 1.01       6.43 +/- 2.01      6.42  1.98 - 9.12     1.2
+  dis2                        1000     39.2     50.4   7.113   7.116  0.4153     0.00 +/- 0.00       0.43 +/- 0.82      0.00  0.00 - 2.35     2.0
+  PR = participation ratio of the leading mode in cell space: the effective number of cells carrying it, out of n = 852.
+  perm_p is censored at 1/(B+1) = 0.0033.
+
+  dGMP = fraction of GMP-Cor carried by the between-group mean difference
+  (all 2000 cells, raw GMP-Cor = 0.891)
+  partition                    centered     dGMP  axis AUC
+  leiden (2 clusters)             0.838    0.060     0.867
+  depth median split              0.730    0.181     0.814
+  batch (dis1 vs dis2)            0.358    0.598     0.693
+  random split                    0.942   -0.058     0.565
+
+Reading:
+  The split is essentially a depth split: AUC 0.942 on total counts and 0.951 on genes detected.
+  All of all cells, high-depth cluster, low-depth cluster exceed their permutation null at p < 0.05.
+  Scale of the noise: two random halves of the same cells -- which differ by construction only by which cells landed in them -- give GMP-Cor 1.19 and 0.07 (perm_p 0.063 and 0.369).
+  Over 10 independent 852-cell draws from the same pool, GMP-Cor ranges 0.03 to 12.63 (403.8-fold). A cluster-to-cluster difference smaller than that is not evidence of anything.
+  Why it is unstable: the leading mode is carried by an effective 1.3 of 852 cells (top 1% of cells hold 96% of its weight), so which few cells a draw happens to include sets the value.
+  Within-cluster GMP-Cor at matched n over 10 cell draws (mean +/- SD [median]): 7.31 +/- 0.31 [7.25] (high-depth) vs 3.31 +/- 2.32 [2.77] (low-depth); all cells 3.44 +/- 4.14 [1.70].
+  dGMP (leiden 0.060, depth split 0.181, random split -0.058) is NOT interpretable here: its denominator is the pooled GMP-Cor, 0.891, which is at the noise floor, so the ratio is dominated by scramble noise and even the random split -- which has no between-group difference by construction -- returns -0.058.
+  GMP-Cor is extensive in p and depends on n through the Marchenko-Pastur edge, so only the matched-n, matched-p rows above are comparable to one another.

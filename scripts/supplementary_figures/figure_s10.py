@@ -36,12 +36,27 @@ REF_LW = 1
 REF_ALPHA = 0.85
 
 
-def _load_group_medians():
-    path = os.path.join(root_dir, 'results', 'data_metrics', 'test8.csv')
+RANKING_PARAM = 'sum_denoised_ev'
+# External / duplicate datasets left out of the Regulated vs Dis-Arrest comparison
+TO_EXCLUDE = ['adam_matrix_filtered.csv', 'deb_Ec_CDS_untreated.csv', 'deb_KP_CDS_untreated.csv']
+
+
+def _load_gmp_cor():
+    """Per-sample GMP-Cor for the Regulated ('r') and Dis-Arrest ('d') groups.
+
+    Reads data_metrics.csv (the current metrics table, also the source of the
+    Ext. Data Fig. S3 values), so the box plot and its median lines agree.
+    """
+    path = os.path.join(root_dir, 'results', 'data_metrics', 'data_metrics.csv')
     data = pd.read_csv(path, index_col=0)
-    ranking_param = 'sum_denoised_ev'
-    g1 = data[data['category'] == 'r'][ranking_param]
-    g0 = data[data['category'] == 'd'][ranking_param]
+    data = data[~data['file_name'].isin(TO_EXCLUDE)]
+    g1 = data[data['category'] == 'r'][RANKING_PARAM]
+    g0 = data[data['category'] == 'd'][RANKING_PARAM]
+    return g1, g0
+
+
+def _load_group_medians():
+    g1, g0 = _load_gmp_cor()
     return g1.median(), g0.median()
 
 
@@ -73,7 +88,7 @@ def panel_A(ax):
                 capsize=2, linewidth=1.5, markersize=3, label='simulated')
     ax.fill_between(rho_vals, medians - stds, medians + stds, alpha=0.3, color='steelblue')
     ax.axhline(med_reg, color=REG_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
-               label='Reg-Arrest median')
+               label='Regulated median')
     ax.axhline(med_dis, color=DIS_COLOR, linestyle='--', linewidth=REF_LW, alpha=REF_ALPHA,
                label='Dis-Arrest median')
     ax.set_xlabel(r'Correlation strength ($\chi$)', fontsize=fsize - 2)
@@ -88,14 +103,7 @@ def panel_A(ax):
 
 
 def panel_B(ax):
-    path = os.path.join(root_dir, 'results', 'data_metrics', 'data_metrics.csv')
-    data = pd.read_csv(path, index_col=0)
-    ranking_param = 'sum_denoised_ev'
-    to_exclude = ['adam_matrix_filtered.csv','deb_Ec_CDS_untreated.csv','deb_KP_CDS_untreated.csv']
-    data = data[~data['file_name'].isin(to_exclude)]
-    data['Rank'] = data[ranking_param].rank(method='min').astype(int)
-    group1 = data[data['category'] == 'r'][ranking_param]
-    group0 = data[data['category'] == 'd'][ranking_param]
+    group1, group0 = _load_gmp_cor()
     c = "k"
     box = ax.boxplot([group1, group0], meanline=True, showmeans=True, patch_artist=True,
                      boxprops=dict(facecolor="None", color=c), whiskerprops=dict(color=c),

@@ -36,7 +36,7 @@ both figures (panel E here, panel B in S10).
 | `REG_COLOR` | `'steelblue'` | Condition color for Regulated / high-χ — panels A, C, E |
 | `DIS_COLOR` | `'#E07B54'` | Condition color for Dis-Arrest / low-χ — panels B, D, E |
 | `REF_LW`, `REF_ALPHA` | `1`, `0.85` | Style of the median reference lines in the box plot |
-| `med_reg`, `med_dis` | computed at module level from `test8.csv` | Group medians drawn as reference lines in panel E |
+| `med_reg`, `med_dis` | computed at module level from `data_metrics.csv` via `_load_gmp_cor()` (same exclusions as panel E) | Group medians drawn as reference lines in panel E (28.92 / 2.98) |
 
 ---
 
@@ -128,14 +128,14 @@ Loads a `.npy` file from `ev_data_dir`. File shape: `(2, N)` — row 0 = origina
 | Parameter | Value | Notes |
 |---|---|---|
 | Metric | `sum_denoised_ev` column | GMP-Cor proxy |
-| Excluded rows | `adam_matrix_filtered.csv`, `deb_Ec_CDS_untreated.csv`, `deb_KP_CDS_untreated.csv` | Dropped before plotting |
+| Excluded rows | `adam_matrix_filtered.csv`, `deb_Ec_CDS_untreated.csv`, `deb_KP_CDS_untreated.csv` | `TO_EXCLUDE`; dropped in `_load_gmp_cor()`, shared by box plot and median lines |
 | group1 | `category == 'r'` | Regulated samples |
 | group0 | `category == 'd'` | Dis-Arrest samples |
 | Box edge color | `REG_COLOR` / `DIS_COLOR` | Condition-coded; facecolor α=0.12 tint |
 | Strip plot | `s=10`, α=0.5, jitter ±0.12, seed=42 | Individual samples overlaid on boxes |
 | Means | solid line | `meanline=True`, `showmeans=True` |
-| Reference lines | `med_reg` (REG_COLOR dashed), `med_dis` (DIS_COLOR dashed) | Group medians from `test8.csv` |
-| Significance | Mann-Whitney U (`stats.mannwhitneyu`) | Annotated `*`/`**`/`***`/`****`/`NS` via `format_p` |
+| Reference lines | `med_reg` (REG_COLOR dashed), `med_dis` (DIS_COLOR dashed) | Group medians of the plotted data (`data_metrics.csv`, same exclusions): Regulated 28.92 (n=8), Dis-Arrest 2.98 (n=7) |
+| Significance | Mann-Whitney U (`stats.mannwhitneyu`; U=56, p=3.1e-4) | Annotated `*`/`**`/`***`/`****`/`NS` via `format_p` |
 | y limits | `bottom=-1, top=45` | |
 | y-label | `'GMP-Cor'` | Standalone (no longer shares a y-axis) |
 | x-tick labels | `['Regulated', 'Dis-Arrest']` | |
@@ -153,7 +153,6 @@ Loads a `.npy` file from `ev_data_dir`. File shape: `(2, N)` — row 0 = origina
 | `ev_data/simulated_pcs_0.9.npy` | Panel C | Simulation χ = 0.9 |
 | `ev_data/simulated_pcs_0.5.npy` | Panel D | Simulation χ = 0.5 |
 | `results/data_metrics/data_metrics.csv` | Panel E | Dataset metrics with categories |
-| `results/data_metrics/test8.csv` | Panel E (via `_load_group_medians`) | Group medians for reference lines |
 
 ---
 
